@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Loan Clarity — Student Loan Borrower Sentiment Index™</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: #0a0f1a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 0 40px;
+  }
+
+  /* ── Page ──────────────────────────────────── */
+  .page {
+    width: 816px;
+    height: 1056px;
+    background: #07111f;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 8px 48px rgba(0,0,0,.6);
+  }
+
+  /* ── Header ─────────────────────────────────── */
+  .hdr {
+    background: linear-gradient(135deg, #0b1d35 0%, #0d2545 100%);
+    padding: 11px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    border-bottom: 1px solid #1e3a5f;
+  }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-mark {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, #1a6eb5, #2d7dd2);
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; box-shadow: 0 0 12px rgba(45,125,210,.4);
+  }
+  .logo h1 { font-size: 18px; font-weight: 800; color: #fff; letter-spacing: -.02em; }
+  .logo p  { font-size: 9.5px; color: #5a80a8; margin-top: 1px; }
+
+  .score-pill {
+    background: #0f2240;
+    border: 1px solid #f97316;
+    border-radius: 14px;
+    padding: 5px 16px;
+    text-align: right;
+    box-shadow: 0 0 16px rgba(249,115,22,.2);
+  }
+  .sp-label  { font-size: 8px; color: #6888a8; text-transform: uppercase; letter-spacing: .1em; }
+  .sp-score  { font-size: 20px; font-weight: 900; color: #f97316; line-height: 1.1; }
+  .sp-status { font-size: 8.5px; color: #f97316; font-weight: 700; letter-spacing: .05em; }
+
+  /* ── Tagline ─────────────────────────────────── */
+  .tagline {
+    background: linear-gradient(90deg,#0b1d35,#102040);
+    padding: 6px 28px;
+    font-size: 10.5px;
+    color: #5a80a8;
+    font-style: italic;
+    border-bottom: 1px solid #1e3a5f;
+    flex-shrink: 0;
+  }
+  .tagline strong { color: #2d7dd2; font-style: normal; }
+
+  /* ── KPI strip ───────────────────────────────── */
+  .kpi {
+    display: grid;
+    grid-template-columns: repeat(4,1fr);
+    background: #050e1a;
+    border-bottom: 1px solid #1e3a5f;
+    flex-shrink: 0;
+  }
+  .kc {
+    padding: 7px 14px;
+    border-right: 1px solid #1e3a5f;
+    position: relative;
+  }
+  .kc:last-child { border-right: none; }
+  .kc::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 100%; height: 2px;
+  }
+  .kc.g-accent::after { background: #22c55e; }
+  .kc.o-accent::after { background: #f97316; }
+  .kc.r-accent::after { background: #dc2626; }
+  .kl { font-size: 7.5px; color: #3a5878; text-transform: uppercase; letter-spacing: .09em; }
+  .kv { font-size: 12px; font-weight: 800; margin-top: 1px; }
+  .g { color: #22c55e; }
+  .o { color: #f97316; }
+  .r { color: #dc2626; }
+  .b { color: #38bdf8; }
+
+  /* ── Body ────────────────────────────────────── */
+  .body {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 248px 264px 240px;
+    gap: 0;
+    overflow: hidden;
+    min-height: 0;
+  }
+  .col {
+    padding: 11px 13px;
+    border-right: 1px solid #1e3a5f;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    overflow: hidden;
+    min-height: 0;
+  }
+  .col:last-child { border-right: none; }
+
+  /* ── Section labels ──────────────────────────── */
+  .lbl {
+    font-size: 7.5px; font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: #2d7dd2;
+    margin-bottom: 3px;
+  }
+  .sec-title {
+    font-size: 12.5px; font-weight: 800;
+    color: #e2eaf4;
+    letter-spacing: -.02em;
+    line-height: 1.25;
+    margin-bottom: 4px;
+  }
+  .body-text {
+    font-size: 10px; color: #5a80a8; line-height: 1.5;
+  }
+
+  /* ── Signal table ────────────────────────────── */
+  .sig-card {
+    background: #0b1d35;
+    border: 1px solid #1e3a5f;
+    border-radius: 6px;
+    padding: 8px 10px;
+  }
+  .sig-card-title {
+    font-size: 8px; font-weight: 700;
+    color: #2d7dd2;
+    text-transform: uppercase;
+    letter-spacing: .09em;
+    margin-bottom: 5px;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  tr { border-bottom: 1px solid #1a3050; }
+  tr:last-child { border-bottom: none; }
+  td { padding: 3.5px 3px; font-size: 10px; }
+  .tn { color: #94a3b8; font-weight: 500; }
+  .ts { font-weight: 800; text-align: center; width: 34px; }
+  .tw { color: #2d7dd2; font-weight: 700; text-align: right; width: 30px; font-size: 9.5px; }
+
+  /* ── Why Now bullets ─────────────────────────── */
+  .why-now { display: flex; flex-direction: column; gap: 3px; }
+  .wn {
+    display: flex; align-items: flex-start; gap: 6px;
+    font-size: 9.5px; color: #7a9ab8; line-height: 1.4;
+  }
+  .wn-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    flex-shrink: 0; margin-top: 3px;
+  }
+
+  /* ── Index hero ──────────────────────────────── */
+  .index-hero {
+    background: linear-gradient(135deg, #0b1d35, #0f2545);
+    border: 1px solid #f97316;
+    border-radius: 8px;
+    padding: 9px 12px;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(249,115,22,.15);
+  }
+  .ih-label  { font-size: 7.5px; color: #4a6888; text-transform: uppercase; letter-spacing: .1em; }
+  .ih-score  { font-size: 40px; font-weight: 900; color: #f97316; line-height: 1; text-shadow: 0 0 20px rgba(249,115,22,.4); }
+  .ih-status { font-size: 10.5px; color: #f97316; font-weight: 800; margin-top: 2px; letter-spacing: .06em; }
+  .ih-date   { font-size: 7.5px; color: #3a5878; margin-top: 1px; }
+
+  /* ── AI box ──────────────────────────────────── */
+  .ai-box {
+    background: #091525;
+    border: 1px solid #1e3a5f;
+    border-left: 3px solid #2d7dd2;
+    border-radius: 6px;
+    padding: 8px 10px;
+  }
+  .ai-lbl  { font-size: 7.5px; color: #2d7dd2; text-transform: uppercase; letter-spacing: .1em; font-weight: 700; margin-bottom: 3px; }
+  .ai-text { font-size: 9.5px; color: #7aaccf; font-style: italic; line-height: 1.45; }
+
+  /* ── Reddit posts ────────────────────────────── */
+  .rposts { display: flex; flex-direction: column; gap: 3px; }
+  .rpost {
+    background: #091525;
+    border: 1px solid #1a3050;
+    border-radius: 4px;
+    padding: 4px 7px;
+    display: flex; gap: 6px; align-items: flex-start;
+  }
+  .rs { font-size: 8px; color: #2d7dd2; white-space: nowrap; font-weight: 700; flex-shrink: 0; }
+  .rt { font-size: 9px; color: #5a80a8; line-height: 1.3; }
+
+  /* ── Metric bullets ──────────────────────────── */
+  .metric-list { display: flex; flex-direction: column; gap: 3px; }
+  .metric {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 9.5px; color: #5a80a8; line-height: 1.35;
+  }
+  .metric strong { font-weight: 800; }
+
+  /* ── Revenue streams ─────────────────────────── */
+  .streams { display: flex; flex-direction: column; gap: 5px; }
+  .stream {
+    background: #091525;
+    border: 1px solid #1e3a5f;
+    border-radius: 5px;
+    padding: 6px 9px;
+    position: relative;
+    overflow: hidden;
+  }
+  .stream::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+  }
+  .stream.s1::before { background: #2d7dd2; }
+  .stream.s2::before { background: #22c55e; }
+  .stream.s3::before { background: #f97316; }
+  .stream-name  { font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: .07em; }
+  .s1 .stream-name { color: #60a5fa; }
+  .s2 .stream-name { color: #4ade80; }
+  .s3 .stream-name { color: #fb923c; }
+  .stream-price { font-size: 11.5px; font-weight: 800; margin: 1px 0; }
+  .s1 .stream-price { color: #93c5fd; }
+  .s2 .stream-price { color: #86efac; }
+  .s3 .stream-price { color: #fdba74; }
+  .stream-desc  { font-size: 9px; color: #4a6888; line-height: 1.35; }
+
+  /* ── Divider ─────────────────────────────────── */
+  .divider { border: none; border-top: 1px solid #1a3050; }
+
+  /* ── Market / moat bullets ───────────────────── */
+  .mbullets { display: flex; flex-direction: column; gap: 3px; }
+  .mb {
+    display: flex; align-items: flex-start; gap: 6px;
+    font-size: 9.5px; color: #5a80a8; line-height: 1.4;
+  }
+  .mb strong { color: #94b8d8; font-weight: 700; }
+  .mb-icon { font-size: 9px; flex-shrink: 0; margin-top: 1px; }
+
+  /* ── Seed ask ────────────────────────────────── */
+  .ask-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+  }
+  .ask-item {
+    background: #091525;
+    border: 1px solid #1e3a5f;
+    border-radius: 4px;
+    padding: 5px 7px;
+  }
+  .ask-pct   { font-size: 16px; font-weight: 900; line-height: 1; }
+  .ask-label { font-size: 8px; font-weight: 700; color: #7a9ab8; text-transform: uppercase; letter-spacing: .04em; }
+  .ask-desc  { font-size: 8.5px; color: #3a5878; margin-top: 1px; line-height: 1.3; }
+  .a1 .ask-pct { color: #60a5fa; }
+  .a2 .ask-pct { color: #4ade80; }
+  .a3 .ask-pct { color: #fb923c; }
+  .a4 .ask-pct { color: #facc15; }
+
+  /* ── Footer ──────────────────────────────────── */
+  .footer {
+    background: #050e1a;
+    padding: 8px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid #1e3a5f;
+    flex-shrink: 0;
+  }
+  .fl { font-size: 9.5px; color: #3a5878; }
+  .fl strong { color: #2d7dd2; font-size: 10.5px; }
+  .fr { font-size: 8.5px; color: #3a5878; text-align: right; }
+  .fr a { color: #2d7dd2; text-decoration: none; }
+
+  /* ── Print button ────────────────────────────── */
+  .print-btn {
+    margin-top: 20px;
+    background: linear-gradient(135deg,#1a6eb5,#2d7dd2);
+    color: #fff; border: none;
+    padding: 11px 28px; border-radius: 8px;
+    font-size: 13px; font-weight: 700; cursor: pointer;
+    letter-spacing: .04em; font-family: inherit;
+    box-shadow: 0 4px 20px rgba(45,125,210,.4);
+  }
+  .print-hint { margin-top: 6px; font-size: 11px; color: #3a5878; }
+
+  @media print {
+    body { background: #07111f; padding: 0; }
+    .page { box-shadow: none; }
+    .print-btn, .print-hint { display: none; }
+    @page { margin: 0; size: letter; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="hdr">
+    <div class="logo">
+      <div class="logo-mark">📊</div>
+      <div>
+        <h1>Loan Clarity</h1>
+        <p>Student Loan Borrower Sentiment Index™</p>
+      </div>
+    </div>
+    <div class="score-pill">
+      <div class="sp-label">Current Index · May 2026</div>
+      <div class="sp-score">26 / 100</div>
+      <div class="sp-status">⬆ HIGH ANXIETY</div>
+    </div>
+  </div>
+
+  <!-- TAGLINE -->
+  <div class="tagline">
+    <strong>The Bloomberg Terminal for Student Debt</strong> — Real-time borrower sentiment intelligence powered by Reddit, CFPB, Google Trends &amp; Claude AI.
+  </div>
+
+  <!-- KPI ROW -->
+  <div class="kpi">
+    <div class="kc g-accent"><div class="kl">Refinance Searches</div><div class="kv g">▲ Surging +68%</div></div>
+    <div class="kc o-accent"><div class="kl">Delinquency Rate</div><div class="kv o">▲ Up to 5.7%</div></div>
+    <div class="kc o-accent"><div class="kl">IDR Enrollment</div><div class="kv o">▲ Record 42M</div></div>
+    <div class="kc r-accent"><div class="kl">Borrower Sentiment</div><div class="kv r">▲ 80% Worried</div></div>
+  </div>
+
+  <!-- 3-COL BODY -->
+  <div class="body">
+
+    <!-- LEFT COL -->
+    <div class="col">
+      <div>
+        <div class="lbl">What It Is</div>
+        <div class="sec-title">The first real-time index of student loan borrower stress</div>
+        <div class="body-text">
+          Six weighted signals → one 0–100 score, updated continuously with Claude AI. Like the CNN Fear &amp; Greed Index — for the $1.77T student debt market that has never had a data layer.
+        </div>
+      </div>
+
+      <div class="sig-card">
+        <div class="sig-card-title">Index Signal Weights</div>
+        <table>
+          <tr><td class="tn">Google Search Panic</td><td class="ts" style="color:#f97316">32</td><td class="tw">20%</td></tr>
+          <tr><td class="tn">Reddit Sentiment (AI)</td><td class="ts" style="color:#f97316">30</td><td class="tw">20%</td></tr>
+          <tr><td class="tn">CFPB Complaint Volume</td><td class="ts" style="color:#dc2626">14</td><td class="tw">15%</td></tr>
+          <tr><td class="tn">Delinquency Trends</td><td class="ts" style="color:#f97316">28</td><td class="tw">15%</td></tr>
+          <tr><td class="tn">Refinance Demand</td><td class="ts" style="color:#22c55e">38</td><td class="tw">10%</td></tr>
+          <tr><td class="tn">Borrower Surveys</td><td class="ts" style="color:#dc2626">20</td><td class="tw">20%</td></tr>
+        </table>
+      </div>
+
+      <div>
+        <div class="lbl">Why Now</div>
+        <div class="why-now">
+          <div class="wn"><div class="wn-dot" style="background:#dc2626"></div>SAVE Plan injunction — 8M borrowers in limbo</div>
+          <div class="wn"><div class="wn-dot" style="background:#f97316"></div>1.9M missed payments after restart (+24%)</div>
+          <div class="wn"><div class="wn-dot" style="background:#eab308"></div>CFPB complaints up 320% — servicers overwhelmed</div>
+          <div class="wn"><div class="wn-dot" style="background:#22c55e"></div>LLMs make sentiment analysis finally cheap &amp; fast</div>
+          <div class="wn"><div class="wn-dot" style="background:#2d7dd2"></div>Zero existing products track borrower psychology</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CENTER COL -->
+    <div class="col">
+      <div>
+        <div class="lbl">Live Right Now — May 2026</div>
+        <div class="index-hero">
+          <div class="ih-label">Borrower Sentiment Index</div>
+          <div class="ih-score">26</div>
+          <div class="ih-status">HIGH ANXIETY</div>
+          <div class="ih-date">Updated continuously · May 2026</div>
+        </div>
+      </div>
+
+      <div class="ai-box">
+        <div class="ai-lbl">🤖 Claude AI · 25 Reddit posts analyzed</div>
+        <div class="ai-text">"Borrowers express high anxiety over repayment confusion and rising delinquencies. SAVE plan uncertainty dominates discussion."</div>
+      </div>
+
+      <div>
+        <div class="lbl" style="margin-bottom:4px">Live Reddit Signal</div>
+        <div class="rposts">
+          <div class="rpost"><span class="rs">r/StudentLoans</span><span class="rt">Underwriting and Risk Management Needed for Student Loans</span></div>
+          <div class="rpost"><span class="rs">r/povertyfinance</span><span class="rt">$43K to $57K raise — a year later, debts still piling up</span></div>
+          <div class="rpost"><span class="rs">r/StudentLoans</span><span class="rt">50k in debt from undergrad. Is MSW worth it?</span></div>
+          <div class="rpost"><span class="rs">r/povertyfinance</span><span class="rt">Student loan stress is consuming my life</span></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="lbl">Key Live Metrics</div>
+        <div class="metric-list">
+          <div class="metric"><span style="color:#dc2626;font-size:8px">●</span><strong style="color:#fb7185">42,847</strong> CFPB complaints / 90 days <span style="color:#dc2626">(+320%)</span></div>
+          <div class="metric"><span style="color:#f97316;font-size:8px">●</span><strong style="color:#fdba74">68 / 100</strong> Google Trends panic index</div>
+          <div class="metric"><span style="color:#2d7dd2;font-size:8px">●</span><strong style="color:#93c5fd">$1.77T</strong> outstanding US student loan debt</div>
+          <div class="metric"><span style="color:#22c55e;font-size:8px">●</span><strong style="color:#86efac">45M</strong> borrowers — zero real-time tools exist</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT COL -->
+    <div class="col">
+      <div>
+        <div class="lbl">Business Model</div>
+        <div class="sec-title" style="font-size:11.5px;margin-bottom:5px">Three compounding revenue streams</div>
+        <div class="streams">
+          <div class="stream s1">
+            <div class="stream-name">B2B Data API</div>
+            <div class="stream-price">$500 – $5,000 / mo</div>
+            <div class="stream-desc">Index API for lenders, hedge funds &amp; servicers. Priced like financial data terminals.</div>
+          </div>
+          <div class="stream s2">
+            <div class="stream-name">Lead Generation</div>
+            <div class="stream-price">$50 – $200 / lead</div>
+            <div class="stream-desc">High-anxiety borrowers seeking refinancing. Affiliate revenue to SoFi, Earnest, ELFI.</div>
+          </div>
+          <div class="stream s3">
+            <div class="stream-name">Intelligence Reports</div>
+            <div class="stream-price">$2,000 – $10,000 / mo</div>
+            <div class="stream-desc">Weekly AI sentiment reports sold to institutions &amp; policy orgs.</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider"/>
+
+      <div>
+        <div class="lbl">Market Opportunity</div>
+        <div class="mbullets">
+          <div class="mb"><span class="mb-icon" style="color:#2d7dd2">◆</span><span><strong>TAM</strong> — $45B student loan fintech market</span></div>
+          <div class="mb"><span class="mb-icon" style="color:#22c55e">◆</span><span><strong>SAM</strong> — $2.1B borrower intelligence &amp; data licensing</span></div>
+          <div class="mb"><span class="mb-icon" style="color:#f97316">◆</span><span><strong>SOM</strong> — $50M by Year 3 (subscriptions + leads)</span></div>
+        </div>
+      </div>
+
+      <hr class="divider"/>
+
+      <div>
+        <div class="lbl">The Moat</div>
+        <div class="mbullets">
+          <div class="mb"><span class="mb-icon" style="color:#2d7dd2">▶</span><span><strong>Proprietary data</strong> — historical borrower sentiment nobody else has, growing daily</span></div>
+          <div class="mb"><span class="mb-icon" style="color:#22c55e">▶</span><span><strong>AI flywheel</strong> — more data → better signals → more clients</span></div>
+          <div class="mb"><span class="mb-icon" style="color:#eab308">▶</span><span><strong>Brand authority</strong> — first index cited in NYT, WSJ, Bloomberg</span></div>
+        </div>
+      </div>
+
+      <hr class="divider"/>
+
+      <div>
+        <div class="lbl">Raising $750K Seed</div>
+        <div class="ask-grid">
+          <div class="ask-item a1">
+            <div class="ask-pct">40%</div>
+            <div class="ask-label">Engineering</div>
+            <div class="ask-desc">Database, mobile, production build</div>
+          </div>
+          <div class="ask-item a2">
+            <div class="ask-pct">25%</div>
+            <div class="ask-label">Data &amp; APIs</div>
+            <div class="ask-desc">Expanded APIs, 5K borrower survey panel</div>
+          </div>
+          <div class="ask-item a3">
+            <div class="ask-pct">20%</div>
+            <div class="ask-label">Sales</div>
+            <div class="ask-desc">First 3 B2B clients, lender integrations</div>
+          </div>
+          <div class="ask-item a4">
+            <div class="ask-pct">15%</div>
+            <div class="ask-label">Legal &amp; IP</div>
+            <div class="ask-desc">Trademark, data licensing agreements</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="fl"><strong>Loan Clarity</strong> &nbsp;·&nbsp; Student Loan Borrower Sentiment Index™ &nbsp;·&nbsp; Seed Round 2026</div>
+    <div class="fr">
+      LoanClarity.com &nbsp;·&nbsp; <a href="mailto:investors@loanclarity.com">investors@loanclarity.com</a>
+      &nbsp;·&nbsp; Powered by Claude AI
+    </div>
+  </div>
+
+</div>
+
+<button class="print-btn" onclick="window.print()">⬇ Save as PDF</button>
+<div class="print-hint">Chrome → Cmd+P → Save as PDF → Margins: None · Background graphics: ON</div>
+
+</body>
+</html>
