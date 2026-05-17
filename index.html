@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Loan Clarity — Student Loan Borrower Sentiment Index™</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:        #050b16;
+      --panel:    #07111f;
+      --card:     #0b1626;
+      --card-2:   #0f1d33;
+      --border:   #16294a;
+      --border-2: #1e3a5f;
+      --text:     #e6eef7;
+      --muted:    #6f88a5;
+      --muted-2:  #4a6888;
+      --accent:   #2d7dd2;
+      --accent-2: #6fb6ff;
+      --green: #22c55e; --orange:#f97316; --red:#ef4444; --yellow:#eab308; --blue:#3b82f6;
+      --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+    }
+    body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+
+    .mono { font-family: var(--mono); }
+
+    /* ── Loading ─────────────────────────────────────────────── */
+    .loading { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; gap: 20px; }
+    .spinner { width: 48px; height: 48px; border: 3px solid var(--border-2); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Header / Nav ────────────────────────────────────────── */
+    .dashboard { max-width: 1440px; margin: 0 auto; padding-bottom: 32px; }
+    .header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 28px; border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, var(--panel) 0%, var(--bg) 100%);
+      position: sticky; top: 0; z-index: 50; backdrop-filter: blur(8px);
+    }
+    .header-left { display: flex; align-items: center; gap: 28px; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .logo-icon { width: 34px; height: 34px; background: linear-gradient(135deg,#1a6eb5,var(--accent)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; box-shadow: 0 0 14px rgba(45,125,210,.25); }
+    .logo-name { font-size: 17px; font-weight: 800; letter-spacing: -.02em; }
+    .logo-sub { font-size: 10px; color: var(--muted); letter-spacing: .12em; text-transform: uppercase; }
+    .nav-links { display: flex; gap: 22px; }
+    .nav-links a { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: .12em; text-transform: uppercase; padding: 6px 0; border-bottom: 2px solid transparent; transition: all .15s; }
+    .nav-links a:hover { color: var(--accent-2); }
+    .nav-links a.active { color: #fff; border-bottom-color: var(--accent); }
+    .header-right { display: flex; align-items: center; gap: 10px; }
+    .live-badge { display: flex; align-items: center; gap: 7px; background: var(--card); border: 1px solid var(--border-2); padding: 5px 13px; border-radius: 14px; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+    .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: pulse 1.6s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+    .hbtn { width: 32px; height: 32px; border-radius: 7px; background: var(--card); border: 1px solid var(--border-2); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; color: var(--muted); transition: all .15s; }
+    .hbtn:hover { background: var(--card-2); color: var(--accent-2); }
+
+    /* ── KPI bar ─────────────────────────────────────────────── */
+    .kpi-bar { display: grid; grid-template-columns: repeat(4,1fr); border-bottom: 1px solid var(--border); background: var(--panel); }
+    .kpi-item { padding: 13px 22px; border-right: 1px solid var(--border); position: relative; }
+    .kpi-item:last-child { border-right: none; }
+    .kpi-label { font-size: 9.5px; color: var(--muted-2); text-transform: uppercase; letter-spacing: .1em; font-weight: 600; }
+    .kpi-value { font-size: 17px; font-weight: 800; margin-top: 4px; display: flex; align-items: center; gap: 6px; font-family: var(--mono); letter-spacing: -.01em; }
+    .kpi-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 5px; }
+    .c-green  { color: var(--green); } .c-orange { color: var(--orange); } .c-red { color: var(--red); } .c-blue { color: var(--blue); } .c-yellow { color: var(--yellow); }
+
+    /* ── Source tag (inline attribution) ─────────────────────── */
+    .src-tag {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-family: var(--mono); font-size: 9.5px; color: var(--muted-2);
+      cursor: pointer; padding: 2px 7px; border-radius: 10px;
+      border: 1px solid transparent; transition: all .12s; position: relative;
+      letter-spacing: .02em;
+    }
+    .src-tag:hover { background: var(--card-2); border-color: var(--border-2); color: var(--accent-2); }
+    .src-tag .ic { font-size: 8px; opacity: .8; }
+    .src-pop {
+      position: absolute; bottom: calc(100% + 8px); left: 0; min-width: 280px; max-width: 340px;
+      background: var(--card-2); border: 1px solid var(--border-2); border-radius: 8px;
+      padding: 12px 14px; z-index: 100; box-shadow: 0 12px 32px rgba(0,0,0,.55);
+      pointer-events: none; opacity: 0; transform: translateY(4px); transition: all .18s;
+      font-family: 'Inter', sans-serif;
+    }
+    .src-tag:hover .src-pop, .src-tag:focus-within .src-pop { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .src-pop .sp-lbl { font-size: 8.5px; color: var(--muted-2); text-transform: uppercase; letter-spacing: .15em; font-weight: 700; margin-bottom: 3px; }
+    .src-pop .sp-name { font-size: 12px; color: #fff; font-weight: 700; line-height: 1.3; margin-bottom: 8px; }
+    .src-pop .sp-meta { font-size: 10.5px; color: var(--muted); margin-bottom: 8px; }
+    .src-pop .sp-actions { display: flex; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border-2); }
+    .src-pop a { flex: 1; padding: 6px 8px; border-radius: 4px; font-size: 10px; text-align: center; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; background: var(--panel); border: 1px solid var(--border-2); color: var(--accent-2); transition: all .12s; }
+    .src-pop a:hover { background: var(--accent); color: #fff; border-color: transparent; }
+
+    /* ── Main grid ───────────────────────────────────────────── */
+    .main-grid { display: grid; grid-template-columns: 380px 1fr 340px; border-bottom: 1px solid var(--border); }
+    .panel { padding: 22px 22px; }
+    .gauge-panel { border-right: 1px solid var(--border); display: flex; flex-direction: column; gap: 14px; }
+    .center-panel { border-right: 1px solid var(--border); display: flex; flex-direction: column; gap: 18px; }
+    .right-panel { display: flex; flex-direction: column; gap: 22px; }
+
+    .panel-label { font-size: 10px; font-weight: 700; letter-spacing: .14em; color: var(--muted-2); text-transform: uppercase; }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; padding-bottom: 8px; border-bottom: 1px solid var(--border); margin-bottom: 10px; }
+    .panel-head .ph-l { font-size: 10px; font-weight: 700; letter-spacing: .14em; color: var(--muted-2); text-transform: uppercase; }
+
+    .gauge-status { font-size: 18px; font-weight: 800; letter-spacing: .04em; }
+    .gauge-updated { font-size: 11px; color: var(--muted-2); margin-top: 4px; }
+
+    /* Emotions */
+    .emotion-grid { display: flex; flex-direction: column; gap: 8px; }
+    .emotion-row { display: flex; align-items: center; gap: 9px; }
+    .e-label { font-size: 11px; color: #8ab0d8; width: 88px; flex-shrink: 0; font-weight: 500; }
+    .e-track { flex:1; height: 6px; background: var(--card-2); border-radius: 3px; overflow: hidden; }
+    .e-fill  { height: 100%; border-radius: 3px; transition: width 1s ease; box-shadow: 0 0 8px currentColor; }
+    .e-pct   { font-size: 11px; color: var(--muted-2); width: 32px; text-align: right; font-family: var(--mono); }
+
+    /* Drivers panel */
+    .drivers-card {
+      background: linear-gradient(180deg, var(--card) 0%, var(--panel) 100%);
+      border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px;
+    }
+    .d-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
+    .d-head .d-from-to { font-family: var(--mono); font-size: 13px; color: var(--text); }
+    .d-head .d-delta { font-family: var(--mono); font-size: 14px; font-weight: 700; padding: 3px 9px; border-radius: 4px; }
+    .d-delta.up { color: var(--orange); background: rgba(249,115,22,.1); border: 1px solid rgba(249,115,22,.3); }
+    .d-delta.dn { color: var(--green);  background: rgba(34,197,94,.1);  border: 1px solid rgba(34,197,94,.3); }
+    .d-delta.fl { color: var(--muted); background: var(--card-2); border: 1px solid var(--border-2); }
+    .d-window { font-size: 10px; color: var(--muted-2); text-transform: uppercase; letter-spacing: .1em; font-family: var(--mono); }
+    .d-list { display: flex; flex-direction: column; gap: 7px; margin-top: 6px; }
+    .d-row { display: flex; align-items: flex-start; gap: 9px; font-size: 12.5px; color: #c0d8f0; line-height: 1.45; }
+    .d-bullet { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin-top: 6px; flex-shrink: 0; }
+    .d-sigdeltas { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+    .sigd { font-family: var(--mono); font-size: 10.5px; padding: 4px 9px; border-radius: 4px; background: var(--card-2); border: 1px solid var(--border-2); color: var(--muted); }
+    .sigd .sd-name { color: var(--text); margin-right: 6px; }
+    .sigd .sd-up { color: var(--orange); }
+    .sigd .sd-dn { color: var(--green); }
+
+    /* Center panel */
+    .ct-title { font-size: 16px; font-weight: 700; color: #e8f1fb; letter-spacing: -.01em; }
+    .ct-sub { font-size: 11px; color: var(--muted-2); margin-top: 3px; }
+    .ai-box { background: var(--card); border: 1px solid var(--border-2); border-left: 3px solid var(--accent); border-radius: 8px; padding: 13px 16px; }
+    .ai-lbl  { font-size: 10px; color: var(--accent-2); text-transform: uppercase; letter-spacing: .1em; font-weight: 700; }
+    .ai-text { font-size: 13px; color: #c0d8f0; margin-top: 6px; line-height: 1.55; font-style: italic; }
+    .post-row { display: flex; align-items: center; gap: 10px; background: var(--card); border: 1px solid var(--border); border-radius: 7px; padding: 9px 13px; margin-bottom: 5px; transition: all .15s; }
+    .post-row:hover { border-color: var(--border-2); background: var(--card-2); }
+    .post-sub  { font-family: var(--mono); font-size: 10px; color: var(--accent-2); white-space: nowrap; flex-shrink: 0; font-weight: 500; }
+    .post-title{ font-size: 12px; color: #c0d8f0; line-height: 1.4; flex: 1; }
+    .post-link { font-size: 10px; color: var(--muted-2); }
+
+    /* Right panel */
+    .section-hdr { font-size: 10px; font-weight: 700; letter-spacing: .14em; color: var(--muted-2); text-transform: uppercase; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+    .pulse-list { display: flex; flex-direction: column; gap: 9px; margin-top: 10px; }
+    .pulse-item { display: flex; align-items: flex-start; gap: 10px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 11px 13px; }
+    .pulse-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; box-shadow: 0 0 6px currentColor; }
+    .pulse-body { flex: 1; min-width: 0; }
+    .pulse-title { font-size: 12px; font-weight: 600; color: #e0f0ff; line-height: 1.35; }
+    .pulse-detail { font-size: 10.5px; color: var(--muted); margin-top: 3px; line-height: 1.4; }
+    .pulse-meta { display: flex; align-items: center; justify-content: space-between; margin-top: 6px; }
+    .ts-mono { font-family: var(--mono); font-size: 9.5px; color: var(--muted-2); letter-spacing: .02em; }
+
+    .topic-row { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 8px 11px; font-size: 11px; color: #c0d8f0; display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+    .topic-num { font-family: var(--mono); font-size: 10px; color: var(--accent); }
+
+    /* Bottom metrics */
+    .bottom-section { padding: 22px 28px; }
+    .bottom-title { display: flex; align-items: center; justify-content: space-between; padding-bottom: 9px; border-bottom: 1px solid var(--border); margin-bottom: 14px; }
+    .bottom-title .bt-l { font-size: 10px; font-weight: 700; letter-spacing: .14em; color: var(--muted-2); text-transform: uppercase; }
+    .metrics-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
+    .metric-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; transition: all .15s; }
+    .metric-card:hover { border-color: var(--border-2); }
+    .metric-head { display: flex; align-items: flex-start; gap: 10px; }
+    .metric-icon { width: 32px; height: 32px; border-radius: 7px; background: var(--card-2); border: 1px solid var(--border-2); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+    .metric-label { font-size: 11px; color: var(--muted); line-height: 1.35; flex: 1; }
+    .metric-value { font-size: 22px; font-weight: 800; font-family: var(--mono); letter-spacing: -.02em; }
+    .metric-foot { display: flex; align-items: center; justify-content: space-between; padding-top: 8px; border-top: 1px solid var(--border); margin-top: 4px; }
+
+    .signals-section { padding: 0 28px 28px; }
+    .signals-grid { display: grid; grid-template-columns: repeat(6,1fr); gap: 10px; }
+    .sig-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; transition: all .15s; }
+    .sig-card:hover { border-color: var(--border-2); }
+    .sig-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; }
+    .sig-name { font-size: 9.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-weight: 700; line-height: 1.3; }
+    .sig-weight { font-family: var(--mono); font-size: 10px; color: var(--accent); font-weight: 600; padding: 2px 6px; border: 1px solid var(--border-2); border-radius: 3px; flex-shrink: 0; }
+    .sig-score { font-size: 28px; font-weight: 800; font-family: var(--mono); margin: 2px 0; letter-spacing: -.03em; }
+    .sig-raw { font-size: 10px; color: var(--muted-2); font-family: var(--mono); }
+    .sig-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; padding-top: 6px; border-top: 1px solid var(--border); }
+
+    @media(max-width:1100px){
+      .main-grid{grid-template-columns:1fr}
+      .kpi-bar{grid-template-columns:repeat(2,1fr)}
+      .metrics-grid{grid-template-columns:repeat(2,1fr)}
+      .signals-grid{grid-template-columns:repeat(3,1fr)}
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useCallback } = React;
+
+const ECOL = {anxiety:'#f97316',confusion:'#eab308',frustration:'#ef4444',optimism:'#22c55e',hopelessness:'#dc2626'};
+
+// ─── Source tag with hover popover ────────────────────────────────────────
+function SrcTag({ source, source_url, updated_at, methodology_ref, label, compact }) {
+  if (!source) return null;
+  const shortName = source.length > 32 ? source.slice(0, 30) + '…' : source;
+  return (
+    <span className="src-tag" tabIndex={0}>
+      <span className="ic">◉</span>
+      <span>{compact ? 'SRC' : shortName}</span>
+      <span className="src-pop">
+        <div className="sp-lbl">Source</div>
+        <div className="sp-name">{source}</div>
+        {updated_at && <div className="sp-meta mono">Updated · {updated_at}</div>}
+        <div className="sp-actions">
+          {source_url && <a href={source_url} target="_blank" rel="noopener">Visit Source ↗</a>}
+          {methodology_ref && <a href={methodology_ref}>Methodology</a>}
+        </div>
+      </span>
+    </span>
+  );
+}
+
+// ─── SVG trend chart ──────────────────────────────────────────────────────
+function SvgChart({ data, color, fill, height, mini }) {
+  if (!data || data.length < 2) return null;
+  const W = 560, H = height || 180;
+  const pad = { t: 10, r: 10, b: mini ? 22 : 30, l: mini ? 28 : 34 };
+  const minV = 0, maxV = 100;
+  const scaleX = i => pad.l + (i / (data.length - 1)) * (W - pad.l - pad.r);
+  const scaleY = v => pad.t + ((maxV - v) / (maxV - minV)) * (H - pad.t - pad.b);
+  const pts = data.map((d, i) => [scaleX(i), scaleY(d.score)]);
+  const linePts = pts.map(p => p.join(',')).join(' ');
+  const areaD = `M${pts[0][0]},${pts[0][1]} ` +
+    pts.slice(1).map(p => `L${p[0]},${p[1]}`).join(' ') +
+    ` L${pts[pts.length-1][0]},${H-pad.b} L${pts[0][0]},${H-pad.b} Z`;
+  const id = `g${color.replace('#','')}`;
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} style={{width:'100%',height:H,display:'block'}}>
+      <defs>
+        <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor={color} stopOpacity="0.28"/>
+          <stop offset="100%" stopColor={color} stopOpacity="0.02"/>
+        </linearGradient>
+      </defs>
+      {[0,25,50,75,100].map(v=>(
+        <line key={v} x1={pad.l} y1={scaleY(v)} x2={W-pad.r} y2={scaleY(v)} stroke="#0f1d33" strokeWidth="1"/>
+      ))}
+      {!mini && [0,50,100].map(v=>(
+        <text key={v} x={pad.l-4} y={scaleY(v)+4} textAnchor="end" fontSize="9" fill="#4a6888" fontFamily="JetBrains Mono">{v}</text>
+      ))}
+      {mini && [['LOW',0],['HIGH',100]].map(([l,v])=>(
+        <text key={l} x={pad.l-3} y={scaleY(v)+4} textAnchor="end" fontSize="8" fill="#4a6888" fontFamily="JetBrains Mono">{l}</text>
+      ))}
+      {fill && <path d={areaD} fill={`url(#${id})`}/>}
+      <polyline points={linePts} fill="none" stroke={color} strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round"/>
+      {pts.map((p,i)=><circle key={i} cx={p[0]} cy={p[1]} r={mini?2:3} fill={color}/>)}
+      <circle cx={pts[pts.length-1][0]} cy={pts[pts.length-1][1]} r={mini?4:5} fill="#fff" stroke={color} strokeWidth="2"/>
+      {data.map((d,i)=>(
+        <text key={i} x={scaleX(i)} y={H-pad.b+(mini?14:16)} textAnchor="middle" fontSize={mini?9:10} fill="#4a6888" fontFamily="JetBrains Mono">{d.month}</text>
+      ))}
+    </svg>
+  );
+}
+
+// ─── Gauge ────────────────────────────────────────────────────────────────
+function GaugeChart({ score }) {
+  const cx=200, cy=190, r=140, sw=26;
+  const polar = deg => ({x: cx+r*Math.cos(deg*Math.PI/180), y: cy-r*Math.sin(deg*Math.PI/180)});
+  const s2a = s => 180 - s*1.8;
+  const arc = (s1,s2) => {
+    const p1=polar(s2a(s1)), p2=polar(s2a(s2));
+    return `M${p1.x.toFixed(2)} ${p1.y.toFixed(2)} A${r} ${r} 0 0 1 ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`;
+  };
+  const zoneColor = score <= 20 ? '#22c55e' : score <= 40 ? '#84cc16' : score <= 60 ? '#eab308' : score <= 80 ? '#f97316' : '#dc2626';
+  const na=s2a(score);
+  const mx=cx+r*Math.cos(na*Math.PI/180), my=cy-r*Math.sin(na*Math.PI/180);
+  const xL=cx-r, xR=cx+r;
+  const zoneLbls = [{s:7,t:'CHILL'},{s:30,t:'CALM'},{s:50,t:'MID'},{s:70,t:'TENSE'},{s:93,t:'PANIC'}];
+  return (
+    <svg viewBox="0 0 400 225" style={{width:'100%',maxWidth:400,display:'block',overflow:'visible'}}>
+      <defs>
+        <linearGradient id="arcGrad" gradientUnits="userSpaceOnUse" x1={xL} y1="0" x2={xR} y2="0">
+          <stop offset="0%" stopColor="#22c55e"/><stop offset="25%" stopColor="#84cc16"/><stop offset="50%" stopColor="#eab308"/><stop offset="75%" stopColor="#f97316"/><stop offset="100%" stopColor="#dc2626"/>
+        </linearGradient>
+        <filter id="bigGlow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="8" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <filter id="markerGlow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="6" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
+      <path d={arc(0,100)} fill="none" stroke="#0f2240" strokeWidth={sw+8} strokeLinecap="round"/>
+      <path d={arc(0,100)} fill="none" stroke="url(#arcGrad)" strokeWidth={sw} strokeLinecap="round"/>
+      {[20,40,60,80].map(s => {
+        const a = s2a(s); const r1 = r-sw/2-3, r2 = r+sw/2+3;
+        const x1 = cx+r1*Math.cos(a*Math.PI/180), y1 = cy-r1*Math.sin(a*Math.PI/180);
+        const x2 = cx+r2*Math.cos(a*Math.PI/180), y2 = cy-r2*Math.sin(a*Math.PI/180);
+        return <line key={s} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#0a1730" strokeWidth="2"/>;
+      })}
+      <text x={cx} y={cy-30} textAnchor="middle" fontSize="96" fontWeight="900"
+            fill={zoneColor} filter="url(#bigGlow)"
+            style={{letterSpacing:'-0.05em',fontFamily:'Inter, sans-serif'}}>{score}</text>
+      <text x={cx} y={cy-2} textAnchor="middle" fontSize="9" fill="#4a6888"
+            letterSpacing="0.28em" fontWeight="700" fontFamily="JetBrains Mono">OUT OF 100</text>
+      <circle cx={mx} cy={my} r="18" fill={zoneColor} opacity="0.4" filter="url(#markerGlow)"/>
+      <circle cx={mx} cy={my} r="10" fill={zoneColor} stroke="#fff" strokeWidth="3"/>
+      <circle cx={mx} cy={my} r="3.5" fill="#fff"/>
+      {zoneLbls.map((lbl,i)=>{
+        const a=s2a(lbl.s), lr=r+22;
+        const lx=cx+lr*Math.cos(a*Math.PI/180), ly=cy-lr*Math.sin(a*Math.PI/180);
+        const isActive = (score>=lbl.s-10 && score<=lbl.s+10);
+        return <text key={i} x={lx.toFixed(1)} y={ly.toFixed(1)} textAnchor="middle"
+                fontSize={isActive?"11":"10"} fill={isActive?zoneColor:"#5a7d9d"}
+                fontWeight="800" letterSpacing="0.14em" fontFamily="JetBrains Mono">{lbl.t}</text>;
+      })}
+    </svg>
+  );
+}
+
+function EmotionBars({ emotions }) {
+  return (
+    <div className="emotion-grid">
+      {Object.entries(emotions).map(([k,v])=>(
+        <div key={k} className="emotion-row">
+          <span className="e-label">{k[0].toUpperCase()+k.slice(1)}</span>
+          <div className="e-track"><div className="e-fill" style={{width:`${Math.round(v*100)}%`,background:ECOL[k]||'#2d7dd2',color:ECOL[k]||'#2d7dd2'}}/></div>
+          <span className="e-pct">{Math.round(v*100)}%</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── Drivers panel ────────────────────────────────────────────────────────
+function DriversPanel({ drivers }) {
+  if (!drivers) return null;
+  const dirClass = drivers.direction === 'up' ? 'up' : drivers.direction === 'down' ? 'dn' : 'fl';
+  const sign = drivers.delta > 0 ? '+' : '';
+  return (
+    <div className="drivers-card">
+      <div className="d-head">
+        <div>
+          <div className="d-window">Why The Index Moved</div>
+          <div className="d-from-to" style={{marginTop:6}}>
+            {drivers.prior !== null ? `${drivers.prior} → ${drivers.current}` : `Current: ${drivers.current}`}
+          </div>
+        </div>
+        <div className={`d-delta ${dirClass}`}>
+          {drivers.prior !== null ? `${sign}${drivers.delta}` : 'BASELINE'}
+        </div>
+      </div>
+      <div className="d-list">
+        {drivers.drivers.map((dr, i) => (
+          <div key={i} className="d-row">
+            <div className="d-bullet"/>
+            <div>{dr}</div>
+          </div>
+        ))}
+      </div>
+      {drivers.signal_deltas && drivers.signal_deltas.length > 0 && (
+        <div className="d-sigdeltas">
+          {drivers.signal_deltas.map((sd, i) => {
+            const up = sd.delta > 0;
+            return (
+              <span key={i} className="sigd">
+                <span className="sd-name">{sd.name}</span>
+                <span className={up ? 'sd-up' : 'sd-dn'}>{up?'+':''}{sd.delta}</span>
+              </span>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── App ──────────────────────────────────────────────────────────────────
+function App() {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [ts, setTs] = useState(null);
+
+  const fetchData = useCallback(async () => {
+    try {
+      const r = await fetch('/api/sentiment');
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      setData(await r.json());
+      setTs(new Date());
+      setError(null);
+    } catch(e) { setError(e.message); }
+    finally { setLoading(false); }
+  }, []);
+
+  useEffect(() => { fetchData(); const id=setInterval(fetchData,300000); return ()=>clearInterval(id); }, [fetchData]);
+
+  if (loading) return (
+    <div className="loading">
+      <div className="spinner"/>
+      <div style={{color:'#4a6888',fontSize:14}}>Fetching live borrower data…</div>
+      <div style={{color:'#2a4a68',fontSize:12,fontFamily:'JetBrains Mono'}}>reddit · cfpb · google_trends · claude</div>
+    </div>
+  );
+  if (error && !data) return (
+    <div className="loading">
+      <div style={{color:'#ef4444',fontSize:18}}>⚠️ Connection Error</div>
+      <div style={{color:'#4a6888',fontSize:13,marginTop:8,fontFamily:'JetBrains Mono'}}>{error}</div>
+      <button onClick={fetchData} style={{marginTop:20,padding:'10px 24px',borderRadius:8,background:'#1a6eb5',color:'#fff',border:'none',cursor:'pointer'}}>Retry</button>
+    </div>
+  );
+
+  const d = data;
+  const leading = Object.entries(d.emotions||{}).reduce((m,[k,v])=>v>m[1]?[k,v]:m,['',0]);
+  const sc = ECOL[leading[0]] || '#2d7dd2';
+  const leadingName = leading[0] ? leading[0][0].toUpperCase()+leading[0].slice(1) : '';
+  const icons = {search:'🔍',alert:'⚠️',card:'💳',people:'👥'};
+
+  return (
+    <div className="dashboard">
+      <header className="header">
+        <div className="header-left">
+          <a href="/" className="brand">
+            <div className="logo-icon">📊</div>
+            <div>
+              <div className="logo-name">Loan Clarity</div>
+              <div className="logo-sub">Borrower Sentiment Index™</div>
+            </div>
+          </a>
+          <nav className="nav-links">
+            <a href="/" className="active">Dashboard</a>
+            <a href="/methodology">Methodology</a>
+            <a href="/sources">Sources</a>
+          </nav>
+        </div>
+        <div className="header-right">
+          <div className="live-badge"><div className="live-dot"/>LIVE · {ts?ts.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):'—'}</div>
+          <div className="hbtn" onClick={fetchData} title="Refresh">↻</div>
+        </div>
+      </header>
+
+      {/* KPI bar with source tags */}
+      <div className="kpi-bar">
+        {d.kpi_bar.map((item,i)=>(
+          <div key={i} className="kpi-item">
+            <div className="kpi-label">{item.label}</div>
+            <div className={`kpi-value c-${item.color}`}><span style={{fontSize:11}}>▲</span>{item.value}</div>
+            <div className="kpi-foot">
+              <SrcTag source={item.source} source_url={item.source_url} updated_at={item.updated_at} methodology_ref={item.methodology_ref}/>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="main-grid">
+        {/* ── Gauge + emotions ──────────────────────────────────────── */}
+        <div className="panel gauge-panel">
+          <div className="panel-head">
+            <span className="ph-l">Borrower Stress Index</span>
+            <SrcTag source={d.index_source.name} source_url={d.index_source.url} updated_at={d.index_source.updated_at} methodology_ref={d.index_source.methodology_ref} compact={true}/>
+          </div>
+          <div style={{padding:'0 8px'}}><GaugeChart score={d.index_score}/></div>
+          <div>
+            <div className="gauge-status" style={{color:sc}}>Status: {d.status.toUpperCase()}</div>
+            <div className="gauge-updated">
+              Feeling primarily <span style={{color:sc,fontWeight:700}}>{leadingName.toLowerCase()}</span>
+              <span className="mono"> · {d.timestamp}</span>
+            </div>
+          </div>
+
+          {/* Drivers — "Why The Index Moved" */}
+          <DriversPanel drivers={d.drivers}/>
+
+          <div>
+            <div className="panel-head" style={{marginTop:4}}>
+              <span className="ph-l">Borrower Emotions</span>
+              <SrcTag source={d.emotions_source.name} source_url={d.emotions_source.url} updated_at={d.emotions_source.updated_at} compact={true}/>
+            </div>
+            <EmotionBars emotions={d.emotions}/>
+          </div>
+        </div>
+
+        {/* ── Center: trend chart + AI summary + live posts ────────── */}
+        <div className="panel center-panel">
+          <div className="panel-head">
+            <div>
+              <div className="ct-title">Sentiment Trend — 6-Month View</div>
+              <div className="ct-sub">Weighted: Google Trends · Reddit · CFPB · NY Fed · Refinance · Survey</div>
+            </div>
+            <SrcTag source={d.trend_source.name} source_url={d.trend_source.url} updated_at={d.trend_source.updated_at} methodology_ref="/methodology#weighted-index" compact={true}/>
+          </div>
+          <SvgChart data={d.trend_history} color="#2d7dd2" fill={true} height={200}/>
+          {d.ai_summary && (
+            <div className="ai-box">
+              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                <div className="ai-lbl">◆ Claude AI · {d.signals.reddit.posts} Reddit posts analyzed</div>
+                <SrcTag source="Claude Haiku · Reddit" source_url="https://www.reddit.com/r/StudentLoans/" methodology_ref="/methodology#reddit" compact={true}/>
+              </div>
+              <div className="ai-text">"{d.ai_summary}"</div>
+            </div>
+          )}
+          <div>
+            <div className="panel-head">
+              <span className="ph-l">Live Reddit Posts</span>
+              <SrcTag source="Reddit · r/StudentLoans, r/personalfinance, r/povertyfinance" source_url="https://www.reddit.com/r/StudentLoans/" methodology_ref="/methodology#reddit" compact={true}/>
+            </div>
+            {(d.trending_posts||[]).slice(0,4).map((p,i)=>(
+              <a key={i} href={p.url||'#'} target="_blank" rel="noopener" className="post-row">
+                <span className="post-sub">r/{p.subreddit}</span>
+                <span className="post-title">{p.title}</span>
+                <span className="post-link">↗</span>
+              </a>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Right: borrower pulse + themes + mini trend ──────────── */}
+        <div className="panel right-panel">
+          <div>
+            <div className="section-hdr">Borrower Pulse</div>
+            <div className="pulse-list">
+              {d.borrower_pulse.map((item,i)=>(
+                <div key={i} className="pulse-item">
+                  <div className="pulse-dot" style={{background:item.color==='red'?'#ef4444':item.color==='yellow'?'#eab308':'#22c55e',color:item.color==='red'?'#ef4444':item.color==='yellow'?'#eab308':'#22c55e'}}/>
+                  <div className="pulse-body">
+                    <div className="pulse-title">{item.title}</div>
+                    {item.detail && <div className="pulse-detail">{item.detail}</div>}
+                    <div className="pulse-meta">
+                      <SrcTag source={item.source} source_url={item.source_url} updated_at={item.updated_at} methodology_ref={item.methodology_ref} compact={true}/>
+                      <span className="ts-mono">{item.updated_at}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <div className="section-hdr">Sentiment Trend</div>
+            <div style={{marginTop:10}}><SvgChart data={d.trend_history} color="#eab308" fill={false} height={120} mini={true}/></div>
+          </div>
+          {d.trending_topics && d.trending_topics.length > 0 && (
+            <div>
+              <div className="section-hdr">AI-Detected Themes</div>
+              <div style={{marginTop:10}}>
+                {d.trending_topics.map((t,i)=>(
+                  <div key={i} className="topic-row"><span className="topic-num">#{i+1}</span>{t}</div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── Key Metrics ──────────────────────────────────────────── */}
+      <div className="bottom-section">
+        <div className="bottom-title">
+          <span className="bt-l">Key Market Metrics</span>
+          <a href="/sources" className="ts-mono" style={{color:'var(--accent-2)'}}>View all sources ↗</a>
+        </div>
+        <div className="metrics-grid">
+          {d.key_metrics.map((m,i)=>(
+            <div key={i} className="metric-card">
+              <div className="metric-head">
+                <div className="metric-icon">{icons[m.icon]||'📌'}</div>
+                <div className="metric-label">{m.label}</div>
+              </div>
+              <div className={`metric-value c-${m.color}`}>{m.value}</div>
+              <div className="metric-foot">
+                <SrcTag source={m.source} source_url={m.source_url} updated_at={m.updated_at} methodology_ref={m.methodology_ref}/>
+                <span className="ts-mono">{m.updated_at}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Signal Breakdown ─────────────────────────────────────── */}
+      <div className="signals-section">
+        <div className="bottom-title">
+          <span className="bt-l">Index Signal Breakdown</span>
+          <a href="/methodology#weighted-index" className="ts-mono" style={{color:'var(--accent-2)'}}>How weights are computed ↗</a>
+        </div>
+        <div className="signals-grid">
+          {Object.entries(d.signals).map(([key,sig])=>{
+            const c = sig.score<=20?'#dc2626':sig.score<=40?'#f97316':sig.score<=60?'#eab308':sig.score<=80?'#84cc16':'#22c55e';
+            return (
+              <div key={key} className="sig-card">
+                <div className="sig-head">
+                  <div className="sig-name">{sig.label||key}</div>
+                  <div className="sig-weight">{sig.weight}</div>
+                </div>
+                <div className="sig-score" style={{color:c}}>{sig.score}</div>
+                {sig.raw && <div className="sig-raw">{sig.raw}</div>}
+                <div className="sig-foot">
+                  <SrcTag source={sig.source?sig.source.name:''} source_url={sig.source?sig.source.url:''} updated_at={sig.updated_at} methodology_ref={sig.methodology_ref} compact={true}/>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
