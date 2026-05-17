@@ -142,10 +142,10 @@ function GaugeChart({ score }) {
     const p1=polar(s2a(s1)), p2=polar(s2a(s2));
     return `M${p1.x.toFixed(2)} ${p1.y.toFixed(2)} A${r} ${r} 0 0 0 ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`;
   };
-  const segs = [{from:0,to:20,color:'#dc2626'},{from:20,to:40,color:'#f97316'},{from:40,to:60,color:'#eab308'},{from:60,to:80,color:'#84cc16'},{from:80,to:100,color:'#22c55e'}];
+  const segs = [{from:0,to:20,color:'#22c55e'},{from:20,to:40,color:'#84cc16'},{from:40,to:60,color:'#eab308'},{from:60,to:80,color:'#f97316'},{from:80,to:100,color:'#dc2626'}];
   const na=s2a(score), nl=r-20;
   const nx=cx+nl*Math.cos(na*Math.PI/180), ny=cy-nl*Math.sin(na*Math.PI/180);
-  const zoneLbls = [{s:5,lines:['EXTREME','STRESS'],a:'end'},{s:30,lines:['HIGH','ANXIETY'],a:'end'},{s:70,lines:['CONFIDENCE'],a:'start'},{s:93,lines:['OPTIMISM'],a:'start'}];
+  const zoneLbls = [{s:5,lines:['OPTIMISM'],a:'end'},{s:30,lines:['CONFIDENCE'],a:'end'},{s:70,lines:['HIGH','ANXIETY'],a:'start'},{s:93,lines:['EXTREME','STRESS'],a:'start'}];
   return (
     <svg viewBox="0 0 360 205" style={{width:'100%',maxWidth:360,display:'block'}}>
       <path d={arc(0,100)} fill="none" stroke="#0f2240" strokeWidth={sw+4} strokeLinecap="butt"/>

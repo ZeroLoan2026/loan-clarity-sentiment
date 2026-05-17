@@ -103,8 +103,8 @@ async def fetch_cfpb_complaints() -> dict:
             data = resp.json()
             total = data.get("hits", {}).get("total", {})
             count = total.get("value", 0) if isinstance(total, dict) else int(total or 0)
-            # Score 0-100: 0 complaints = 100, 50k+ = 0
-            score = max(0, min(100, 100 - int(count / 500)))
+            # Anxiety score 0-100: 0 complaints = 0 anxiety, 50k+ = 100 anxiety
+            score = max(0, min(100, int(count / 500)))
             return {
                 "count_90d": count,
                 "score": score,
@@ -113,7 +113,7 @@ async def fetch_cfpb_complaints() -> dict:
             }
     except Exception as e:
         print(f"[CFPB] error: {e}")
-        return {"count_90d": 42_847, "score": 14, "trend_pct": "+320%", "status": "Spike"}
+        return {"count_90d": 42_847, "score": 86, "trend_pct": "+320%", "status": "Spike"}
 
 
 async def fetch_google_trends_score() -> dict:
@@ -127,14 +127,14 @@ async def fetch_google_trends_score() -> dict:
         if df.empty:
             raise ValueError("empty")
         recent_avg = int(df.iloc[-4:, 0].mean())  # last ~4 weeks
-        # High search volume = high panic = low sentiment score
-        # Google index 0-100 where 100=peak interest; invert for sentiment
-        score = max(5, min(95, 100 - recent_avg))
+        # High search volume = high panic = high anxiety score
+        # Google index 0-100 where 100=peak interest maps directly to anxiety
+        score = max(5, min(95, recent_avg))
         return {"raw_index": recent_avg, "score": score, "terms": panic_terms[:1]}
     except Exception as e:
         print(f"[GoogleTrends] error: {e}")
         # Fallback: known elevated panic from repayment restart
-        return {"raw_index": 68, "score": 32, "terms": ["student loan panic"]}
+        return {"raw_index": 68, "score": 68, "terms": ["student loan panic"]}
 
 
 async def analyze_reddit_with_claude(posts: list[dict]) -> dict:
@@ -155,7 +155,7 @@ async def analyze_reddit_with_claude(posts: list[dict]) -> dict:
 
 Return ONLY valid JSON — no markdown, no explanation:
 {{
-  "sentiment_score": <integer 0-100, where 0=extreme distress, 100=financial optimism>,
+  "sentiment_score": <integer 0-100, where 0=financial optimism/calm, 100=extreme distress/anxiety>,
   "anxiety":      <float 0.0-1.0>,
   "confusion":    <float 0.0-1.0>,
   "frustration":  <float 0.0-1.0>,
@@ -185,7 +185,7 @@ Reddit posts (sorted by engagement):
 
 def _claude_fallback() -> dict:
     return {
-        "sentiment_score": 30,
+        "sentiment_score": 70,
         "anxiety": 0.72,
         "confusion": 0.45,
         "frustration": 0.65,
@@ -203,9 +203,9 @@ def compute_weighted_index(
     google_score: int,
     reddit_score: int,
     cfpb_score: int,
-    delinquency_score: int = 28,   # NY Fed Q1 2026 data — elevated
-    refinance_score: int = 38,      # High demand = distress signal
-    survey_score: int = 20,         # 80% worried = 20/100
+    delinquency_score: int = 72,   # NY Fed Q1 2026 data — elevated anxiety
+    refinance_score: int = 62,      # High demand = high distress signal
+    survey_score: int = 80,         # 80% worried = 80/100 anxiety
 ) -> int:
     raw = (
         google_score    * WEIGHTS["google_trends"] +
@@ -219,19 +219,19 @@ def compute_weighted_index(
 
 
 def status_label(score: int) -> str:
-    if score <= 20: return "Extreme Distress"
-    if score <= 40: return "High Anxiety"
+    if score <= 20: return "Financial Optimism"
+    if score <= 40: return "Confidence"
     if score <= 60: return "Neutral"
-    if score <= 80: return "Confidence"
-    return "Financial Optimism"
+    if score <= 80: return "High Anxiety"
+    return "Extreme Distress"
 
 
 def status_color(score: int) -> str:
-    if score <= 20: return "#dc2626"
-    if score <= 40: return "#f97316"
+    if score <= 20: return "#16a34a"
+    if score <= 40: return "#22c55e"
     if score <= 60: return "#eab308"
-    if score <= 80: return "#22c55e"
-    return "#16a34a"
+    if score <= 80: return "#f97316"
+    return "#dc2626"
 
 
 def build_trend_history(current_score: int) -> list[dict]:
@@ -240,10 +240,10 @@ def build_trend_history(current_score: int) -> list[dict]:
     rng = random.Random(datetime.now().strftime("%Y%m"))
     points = []
     for i, month in enumerate(months):
-        # Earlier months slightly higher anxiety (repayment restart Dec 2025)
-        offset = (i - 5) * 1.5  # trend slightly improving
+        # Earlier months slightly lower anxiety (anxiety has risen since repayment restart Dec 2025)
+        offset = (5 - i) * 1.5  # trend slightly worsening (rising anxiety)
         noise = rng.randint(-7, 7)
-        score = max(10, min(88, current_score + int(offset) + noise))
+        score = max(10, min(88, current_score - int(offset) + noise))
         points.append({"month": month, "score": score})
     points[-1]["score"] = current_score  # pin current month to real value
     return points
@@ -304,9 +304,9 @@ async def get_live_sentiment():
             "google_trends":  {"score": trends["score"],        "weight": "20%", "raw": trends["raw_index"]},
             "reddit":         {"score": sentiment["sentiment_score"], "weight": "20%", "posts": len(posts)},
             "cfpb":           {"score": cfpb["score"],          "weight": "15%", "complaints_90d": cfpb["count_90d"]},
-            "delinquency":    {"score": 28,                     "weight": "15%", "note": "NY Fed Q1 2026"},
-            "refinance":      {"score": 38,                     "weight": "10%", "note": "+68% search surge"},
-            "survey":         {"score": 20,                     "weight": "20%", "note": "80% worried — Pew 2026"},
+            "delinquency":    {"score": 72,                     "weight": "15%", "note": "NY Fed Q1 2026"},
+            "refinance":      {"score": 62,                     "weight": "10%", "note": "+68% search surge"},
+            "survey":         {"score": 80,                     "weight": "20%", "note": "80% worried — Pew 2026"},
         },
 
         # ── Emotions from Claude ─────────────────────────────────────
@@ -370,6 +370,11 @@ async def health():
 @app.get("/")
 async def serve_frontend():
     return FileResponse(Path(__file__).parent / "index.html")
+
+
+@app.get("/onepager")
+async def serve_onepager():
+    return FileResponse(Path(__file__).parent / "onepager.html")
 
 
 # ─── Entry point ──────────────────────────────────────────────────────────────
