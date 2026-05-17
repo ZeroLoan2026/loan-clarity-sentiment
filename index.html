@@ -140,7 +140,7 @@ function GaugeChart({ score }) {
   const s2a = s => 180 - s*1.8;
   const arc = (s1,s2) => {
     const p1=polar(s2a(s1)), p2=polar(s2a(s2));
-    return `M${p1.x.toFixed(2)} ${p1.y.toFixed(2)} A${r} ${r} 0 0 0 ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`;
+    return `M${p1.x.toFixed(2)} ${p1.y.toFixed(2)} A${r} ${r} 0 0 1 ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`;
   };
   // Zone color for the active score
   const zoneColor = score <= 20 ? '#22c55e' : score <= 40 ? '#84cc16' : score <= 60 ? '#eab308' : score <= 80 ? '#f97316' : '#dc2626';
@@ -186,13 +186,13 @@ function GaugeChart({ score }) {
         return <line key={s} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#0a1730" strokeWidth="2"/>;
       })}
 
-      {/* HUGE score with colored glow */}
-      <text x={cx} y={cy-22} textAnchor="middle" fontSize="100" fontWeight="900"
+      {/* HUGE score with colored glow — sits inside the upward arc */}
+      <text x={cx} y={cy-30} textAnchor="middle" fontSize="96" fontWeight="900"
             fill={zoneColor} filter="url(#bigGlow)"
             style={{letterSpacing:'-0.05em',fontFamily:'Inter, -apple-system, sans-serif'}}>
         {score}
       </text>
-      <text x={cx} y={cy+4} textAnchor="middle" fontSize="9" fill="#4a6888"
+      <text x={cx} y={cy-2} textAnchor="middle" fontSize="9" fill="#4a6888"
             letterSpacing="0.28em" fontWeight="700">OUT OF 100</text>
 
       {/* glowing marker on arc */}
