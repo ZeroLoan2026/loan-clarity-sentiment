@@ -918,9 +918,9 @@ function App() {
             <div className="hero-cta-sub">Three free tools built for borrowers like you. No login. No spam. Takes 60 seconds.</div>
           </div>
           <div className="hero-cta-btns">
-            <a href="#refi" data-cta="refi" className="cta cta-primary cta-lg">💸 Lower My Payment</a>
-            <a href="#score" data-cta="score" className="cta cta-money">📊 Get My Score</a>
-            <a href="#newsletter" data-cta="newsletter" className="cta cta-ghost">📧 Weekly Report</a>
+            <a href="https://www.elfi.com/?code=39543" target="_blank" rel="noopener" data-cta="refi" className="cta cta-primary cta-lg">💸 Lower My Payment</a>
+            <a href="https://www.elfi.com/?code=39543" target="_blank" rel="noopener" data-cta="score" className="cta cta-money">📊 Get My Score</a>
+            <a href="mailto:subscribe@loanclarty.com" data-cta="newsletter" className="cta cta-ghost">📧 Weekly Report</a>
           </div>
         </div>
       </section>
@@ -947,8 +947,8 @@ function App() {
           <div className="yb-sub">Built by borrowers, for borrowers. Free forever. Share it with a friend who needs to see this.</div>
         </div>
         <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-          <a href="#share-twitter" data-cta="share" className="cta cta-ghost cta-sm">𝕏 Tweet your score</a>
-          <a href="#share-link" data-cta="share" className="cta cta-ghost cta-sm">🔗 Copy link</a>
+          <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent('The Loan Clarity Borrower Stress Index is at ' + d.index_score + '/100. Check how stressed borrowers are right now: loanclarty.com')}`} target="_blank" rel="noopener" data-cta="share" className="cta cta-ghost cta-sm">𝕏 Tweet your score</a>
+          <a href="#" onClick={(e)=>{e.preventDefault(); navigator.clipboard.writeText(window.location.href); alert('Link copied! Share with a friend.');}} data-cta="share" className="cta cta-ghost cta-sm">🔗 Copy link</a>
         </div>
       </div>
 
@@ -1074,8 +1074,8 @@ function App() {
             <div className="lm-bullet"><span className="lm-check">✓</span>100% free — we get paid by lenders, not you</div>
           </div>
           <div className="lm-btns">
-            <a href="#refi-quote" data-cta="refi" className="cta cta-primary cta-lg">Check My Rate →</a>
-            <a href="#refi-learn" data-cta="refi-learn" className="cta cta-ghost">How it works</a>
+            <a href="https://www.sofi.com/invite/medical-student-loans?gcp=6855762b-2867-4d08-ad5b-e4da0c004795&isAliasGcp=false" target="_blank" rel="noopener" data-cta="refi" className="cta cta-primary cta-lg">Check My Rate →</a>
+            <a href="https://www.elfi.com/?code=39543" target="_blank" rel="noopener" data-cta="refi-learn" className="cta cta-ghost">How it works</a>
           </div>
         </div>
         <div className="lm-side" style={{position:'relative',zIndex:2}}>
@@ -1129,7 +1129,7 @@ function App() {
           <div className="lm-sub">
             We read 10,000+ Reddit posts and CFPB complaints every week so you don't have to. Get the chart, the cause, and one actionable move you can make this weekend. Join <b style={{color:'#fff'}}>12,847 borrowers</b> already on the list.
           </div>
-          <form className="email-form" onSubmit={(e)=>{e.preventDefault();}}>
+          <form className="email-form" onSubmit={(e)=>{e.preventDefault(); window.open('mailto:subscribe@loanclarty.com', '_blank');}}>
             <input type="email" placeholder="your@email.com" required/>
             <button type="submit" className="cta cta-money" data-cta="newsletter">Subscribe →</button>
           </form>
@@ -1191,26 +1191,26 @@ function App() {
             <div className="lcf-sub">
               Join 47,000+ borrowers using Loan Clarity to fight back against bad servicers, confusing plans, and predatory rates. Free forever.
             </div>
-            <form className="lcf-form" onSubmit={(e)=>{e.preventDefault();}}>
+            <form className="lcf-form" onSubmit={(e)=>{e.preventDefault(); window.open('mailto:subscribe@loanclarty.com', '_blank');}}>
               <input type="email" placeholder="your@email.com" required/>
               <button type="submit" className="cta cta-primary" data-cta="newsletter-footer">Join Free →</button>
             </form>
           </div>
 
           <div className="lcf-grid">
-            <a href="#refi" data-cta="footer-refi" className="lcf-card">
+            <a href="https://www.sofi.com/invite/medical-student-loans?gcp=6855762b-2867-4d08-ad5b-e4da0c004795&isAliasGcp=false" target="_blank" rel="noopener" data-cta="footer-refi" className="lcf-card">
               <div className="icon">💸</div>
               <div className="ctitle">Lower your payment</div>
               <div className="cdesc">Compare refi rates from 8+ lenders. Soft credit check. Avg savings $278/mo.</div>
               <div className="clink">Check my rate →</div>
             </a>
-            <a href="#calculator" data-cta="footer-calculator" className="lcf-card">
+            <a href="https://www.elfi.com/?code=39543" target="_blank" rel="noopener" data-cta="footer-calculator" className="lcf-card">
               <div className="icon">📊</div>
               <div className="ctitle">Get your stress score</div>
               <div className="cdesc">60-second quiz. See how your loan stress compares to the national index.</div>
               <div className="clink">Take the quiz →</div>
             </a>
-            <a href="#newsletter" data-cta="footer-newsletter" className="lcf-card">
+            <a href="mailto:subscribe@loanclarty.com" data-cta="footer-newsletter" className="lcf-card">
               <div className="icon">📧</div>
               <div className="ctitle">The Friday report</div>
               <div className="cdesc">One email every Friday. What moved, why, and what to do about it.</div>
@@ -1224,10 +1224,10 @@ function App() {
               <span style={{opacity:.7}}>Not financial advice. We may earn affiliate revenue when you refinance.</span>
             </div>
             <div className="lcf-social">
-              <a href="#twitter" data-cta="social" title="X / Twitter">𝕏</a>
-              <a href="#tiktok" data-cta="social" title="TikTok">♪</a>
-              <a href="#instagram" data-cta="social" title="Instagram">◉</a>
-              <a href="#reddit" data-cta="social" title="Reddit">r/</a>
+              <a href="https://twitter.com/loanclarityapp" target="_blank" rel="noopener" data-cta="social" title="X / Twitter">𝕏</a>
+              <a href="https://tiktok.com/@loanclarityapp" target="_blank" rel="noopener" data-cta="social" title="TikTok">♪</a>
+              <a href="https://instagram.com/loanclarityapp" target="_blank" rel="noopener" data-cta="social" title="Instagram">◉</a>
+              <a href="https://reddit.com/r/studentloans" target="_blank" rel="noopener" data-cta="social" title="Reddit">r/</a>
             </div>
           </div>
         </div>
@@ -1235,7 +1235,7 @@ function App() {
 
       {/* ════════════ MOBILE STICKY BOTTOM CTA ═══════════ */}
       <div className="mobile-sticky">
-        <a href="#refi" data-cta="sticky-refi" className="cta cta-primary">💸 See if you can save $278/mo →</a>
+        <a href="https://www.elfi.com/?code=39543" target="_blank" rel="noopener" data-cta="sticky-refi" className="cta cta-primary">💸 See if you can save $278/mo →</a>
       </div>
     </div>
   );
