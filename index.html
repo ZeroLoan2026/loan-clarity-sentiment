@@ -311,6 +311,92 @@
       .hero-cta-btns .cta { flex: 1; }
     }
 
+    /* ══════════════════════════════════════════════════════════════════════
+       SIMPLIFIED DASHBOARD — primary CTA, trust strip, mini footer
+       ══════════════════════════════════════════════════════════════════════ */
+    .grad-money-text { background: var(--grad-money); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+    .primary-cta {
+      padding: 36px 32px;
+      background:
+        radial-gradient(ellipse at top right, rgba(255,85,119,.12) 0%, transparent 55%),
+        radial-gradient(ellipse at bottom left, rgba(0,229,168,.08) 0%, transparent 55%),
+        var(--bg);
+      border-bottom: 1px solid var(--border);
+    }
+    .pcta-inner {
+      max-width: 1100px; margin: 0 auto;
+      display: grid; grid-template-columns: 1.4fr 1fr; gap: 32px; align-items: center;
+    }
+    .pcta-eyebrow {
+      font-size: 11px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase;
+      color: var(--hot);
+    }
+    .pcta-h {
+      font-size: 38px; font-weight: 900; letter-spacing: -.03em; line-height: 1.08; color: #fff;
+      margin-top: 8px;
+    }
+    .pcta-sub { font-size: 14.5px; color: #a8becc; margin-top: 12px; max-width: 520px; line-height: 1.55; }
+    .pcta-btns { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+    .pcta-trust {
+      background: rgba(7,17,31,.7); border: 1px solid var(--border-2); border-radius: 14px;
+      padding: 22px 24px; text-align: center;
+    }
+    .pcta-tval {
+      font-family: var(--mono); font-size: 30px; font-weight: 900; letter-spacing: -.02em;
+      color: var(--neon); line-height: 1;
+    }
+    .pcta-tlbl {
+      font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .12em;
+      font-weight: 700; margin-top: 5px;
+    }
+    .pcta-divider { height: 1px; background: rgba(255,255,255,.08); margin: 14px 0; }
+    @media(max-width:760px){
+      .primary-cta { padding: 24px 16px; }
+      .pcta-inner { grid-template-columns: 1fr; gap: 18px; }
+      .pcta-h { font-size: 26px; }
+      .pcta-btns { flex-direction: column; }
+      .pcta-btns .cta { width: 100%; }
+    }
+
+    .trust-mini {
+      padding: 14px 32px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      display: flex; gap: 14px; justify-content: center; align-items: center; flex-wrap: wrap;
+      font-size: 12.5px; color: var(--muted); font-family: var(--mono);
+    }
+    .trust-mini span { white-space: nowrap; }
+    @media(max-width:760px){
+      .trust-mini { font-size: 11px; padding: 12px 14px; gap: 10px; }
+    }
+
+    .mini-footer {
+      padding: 24px 32px 32px;
+      background: var(--panel);
+      border-top: 1px solid var(--border);
+    }
+    .mf-row {
+      max-width: 1100px; margin: 0 auto;
+      display: flex; justify-content: space-between; align-items: center; gap: 18px; flex-wrap: wrap;
+    }
+    .mf-brand { font-size: 12px; color: var(--muted); font-family: var(--mono); }
+    .mf-links { display: flex; gap: 18px; }
+    .mf-links a {
+      font-size: 11px; color: var(--muted-2); font-weight: 700;
+      letter-spacing: .12em; text-transform: uppercase; transition: color .15s;
+    }
+    .mf-links a:hover { color: var(--neon); }
+    .mf-disc {
+      max-width: 1100px; margin: 14px auto 0;
+      font-size: 11px; color: var(--muted-2); text-align: center; line-height: 1.55;
+    }
+    @media(max-width:760px){
+      .mini-footer { padding: 20px 14px 24px; }
+      .mf-row { flex-direction: column; gap: 12px; text-align: center; }
+      .mf-links { justify-content: center; }
+    }
+
     /* ── Tax Optimizer featured CTA on dashboard ──────────────── */
     .tax-feature {
       display: block;
@@ -1066,11 +1152,8 @@ function App() {
         <div className="hero-head">
           <div>
             <div className="hero-label">Borrower Stress Index<span className="hero-tm">™</span> · Live</div>
-            <div style={{fontSize:'30px',fontWeight:900,letterSpacing:'-.025em',lineHeight:1.1,color:'#fff',marginTop:'8px'}}>
+            <div style={{fontSize:'36px',fontWeight:900,letterSpacing:'-.03em',lineHeight:1.05,color:'#fff',marginTop:'8px'}}>
               You're not crazy. <span className="grad-hot-text">Your panic is data.</span>
-            </div>
-            <div className="hero-tagline" style={{marginTop:'10px',fontSize:'14px'}}>
-              Real-time stress score for 45 million student loan borrowers. Updated every 5 minutes from Reddit, Google searches, CFPB complaints, delinquency data &amp; more.
             </div>
           </div>
           <SrcTag source={d.index_source.name} source_url={d.index_source.url} updated_at={d.index_source.updated_at} methodology_ref={d.index_source.methodology_ref}/>
@@ -1099,20 +1182,32 @@ function App() {
         </div>
       </section>
 
-      {/* ════════════ HERO CTA BAR — three core lead-gen actions ═══════════ */}
-      <section className="hero-cta-bar">
-        <div className="hero-cta-inner">
-          <div className="hero-cta-copy">
-            <div className="hero-cta-eyebrow">◆ Stop drowning. Start fighting back.</div>
-            <div className="hero-cta-h">
-              The index says <span className="grad-hot-text">{d.status.toUpperCase()}</span>. Here's what to do about it.
+      {/* ════════════ PRIMARY ACTION — refi (the conversion) ═══════════ */}
+      <section className="primary-cta">
+        <div className="pcta-inner">
+          <div className="pcta-left">
+            <div className="pcta-eyebrow">◆ While the panic is high, rates are dropping</div>
+            <div className="pcta-h">
+              Cut your monthly payment.<br/>
+              <span className="grad-money-text">Pocket a $1,000 bonus.</span>
             </div>
-            <div className="hero-cta-sub">Three free tools built for borrowers like you. No login. No spam. Takes 60 seconds.</div>
+            <div className="pcta-sub">
+              60-second soft credit check. Avg borrower saves <b style={{color:'#fff'}}>$278/mo</b>. SoFi pays you $1,000 cash when approved.
+            </div>
+            <div className="pcta-btns">
+              <a href="https://www.sofi.com/invite/medical-student-loans?gcp=6855762b-2867-4d08-ad5b-e4da0c004795&isAliasGcp=false" target="_blank" rel="noopener" data-cta="primary-sofi" className="cta cta-primary cta-lg">💸 Get My $1,000 Bonus →</a>
+              <a href="https://www.elfi.com/?code=39543" target="_blank" rel="noopener" data-cta="primary-elfi" className="cta cta-ghost">Or compare ELFI →</a>
+            </div>
           </div>
-          <div className="hero-cta-btns">
-            <a href="https://www.sofi.com/invite/medical-student-loans?gcp=6855762b-2867-4d08-ad5b-e4da0c004795&isAliasGcp=false" target="_blank" rel="noopener" data-cta="refi-sofi" className="cta cta-primary cta-lg">💸 Refi With SoFi — $1,000 Bonus</a>
-            <a href="https://www.elfi.com/?code=39543" target="_blank" rel="noopener" data-cta="refi-elfi" className="cta cta-money">📊 Compare ELFI Rates</a>
-            <a href="mailto:subscribe@loanclarty.com" data-cta="newsletter" className="cta cta-ghost">📧 Weekly Report</a>
+          <div className="pcta-trust">
+            <div className="pcta-tval">$1,000</div>
+            <div className="pcta-tlbl">welcome bonus</div>
+            <div className="pcta-divider"/>
+            <div className="pcta-tval">$278</div>
+            <div className="pcta-tlbl">avg saved/month</div>
+            <div className="pcta-divider"/>
+            <div className="pcta-tval">800K+</div>
+            <div className="pcta-tlbl">members served</div>
           </div>
         </div>
       </section>
@@ -1151,388 +1246,31 @@ function App() {
         </div>
       </a>
 
-      {/* ════════════ SOCIAL PROOF strip ═══════════ */}
-      <div className="social-proof">
-        <div className="sp-item"><span className="sp-dot"/><span className="sp-num">47,283</span>borrowers checked in this week</div>
-        <div className="sp-item">◆ <span className="sp-num">{redditPosts}</span>real posts analyzed live</div>
-        <div className="sp-item">📊 Updated every <span className="sp-num">5 min</span></div>
-        <div className="sp-item">🔒 No login required</div>
+
+      {/* ════════════ MINIMAL TRUST STRIP ═══════════ */}
+      <div className="trust-mini">
+        <span><b style={{color:'var(--neon)'}}>47,283</b> borrowers checked in this week</span>
+        <span>•</span>
+        <span>🔒 No login required</span>
+        <span>•</span>
+        <span>📊 Updated every 5 min</span>
       </div>
 
-      {/* ════════════ HERO 2 — Multi-window History Chart (1D–5Y) ═══════════ */}
-      <HistoryChart history={d.history} currentScore={d.index_score}/>
-
-      {/* ════════════ "You're not alone" reframe ═══════════ */}
-      <div className="you-banner">
-        <div>
-          <div className="yb-text">
-            {d.index_score >= 60
-              ? <>You're not overreacting. <span className="hl">{d.index_score}/100</span> means the entire country is panicking with you.</>
-              : <>The index is <span className="hl">{d.index_score}/100</span> — quieter than usual. Use the calm to actually fix your loans.</>}
-          </div>
-          <div className="yb-sub">Built by borrowers, for borrowers. Free forever. Share it with a friend who needs to see this.</div>
-        </div>
-        <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-          <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent('The Loan Clarity Borrower Stress Index is at ' + d.index_score + '/100. Check how stressed borrowers are right now: loanclarty.com')}`} target="_blank" rel="noopener" data-cta="share" className="cta cta-ghost cta-sm">𝕏 Tweet your score</a>
-          <a href="#" onClick={(e)=>{e.preventDefault(); navigator.clipboard.writeText(window.location.href); alert('Link copied! Share with a friend.');}} data-cta="share" className="cta cta-ghost cta-sm">🔗 Copy link</a>
-        </div>
-      </div>
-
-      {/* KPI bar — each cell is a clickable link to its source */}
-      <div className="kpi-bar">
-        {d.kpi_bar.map((item,i)=>(
-          <a key={i} className="kpi-item" href={item.source_url || '#'} target="_blank" rel="noopener" style={{textDecoration:'none',color:'inherit'}}>
-            <div className="kpi-label">{item.label}</div>
-            <div className={`kpi-value c-${item.color}`}><span style={{fontSize:11}}>▲</span>{item.value}</div>
-            <div className="kpi-foot">
-              <SrcTag source={item.source} source_url={item.source_url} updated_at={item.updated_at} methodology_ref={item.methodology_ref}/>
-              <span className="ts-mono" style={{opacity:.5}}>↗</span>
-            </div>
-          </a>
-        ))}
-      </div>
-
-      <div className="main-grid">
-        {/* ── Borrower Emotions panel (left) ─────────────────────────── */}
-        <div className="panel gauge-panel">
-          <div className="panel-head">
-            <span className="ph-l">How borrowers feel right now</span>
-            <SrcTag source={d.emotions_source.name} source_url={d.emotions_source.url} updated_at={d.emotions_source.updated_at} compact={true}/>
-          </div>
-          <div className="emotions-wrap" {...linkTo('/methodology#emotions')} style={{padding:'4px 0'}}>
-            <EmotionBars emotions={d.emotions}/>
-          </div>
-
-          {/* Mini sentiment trend in the same left panel */}
-          <div style={{marginTop:6}}>
-            <div className="panel-head">
-              <span className="ph-l">The vibe — last 6 months</span>
-              <SrcTag source={d.trend_source.name} source_url={d.trend_source.url} updated_at={d.trend_source.updated_at} compact={true}/>
-            </div>
-            <div className="chart-wrap" {...linkTo('/methodology#weighted-index')}>
-              <SvgChart data={d.trend_history} color="#eab308" fill={true} height={150} mini={true}/>
-            </div>
+      {/* ════════════ MINI FOOTER ═══════════ */}
+      <footer className="mini-footer">
+        <div className="mf-row">
+          <div className="mf-brand">© 2026 Loan Clarity · Borrower Sentiment Index™</div>
+          <div className="mf-links">
+            <a href="/methodology">Methodology</a>
+            <a href="/sources">Sources</a>
+            <a href="/tax-tool">Tax Tool</a>
           </div>
         </div>
-
-        {/* ── Center: AI summary + live Reddit posts (trend now lives in hero) ── */}
-        <div className="panel center-panel">
-          <div className="panel-head">
-            <div>
-              <div className="ct-title">What borrowers are actually saying — right now</div>
-              <div className="ct-sub">Live AI reading every post across r/StudentLoans, r/personalfinance, r/povertyfinance</div>
-            </div>
-            <SrcTag source="Loan Clarity AI · Reddit" source_url="https://www.reddit.com/r/StudentLoans/" methodology_ref="/methodology#reddit" compact={true}/>
-          </div>
-          {d.ai_summary && (
-            <div className="ai-box" {...linkTo('https://www.reddit.com/r/StudentLoans/')}>
-              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-                <div className="ai-lbl">◆ Loan Clarity AI · {redditPosts} Reddit posts analyzed</div>
-                <SrcTag source="Loan Clarity AI Engine · Reddit" source_url="https://www.reddit.com/r/StudentLoans/" methodology_ref="/methodology#reddit" compact={true}/>
-              </div>
-              <div className="ai-text">"{d.ai_summary}"</div>
-            </div>
-          )}
-          <div>
-            <div className="panel-head">
-              <span className="ph-l">Straight from r/StudentLoans</span>
-              <SrcTag source="Reddit · r/StudentLoans, r/personalfinance, r/povertyfinance" source_url="https://www.reddit.com/r/StudentLoans/" methodology_ref="/methodology#reddit" compact={true}/>
-            </div>
-            {(d.trending_posts||[]).slice(0,4).map((p,i)=>(
-              <a key={i} href={p.url||'#'} target="_blank" rel="noopener" className="post-row">
-                <span className="post-sub">r/{p.subreddit}</span>
-                <span className="post-title">{p.title}</span>
-                <span className="post-link">↗</span>
-              </a>
-            ))}
-          </div>
-        </div>
-
-        {/* ── Right: borrower pulse + themes + mini trend ──────────── */}
-        <div className="panel right-panel">
-          <div>
-            <div className="section-hdr">Breaking now</div>
-            <div className="pulse-list">
-              {d.borrower_pulse.map((item,i)=>(
-                <a key={i} className="pulse-item" href={item.source_url || '#'} target="_blank" rel="noopener">
-                  <div className="pulse-dot" style={{background:item.color==='red'?'#ef4444':item.color==='yellow'?'#eab308':'#22c55e',color:item.color==='red'?'#ef4444':item.color==='yellow'?'#eab308':'#22c55e'}}/>
-                  <div className="pulse-body">
-                    <div className="pulse-title">{item.title}</div>
-                    {item.detail && <div className="pulse-detail">{item.detail}</div>}
-                    <div className="pulse-meta">
-                      <SrcTag source={item.source} source_url={item.source_url} updated_at={item.updated_at} methodology_ref={item.methodology_ref} compact={true}/>
-                      <span className="ts-mono">↗ View Source</span>
-                    </div>
-                  </div>
-                </a>
-              ))}
-            </div>
-          </div>
-          {d.trending_topics && d.trending_topics.length > 0 && (
-            <div>
-              <div className="section-hdr">What's blowing up</div>
-              <div style={{marginTop:10}}>
-                {d.trending_topics.map((t,i)=>(
-                  <a key={i} className="topic-row" target="_blank" rel="noopener"
-                     href={`https://www.reddit.com/r/StudentLoans/search/?q=${encodeURIComponent(t)}`}>
-                    <span className="topic-num">#{i+1}</span>{t}<span className="ext">↗</span>
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* ════════════ BIG LEAD MAGNET — SoFi Premium (high earners) ═══════════ */}
-      <section className="leadmag leadmag-premium">
-        <div className="lm-badge">
-          <span className="lm-badge-dot"/>EDITOR'S PICK · FOR HIGH EARNERS
-        </div>
-        <div style={{position:'relative',zIndex:2}}>
-          <div className="lm-eyebrow">◆ Built for doctors, lawyers, MBAs &amp; engineers</div>
-          <div className="lm-title">
-            Refinance with <span className="accent" style={{background:'var(--grad-money)',WebkitBackgroundClip:'text',backgroundClip:'text',color:'transparent'}}>SoFi.</span> Get <span className="accent">$1,000.</span>
-          </div>
-          <div className="lm-sub">
-            If you earn <b style={{color:'#fff'}}>$100K+</b> and have <b style={{color:'#fff'}}>$50K+</b> in student loans, SoFi is built for you. The highest-rated lender for high-income professionals — average member saves <b style={{color:'#fff'}}>$23,792</b> over the life of their loan, plus a $1,000 welcome bonus that lands in your account in 30 days.
-          </div>
-          <div className="lm-bullets" style={{marginTop:14}}>
-            <div className="lm-bullet"><span className="lm-check">✓</span><b style={{color:'#fff'}}>$1,000 welcome bonus</b> — paid in cash, no strings</div>
-            <div className="lm-bullet"><span className="lm-check">✓</span><b style={{color:'#fff'}}>0.25% rate discount</b> with autopay enrollment</div>
-            <div className="lm-bullet"><span className="lm-check">✓</span><b style={{color:'#fff'}}>Unemployment protection</b> — pause payments if you lose your job</div>
-            <div className="lm-bullet"><span className="lm-check">✓</span><b style={{color:'#fff'}}>Free career coaching</b> + financial advisor access</div>
-            <div className="lm-bullet"><span className="lm-check">✓</span>Soft credit check — see your real rate in 60 seconds</div>
-          </div>
-          <div className="lm-btns">
-            <a href="https://www.sofi.com/invite/medical-student-loans?gcp=6855762b-2867-4d08-ad5b-e4da0c004795&isAliasGcp=false" target="_blank" rel="noopener" data-cta="refi-sofi-hero" className="cta cta-primary cta-lg">Claim My $1,000 Bonus →</a>
-            <a href="https://www.elfi.com/?code=39543" target="_blank" rel="noopener" data-cta="refi-elfi-alt" className="cta cta-ghost">Or compare ELFI</a>
-          </div>
-          <div style={{fontSize:11,color:'var(--muted-2)',marginTop:14,fontFamily:'var(--mono)'}}>
-            ◉ 800,000+ professionals refinanced · A+ BBB · Member FDIC
-          </div>
-        </div>
-        <div className="lm-side lm-side-premium" style={{position:'relative',zIndex:2}}>
-          <div className="lm-stat-row">
-            <div className="lm-stat-num neon">$1,000</div>
-            <div className="lm-stat-lbl">welcome<br/>bonus</div>
-          </div>
-          <div style={{height:1,background:'rgba(255,255,255,.08)',margin:'18px 0'}}/>
-          <div className="lm-stat-row">
-            <div className="lm-stat-num hot">$23,792</div>
-            <div className="lm-stat-lbl">avg lifetime<br/>savings</div>
-          </div>
-          <div style={{height:1,background:'rgba(255,255,255,.08)',margin:'18px 0'}}/>
-          <div className="lm-stat-row">
-            <div className="lm-stat-num" style={{color:'var(--electric)',fontSize:36}}>4.9★</div>
-            <div className="lm-stat-lbl">800K+<br/>members</div>
-          </div>
-          <div style={{marginTop:18,padding:'10px 12px',background:'rgba(0,229,168,.08)',border:'1px solid rgba(0,229,168,.25)',borderRadius:8,fontSize:11,color:'var(--neon)',fontFamily:'var(--mono)',textAlign:'center',fontWeight:700,letterSpacing:'.06em'}}>
-            ◉ LIMITED — BONUS EXPIRES SOON
-          </div>
-        </div>
-      </section>
-
-      {/* ════════════ COMPARISON TABLE — SoFi vs ELFI ═══════════ */}
-      <section className="lender-compare">
-        <div className="lc-head">
-          <div className="lc-eyebrow">◆ Top 2 lenders right now</div>
-          <div className="lc-title">Which one fits <span className="grad-text">you</span>?</div>
-          <div className="lc-sub">Both have soft credit checks. Both are free to apply. Pick the one that matches your income and loan size.</div>
-        </div>
-        <div className="lc-grid">
-          <a href="https://www.sofi.com/invite/medical-student-loans?gcp=6855762b-2867-4d08-ad5b-e4da0c004795&isAliasGcp=false" target="_blank" rel="noopener" data-cta="compare-sofi" className="lc-card lc-card-featured">
-            <div className="lc-ribbon">★ RECOMMENDED</div>
-            <div className="lc-card-head">
-              <div>
-                <div className="lc-lender">SoFi</div>
-                <div className="lc-tagline">For high earners</div>
-              </div>
-              <div className="lc-score" style={{color:'var(--neon)'}}>9.6<span style={{fontSize:13,color:'var(--muted-2)'}}>/10</span></div>
-            </div>
-            <div className="lc-perks">
-              <div className="lc-perk"><b style={{color:'#fff'}}>$1,000</b> welcome bonus</div>
-              <div className="lc-perk"><b style={{color:'#fff'}}>Best rates</b> for $100K+ earners</div>
-              <div className="lc-perk"><b style={{color:'#fff'}}>Free</b> career &amp; financial coaching</div>
-              <div className="lc-perk"><b style={{color:'#fff'}}>Unemployment</b> protection built-in</div>
-              <div className="lc-perk"><b style={{color:'#fff'}}>800,000+</b> members served</div>
-            </div>
-            <div className="lc-footrow">
-              <div className="lc-best">
-                <div className="lc-best-lbl">Best for</div>
-                <div className="lc-best-val">Doctors · Lawyers · MBAs · Engineers · Tech</div>
-              </div>
-            </div>
-            <div className="cta cta-primary cta-lg" style={{width:'100%',marginTop:14}}>
-              Get My $1,000 Bonus →
-            </div>
-          </a>
-          <a href="https://www.elfi.com/?code=39543" target="_blank" rel="noopener" data-cta="compare-elfi" className="lc-card">
-            <div className="lc-card-head">
-              <div>
-                <div className="lc-lender">ELFI</div>
-                <div className="lc-tagline">For everyone else</div>
-              </div>
-              <div className="lc-score" style={{color:'var(--electric)'}}>8.9<span style={{fontSize:13,color:'var(--muted-2)'}}>/10</span></div>
-            </div>
-            <div className="lc-perks">
-              <div className="lc-perk"><b style={{color:'#fff'}}>No</b> origination or application fees</div>
-              <div className="lc-perk"><b style={{color:'#fff'}}>Dedicated</b> loan advisor (real human)</div>
-              <div className="lc-perk"><b style={{color:'#fff'}}>Transparent</b> rates, no gimmicks</div>
-              <div className="lc-perk">Refi <b style={{color:'#fff'}}>any amount</b> ($10K minimum)</div>
-              <div className="lc-perk">Education First Federal Credit Union backed</div>
-            </div>
-            <div className="lc-footrow">
-              <div className="lc-best">
-                <div className="lc-best-lbl">Best for</div>
-                <div className="lc-best-val">Teachers · Nurses · First-time refi · Smaller loans</div>
-              </div>
-            </div>
-            <div className="cta cta-money" style={{width:'100%',marginTop:14}}>
-              Compare ELFI Rates →
-            </div>
-          </a>
-        </div>
-      </section>
-
-      {/* ── Key Metrics ──────────────────────────────────────────── */}
-      <div className="bottom-section">
-        <div className="bottom-title">
-          <span className="bt-l">The receipts — official numbers</span>
-          <a href="/sources" className="ts-mono" style={{color:'var(--accent-2)'}}>View all sources ↗</a>
-        </div>
-        <div className="metrics-grid">
-          {d.key_metrics.map((m,i)=>(
-            <a key={i} className="metric-card" href={m.source_url || '#'} target="_blank" rel="noopener">
-              <div className="metric-head">
-                <div className="metric-icon">{icons[m.icon]||'📌'}</div>
-                <div className="metric-label">{m.label}</div>
-                <span className="ext-icon">↗</span>
-              </div>
-              <div className={`metric-value c-${m.color}`}>{m.value}</div>
-              <div className="metric-foot">
-                <SrcTag source={m.source} source_url={m.source_url} updated_at={m.updated_at} methodology_ref={m.methodology_ref}/>
-                <span className="ts-mono">{m.updated_at}</span>
-              </div>
-            </a>
-          ))}
-        </div>
-      </div>
-
-      {/* ════════════ NEWSLETTER LEAD MAGNET ═══════════ */}
-      <section className="leadmag" style={{background:'radial-gradient(ellipse at top left, rgba(0,229,168,.15) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(91,140,255,.15) 0%, transparent 60%), linear-gradient(180deg, #0d1a32 0%, #0a1426 100%)'}}>
-        <div style={{position:'relative',zIndex:2}}>
-          <div className="lm-eyebrow" style={{color:'var(--neon)'}}>📧 The Friday Anxiety Report</div>
-          <div className="lm-title">
-            One email. <span className="accent" style={{background:'var(--grad-money)',WebkitBackgroundClip:'text',backgroundClip:'text',color:'transparent'}}>Every Friday.</span><br/>
-            What the index moved, and why.
-          </div>
-          <div className="lm-sub">
-            We read 10,000+ Reddit posts and CFPB complaints every week so you don't have to. Get the chart, the cause, and one actionable move you can make this weekend. Join <b style={{color:'#fff'}}>12,847 borrowers</b> already on the list.
-          </div>
-          <form className="email-form" onSubmit={(e)=>{e.preventDefault(); window.open('mailto:subscribe@loanclarty.com', '_blank');}}>
-            <input type="email" placeholder="your@email.com" required/>
-            <button type="submit" className="cta cta-money" data-cta="newsletter">Subscribe →</button>
-          </form>
-          <div style={{fontSize:11,color:'var(--muted-2)',marginTop:10,fontFamily:'var(--mono)'}}>
-            ◉ Free forever · No spam · Unsubscribe anytime
-          </div>
-        </div>
-        <div className="lm-side" style={{position:'relative',zIndex:2}}>
-          <div className="lm-eyebrow" style={{color:'var(--electric)',fontSize:10}}>This week's report covered</div>
-          <div className="lm-bullets" style={{marginTop:14}}>
-            <div className="lm-bullet"><span className="lm-check">→</span>Why SAVE plan borrowers are panicking again</div>
-            <div className="lm-bullet"><span className="lm-check">→</span>The MOHELA error you need to check today</div>
-            <div className="lm-bullet"><span className="lm-check">→</span>3 IDR moves to make before October</div>
-            <div className="lm-bullet"><span className="lm-check">→</span>The refi rate move nobody's talking about</div>
-          </div>
-          <div style={{marginTop:18,fontSize:11,color:'var(--muted-2)',fontFamily:'var(--mono)',display:'flex',justifyContent:'space-between'}}>
-            <span>◉ 4-min read</span><span>Avg open rate: 62%</span>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Signal Breakdown ─────────────────────────────────────── */}
-      <div className="signals-section">
-        <div className="bottom-title">
-          <span className="bt-l">How We Measure The Panic — 6 Signals</span>
-          <a href="/methodology#weighted-index" className="ts-mono" style={{color:'var(--accent-2)'}}>How it works ↗</a>
-        </div>
-        <div className="signals-grid">
-          {Object.entries(d.signals).map(([key,sig])=>{
-            const c = sig.score<=20?'#dc2626':sig.score<=40?'#f97316':sig.score<=60?'#eab308':sig.score<=80?'#84cc16':'#22c55e';
-            const url = sig.source ? sig.source.url : '#';
-            return (
-              <a key={key} className="sig-card" href={url} target="_blank" rel="noopener">
-                <div className="sig-head">
-                  <div className="sig-name">{sig.label||key}</div>
-                  <div className="sig-weight">{sig.weight}</div>
-                </div>
-                <div className="sig-score" style={{color:c}}>{sig.score}</div>
-                {sig.raw && <div className="sig-raw">{sig.raw}</div>}
-                <div className="sig-foot">
-                  <SrcTag source={sig.source?sig.source.name:''} source_url={url} updated_at={sig.updated_at} methodology_ref={sig.methodology_ref} compact={true}/>
-                  <span className="ts-mono" style={{opacity:.5,fontSize:'9.5px'}}>↗</span>
-                </div>
-              </a>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* ════════════════ FOOTER — final lead capture ════════════════ */}
-      <footer className="lc-footer">
-        <div className="lcf-inner">
-          <div className="lcf-hero">
-            <div className="lcf-eyebrow">◆ One last thing</div>
-            <div className="lcf-h">
-              The system isn't built for you.<br/>
-              <span className="grad-text">We are.</span>
-            </div>
-            <div className="lcf-sub">
-              Join 47,000+ borrowers using Loan Clarity to fight back against bad servicers, confusing plans, and predatory rates. Free forever.
-            </div>
-            <form className="lcf-form" onSubmit={(e)=>{e.preventDefault(); window.open('mailto:subscribe@loanclarty.com', '_blank');}}>
-              <input type="email" placeholder="your@email.com" required/>
-              <button type="submit" className="cta cta-primary" data-cta="newsletter-footer">Join Free →</button>
-            </form>
-          </div>
-
-          <div className="lcf-grid">
-            <a href="https://www.sofi.com/invite/medical-student-loans?gcp=6855762b-2867-4d08-ad5b-e4da0c004795&isAliasGcp=false" target="_blank" rel="noopener" data-cta="footer-sofi" className="lcf-card lcf-card-featured">
-              <div className="icon">⭐</div>
-              <div className="ctitle">Refi with SoFi · $1,000 bonus</div>
-              <div className="cdesc">Top pick for $100K+ earners. Avg member saves $23,792 over loan life. Soft credit check.</div>
-              <div className="clink">Claim my $1,000 →</div>
-            </a>
-            <a href="https://www.elfi.com/?code=39543" target="_blank" rel="noopener" data-cta="footer-elfi" className="lcf-card">
-              <div className="icon">💸</div>
-              <div className="ctitle">Compare ELFI rates</div>
-              <div className="cdesc">No fees, dedicated loan advisor, refi any amount from $10K. Best for first-time refinancers.</div>
-              <div className="clink">See my rate →</div>
-            </a>
-            <a href="mailto:subscribe@loanclarty.com" data-cta="footer-newsletter" className="lcf-card">
-              <div className="icon">📧</div>
-              <div className="ctitle">The Friday report</div>
-              <div className="cdesc">One email every Friday. What moved, why, and what to do about it.</div>
-              <div className="clink">Subscribe free →</div>
-            </a>
-          </div>
-
-          <div className="lcf-bot">
-            <div>
-              © 2026 Loan Clarity · Borrower Sentiment Index™<br/>
-              <span style={{opacity:.7}}>Not financial advice. We may earn affiliate revenue when you refinance.</span>
-            </div>
-            <div className="lcf-social">
-              <a href="https://twitter.com/loanclarityapp" target="_blank" rel="noopener" data-cta="social" title="X / Twitter">𝕏</a>
-              <a href="https://tiktok.com/@loanclarityapp" target="_blank" rel="noopener" data-cta="social" title="TikTok">♪</a>
-              <a href="https://instagram.com/loanclarityapp" target="_blank" rel="noopener" data-cta="social" title="Instagram">◉</a>
-              <a href="https://reddit.com/r/studentloans" target="_blank" rel="noopener" data-cta="social" title="Reddit">r/</a>
-            </div>
-          </div>
+        <div className="mf-disc">
+          Not financial advice. We earn affiliate revenue when you refinance through our links — costs you nothing.
         </div>
       </footer>
+
 
       {/* ════════════ MOBILE STICKY BOTTOM CTA ═══════════ */}
       <div className="mobile-sticky">

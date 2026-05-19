@@ -191,6 +191,39 @@
   .disclaimer{padding:20px 32px;background:rgba(255,138,61,.05);border-top:1px solid rgba(255,138,61,.2);font-size:11px;color:var(--muted);text-align:center;max-width:900px;margin:0 auto;line-height:1.6}
   .disclaimer b{color:var(--hot-2)}
 
+  /* Tiny refi CTA (replaces the giant one) */
+  .mini-refi{padding:32px;max-width:1100px;margin:0 auto}
+  .mini-refi-inner{
+    background:
+      radial-gradient(ellipse at top right,rgba(0,229,168,.12) 0%,transparent 60%),
+      linear-gradient(180deg,#0e1f3d 0%,#0a1530 100%);
+    border:1px solid rgba(0,229,168,.4);border-radius:14px;padding:24px 28px;
+    display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap}
+  .mini-refi-eyebrow{font-size:10.5px;font-weight:800;letter-spacing:.18em;color:var(--hot);text-transform:uppercase}
+  .mini-refi-h{font-size:22px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1.15;margin-top:5px}
+  .mini-refi-grad{background:var(--grad-money);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .mini-refi-btns{display:flex;gap:8px;flex-wrap:wrap}
+
+  /* Tiny footer */
+  .mini-footer-wrap{padding:24px 32px 32px;background:var(--panel);border-top:1px solid var(--border)}
+  .mini-disc{max-width:1100px;margin:0 auto 16px;font-size:11.5px;color:var(--muted);text-align:center;line-height:1.6}
+  .mini-disc b{color:var(--hot-2)}
+  .mini-footer-row{max-width:1100px;margin:0 auto;padding-top:14px;border-top:1px solid var(--border);
+    display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;
+    font-size:11px;color:var(--muted-2);font-family:var(--mono)}
+  .mini-footer-links{display:flex;gap:18px}
+  .mini-footer-links a{font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted-2);transition:color .15s}
+  .mini-footer-links a:hover{color:var(--neon)}
+  @media(max-width:760px){
+    .mini-refi{padding:16px 14px}
+    .mini-refi-inner{padding:20px;flex-direction:column;text-align:center;align-items:stretch}
+    .mini-refi-h{font-size:18px}
+    .mini-refi-btns{justify-content:center}
+    .mini-refi-btns .cta{flex:1}
+    .mini-footer-wrap{padding:18px 14px 24px}
+    .mini-footer-row{flex-direction:column;text-align:center}
+  }
+
   /* Sticky mobile bottom */
   .mobile-sticky{display:none;position:fixed;bottom:0;left:0;right:0;z-index:90;padding:10px 12px;background:rgba(7,17,31,.96);border-top:1px solid var(--border-2);backdrop-filter:blur(10px);box-shadow:0 -8px 24px rgba(0,0,0,.5)}
   .mobile-sticky .cta{width:100%;padding:14px;font-size:14px}
@@ -259,12 +292,24 @@ const { useState, useMemo } = React;
 
 /* ════════════ CALCULATION ENGINE ═══════════════════════════════════════════ */
 
-// 2024 federal tax brackets (simplified — single & married joint)
+/* All limits and brackets verified against irs.gov for 2025 tax year.
+   Sources:
+   - Rev. Proc. 2024-40 (2025 inflation adjustments, irs.gov/pub/irs-drop/rp-24-40.pdf)
+   - IRS Notice 2024-80 (2025 retirement plan limits)
+   - IRS Publication 970 (Tax Benefits for Education) — student loan interest
+   - IRC §221 — Student Loan Interest Deduction
+   - IRC §223 — Health Savings Accounts
+   - IRC §127 — Educational Assistance Programs (extended through 12/31/2025) */
+
+// 2025 federal tax brackets — single & married filing jointly (irs.gov)
 const BRACKETS = {
-  single:  [[11600,.10],[47150,.12],[100525,.22],[191950,.24],[243725,.32],[609350,.35],[Infinity,.37]],
-  married: [[23200,.10],[94300,.12],[201050,.22],[383900,.24],[487450,.32],[731200,.35],[Infinity,.37]],
+  single:  [[11925,.10],[48475,.12],[103350,.22],[197300,.24],[250525,.32],[626350,.35],[Infinity,.37]],
+  married: [[23850,.10],[96950,.12],[206700,.22],[394600,.24],[501050,.32],[751600,.35],[Infinity,.37]],
 };
 
+// IDR formula = % of discretionary income (income above 225% of poverty line)
+// Note: SAVE plan partially enjoined as of 2025 — borrowers in forbearance.
+// PAYE closed to new enrollees; IBR (10%) still available for new borrowers.
 const IDR_RATE = { SAVE: 0.05, PAYE: 0.10, IBR: 0.10, ICR: 0.20, Standard: 0 };
 
 function getBracket(income, status) {
@@ -287,9 +332,11 @@ function calculate(inputs) {
   const marginal = getBracket(income, status);
   const idrRate  = IDR_RATE[plan] || 0;
 
-  /* 1. Student Loan Interest Deduction (above-the-line, max $2,500) */
-  const phaseStart = status === 'married' ? 165000 : 80000;
-  const phaseEnd   = status === 'married' ? 195000 : 95000;
+  /* 1. Student Loan Interest Deduction — IRC §221
+     Max $2,500 deductible above-the-line. 2025 MAGI phaseouts (irs.gov Pub 970):
+     Single:  $85,000 → $100,000   |   MFJ: $170,000 → $200,000 */
+  const phaseStart = status === 'married' ? 170000 : 85000;
+  const phaseEnd   = status === 'married' ? 200000 : 100000;
   let interestDeductible = Math.min(interestPd, 2500);
   if (income > phaseStart) {
     const pct = Math.max(0, 1 - (income - phaseStart) / (phaseEnd - phaseStart));
@@ -297,19 +344,21 @@ function calculate(inputs) {
   }
   const interestSavings = Math.round(interestDeductible * marginal);
 
-  /* 2. 401(k) — reduces AGI: tax savings + IDR payment reduction */
-  const max401k = 23000;
+  /* 2. 401(k) — IRC §402(g) — reduces AGI: tax savings + IDR payment reduction
+     2025 employee deferral limit: $23,500 (IRS Notice 2024-80) */
+  const max401k = 23500;
   const cur401k = Math.min(contrib401k, max401k);
   const room401k = max401k - cur401k;
   const taxSav401k = Math.round(room401k * marginal);
-  const idrSav401k = Math.round(room401k * idrRate); // annual reduction in IDR payment
+  const idrSav401k = Math.round(room401k * idrRate);
 
-  /* 3. HSA — triple tax advantage (assume eligible) */
-  const hsaMax = status === 'married' ? 8300 : 4150;
-  const hsaTaxSav = Math.round(hsaMax * (marginal + 0.0765)); // income tax + FICA
+  /* 3. HSA — IRC §223 — triple tax advantage (Rev. Proc. 2024-25)
+     2025 contribution limits: Self $4,300 · Family $8,550 */
+  const hsaMax = status === 'married' ? 8550 : 4300;
+  const hsaTaxSav = Math.round(hsaMax * (marginal + 0.0765)); // income tax + FICA (7.65%)
   const hsaIdrSav = Math.round(hsaMax * idrRate);
 
-  /* 4. Traditional IRA — if eligible */
+  /* 4. Traditional IRA — IRC §219 — 2025 limit: $7,000 (under 50) */
   const iraMax = 7000;
   const iraSav = Math.round(iraMax * marginal);
   const iraIdr = Math.round(iraMax * idrRate);
@@ -377,7 +426,7 @@ function App() {
     {
       name: 'Max Your 401(k) → Lower AGI',
       desc: r.room401k > 0
-        ? `Increase contributions by ${fmt(r.room401k)} (toward $23K max). Reduces taxes AND your IDR payment.`
+        ? `Increase contributions by ${fmt(r.room401k)} (toward 2025 max of $23,500). Reduces taxes AND your IDR payment.`
         : 'You\'re already maxing your 401(k). Nice work.',
       v: r.taxSav401k + r.idrSav401k,
     },
@@ -416,32 +465,15 @@ function App() {
 
   return (
     <div>
-      {/* ════════════ HERO ════════════ */}
+      {/* ════════════ HERO (tight) ════════════ */}
       <section className="hero">
-        <div className="hero-pill"><span className="dot"/>NEW · Free for borrowers, forever</div>
+        <div className="hero-pill"><span className="dot"/>FREE · 60 SECONDS · NO SIGNUP</div>
         <h1>
-          The tax hacks your loan<br/>servicer <span className="hot">won't tell you.</span>
+          Find <span className="hot">$2,400–$8,000</span><br/>you're leaving behind.
         </h1>
         <p>
-          Most student loan borrowers leave <b>$2,400–$8,000/yr</b> on the table.
-          This calculator finds yours in 60 seconds — no signup, no email, no BS.
-          <br/>Built for the borrowers schools never taught.
+          The tax hacks your loan servicer won't tell you — live calculator below. Verified against <b>2025 IRS figures (irs.gov)</b>.
         </p>
-
-        <div className="stat-strip">
-          <div className="col">
-            <div className="num n">$2,500</div>
-            <div className="lbl">Interest deductible<br/>above-the-line</div>
-          </div>
-          <div className="col">
-            <div className="num h">$23,000</div>
-            <div className="lbl">401(k) max — lowers<br/>both taxes &amp; IDR</div>
-          </div>
-          <div className="col">
-            <div className="num e">$5,250</div>
-            <div className="lbl">Employer loan aid<br/>tax-free (2025)</div>
-          </div>
-        </div>
       </section>
 
       {/* ════════════ CALCULATOR ════════════ */}
@@ -549,219 +581,34 @@ function App() {
         </div>
       </section>
 
-      {/* ════════════ EDUCATION STRIP ════════════ */}
-      <section className="edu-strip">
-        <div className="edu-grid">
-          <div className="edu-card">
-            <div className="edu-icon">📅</div>
-            <div className="edu-title">File by April 15</div>
-            <div className="edu-desc">Most of these deductions need to land on this year's return.</div>
+      {/* ════════════ TINY REFI CTA — single line ═══════════ */}
+      <section className="mini-refi">
+        <div className="mini-refi-inner">
+          <div className="mini-refi-text">
+            <div className="mini-refi-eyebrow">◆ Stack savings on top</div>
+            <div className="mini-refi-h">Tax moves get the deduction. <span className="mini-refi-grad">Refi gets you the cash.</span></div>
           </div>
-          <div className="edu-card">
-            <div className="edu-icon">📄</div>
-            <div className="edu-title">Get Form 1098-E</div>
-            <div className="edu-desc">Your servicer mails it by Jan 31 if you paid $600+ in interest.</div>
-          </div>
-          <div className="edu-card">
-            <div className="edu-icon">📊</div>
-            <div className="edu-title">Recertify IDR yearly</div>
-            <div className="edu-desc">Low AGI = low payment. Time it with your max 401(k) year.</div>
-          </div>
-          <div className="edu-card">
-            <div className="edu-icon">⚠️</div>
-            <div className="edu-title">PSLF is tax-free</div>
-            <div className="edu-desc">IDR forgiveness is federally tax-free through 2025 — watch your state.</div>
+          <div className="mini-refi-btns">
+            <a href="https://www.sofi.com/invite/medical-student-loans?gcp=6855762b-2867-4d08-ad5b-e4da0c004795&isAliasGcp=false" target="_blank" rel="noopener" data-cta="tax-page-sofi" className="cta cta-primary">Claim $1,000 →</a>
+            <a href="https://www.elfi.com/?code=39543" target="_blank" rel="noopener" data-cta="tax-page-elfi" className="cta cta-ghost">Compare ELFI</a>
           </div>
         </div>
       </section>
 
-      {/* ════════════ STRATEGY DEEP DIVES ════════════ */}
-      <section className="strategy-section">
-        <div className="calc-eyebrow">◆ The full playbook</div>
-        <div className="calc-h">7 strategies. <span style={{background:'var(--grad-hot)',WebkitBackgroundClip:'text',backgroundClip:'text',color:'transparent'}}>Most borrowers use 1.</span></div>
-        <div className="calc-sub">Each one is legal, well-documented, and ignored by 80% of borrowers. Stack them.</div>
-
-        <div className="strat-grid">
-          <div className="strat-card">
-            <div className="strat-head">
-              <div className="strat-icon">💰</div>
-              <div>
-                <div className="strat-title">Student Loan Interest Deduction</div>
-                <div className="strat-savings">Save up to $550/yr</div>
-              </div>
-            </div>
-            <div className="strat-body">
-              Deduct up to <b>$2,500</b> of student loan interest <b>above the line</b> — meaning you get it whether you itemize or take the standard deduction. Phases out between $80K–$95K income (single) or $165K–$195K (married). Your servicer mails Form <b>1098-E</b> in January.
-            </div>
-            <div className="strat-foot">
-              <span className="strat-tag">IRS Publication 970</span>
-              <a href="https://www.irs.gov/taxtopics/tc456" target="_blank" rel="noopener" className="strat-link">IRS source ↗</a>
-            </div>
-          </div>
-
-          <div className="strat-card">
-            <div className="strat-head">
-              <div className="strat-icon hot">🎯</div>
-              <div>
-                <div className="strat-title">401(k) Max → Double Win</div>
-                <div className="strat-savings hot">Save $5,000+/yr</div>
-              </div>
-            </div>
-            <div className="strat-body">
-              Every dollar into your 401(k) lowers AGI. If you're on <b>SAVE/PAYE/IBR</b>, that AGI feeds your IDR payment calculation — so maxing your 401(k) cuts your loan payment AND your taxes. <b>2024 limit: $23,000.</b> If your employer matches, you also get free money on top.
-            </div>
-            <div className="strat-foot">
-              <span className="strat-tag">IRC §401(k)</span>
-              <a href="https://www.irs.gov/retirement-plans/plan-participant-employee/retirement-topics-401k-and-profit-sharing-plan-contribution-limits" target="_blank" rel="noopener" className="strat-link">IRS source ↗</a>
-            </div>
-          </div>
-
-          <div className="strat-card">
-            <div className="strat-head">
-              <div className="strat-icon electric">🏥</div>
-              <div>
-                <div className="strat-title">HSA — The Triple Tax Win</div>
-                <div className="strat-savings electric">Save $1,200+/yr</div>
-              </div>
-            </div>
-            <div className="strat-body">
-              The only account with <b>three tax advantages</b>: (1) deduct contributions, (2) grow tax-free, (3) withdraw tax-free for medical. Bonus: contributions reduce AGI for IDR. Need a high-deductible health plan to qualify. <b>2024 max: $4,150 single / $8,300 family.</b>
-            </div>
-            <div className="strat-foot">
-              <span className="strat-tag">IRC §223</span>
-              <a href="https://www.irs.gov/publications/p969" target="_blank" rel="noopener" className="strat-link">IRS source ↗</a>
-            </div>
-          </div>
-
-          <div className="strat-card">
-            <div className="strat-head">
-              <div className="strat-icon hot">💒</div>
-              <div>
-                <div className="strat-title">Married Filing Separately</div>
-                <div className="strat-savings hot">Save $3,000+/yr</div>
-              </div>
-            </div>
-            <div className="strat-body">
-              If you're married and on SAVE/PAYE/IBR, filing separately means your IDR payment is based on <b>only your income</b> — not your household's. Best when one spouse has high income, the other has high loans. Trade-off: you lose some tax credits (Roth IRA, child credits). Run the numbers — often a net win.
-            </div>
-            <div className="strat-foot">
-              <span className="strat-tag">34 CFR §685</span>
-              <a href="https://studentaid.gov/manage-loans/repayment/plans/income-driven" target="_blank" rel="noopener" className="strat-link">studentaid.gov ↗</a>
-            </div>
-          </div>
-
-          <div className="strat-card">
-            <div className="strat-head">
-              <div className="strat-icon">🏢</div>
-              <div>
-                <div className="strat-title">Employer Loan Assistance (§127)</div>
-                <div className="strat-savings">Save $1,150+/yr</div>
-              </div>
-            </div>
-            <div className="strat-body">
-              Under CARES Act §127, your employer can pay <b>up to $5,250/yr</b> directly toward your student loans — completely tax-free to you. Many companies offer it but don't advertise. <b>Ask HR.</b> Currently extended through 2025; Congress is debating making it permanent.
-            </div>
-            <div className="strat-foot">
-              <span className="strat-tag">IRC §127</span>
-              <a href="https://www.irs.gov/newsroom/employer-provided-educational-assistance-can-help-pay-workers-student-loans" target="_blank" rel="noopener" className="strat-link">IRS source ↗</a>
-            </div>
-          </div>
-
-          <div className="strat-card">
-            <div className="strat-head">
-              <div className="strat-icon electric">🏛️</div>
-              <div>
-                <div className="strat-title">State Tax Deductions</div>
-                <div className="strat-savings electric">Save $200–$1,500/yr</div>
-              </div>
-            </div>
-            <div className="strat-body">
-              States that allow <b>additional</b> deductions on top of federal: <b>Maine</b> (Opportunity Tax Credit), <b>Maryland</b> (Student Loan Debt Relief Credit, up to $1,000), <b>Massachusetts</b> (full interest deduction), <b>Rhode Island</b> (Wavemaker Fellowship). Check your state revenue website.
-            </div>
-            <div className="strat-foot">
-              <span className="strat-tag">State-by-state</span>
-              <a href="https://www.tax-brackets.org/" target="_blank" rel="noopener" className="strat-link">Compare states ↗</a>
-            </div>
-          </div>
-
-          <div className="strat-card">
-            <div className="strat-head">
-              <div className="strat-icon">🎓</div>
-              <div>
-                <div className="strat-title">PSLF — Tax-Free Forgiveness</div>
-                <div className="strat-savings">Forgive $50K–$200K+</div>
-              </div>
-            </div>
-            <div className="strat-body">
-              Work for a 501(c)(3), government, or qualifying nonprofit? After <b>120 qualifying payments</b> (10 years) on an IDR plan, your remaining federal loan balance is <b>forgiven completely tax-free</b>. The single most powerful tool in the tax code for borrowers — and the most under-used.
-            </div>
-            <div className="strat-foot">
-              <span className="strat-tag">34 CFR §685.219</span>
-              <a href="https://studentaid.gov/manage-loans/forgiveness-cancellation/public-service" target="_blank" rel="noopener" className="strat-link">studentaid.gov ↗</a>
-            </div>
-          </div>
-
-          <div className="strat-card">
-            <div className="strat-head">
-              <div className="strat-icon hot">🔁</div>
-              <div>
-                <div className="strat-title">529 → Roth IRA Rollover</div>
-                <div className="strat-savings hot">Convert $35,000</div>
-              </div>
-            </div>
-            <div className="strat-body">
-              New under <b>SECURE 2.0</b> (effective 2024): roll up to <b>$35,000 from a 529 plan into a Roth IRA</b> tax-free and penalty-free. Has to be the same beneficiary, account open 15+ years. For families with overfunded 529s, this is a generational wealth move.
-            </div>
-            <div className="strat-foot">
-              <span className="strat-tag">SECURE 2.0 §126</span>
-              <a href="https://www.congress.gov/bill/117th-congress/house-bill/2954" target="_blank" rel="noopener" className="strat-link">Law text ↗</a>
-            </div>
-          </div>
+      {/* ════════════ MINI FOOTER ════════════ */}
+      <div className="mini-footer-wrap">
+        <div className="mini-disc">
+          <b>Not tax advice.</b> Calculations use 2025 federal figures from <a href="https://www.irs.gov" target="_blank" rel="noopener" style={{color:'var(--electric)'}}>irs.gov</a> (Rev. Proc. 2024-40, IRS Notice 2024-80, IRS Publication 970). Consult a CPA before filing. We earn affiliate revenue on refi links — costs you nothing.
         </div>
-      </section>
-
-      {/* ════════════ REFI CTA — SoFi primary ════════════ */}
-      <section className="cta-section">
-        <div className="cta-badge">★ Stack savings on top of tax moves</div>
-        <div>
-          <div className="cta-h">
-            Tax moves get you the deduction.<br/>
-            <span className="grad">Refinancing gets you the cash.</span>
-          </div>
-          <div className="cta-p">
-            Even with every tax hack above, your <b>interest rate</b> is still the biggest lever you have. If you earn $100K+ and have $50K+ in loans, refinancing with <b>SoFi</b> gets you a lower rate, a <b>$1,000 welcome bonus</b>, and free financial coaching. Soft credit check — see your real rate in 60 seconds.
-          </div>
-          <div className="cta-btns">
-            <a href="https://www.sofi.com/invite/medical-student-loans?gcp=6855762b-2867-4d08-ad5b-e4da0c004795&isAliasGcp=false" target="_blank" rel="noopener" data-cta="tax-page-sofi" className="cta cta-primary" style={{flex:'unset'}}>Claim My $1,000 Bonus →</a>
-            <a href="https://www.elfi.com/?code=39543" target="_blank" rel="noopener" data-cta="tax-page-elfi" className="cta cta-ghost">Or compare ELFI</a>
-          </div>
+        <div className="mini-footer-row">
+          <span>© 2026 Loan Clarity</span>
+          <span className="mini-footer-links">
+            <a href="/">Dashboard</a>
+            <a href="/methodology">Methodology</a>
+            <a href="/sources">Sources</a>
+          </span>
         </div>
-        <div className="cta-stats">
-          <div className="cta-stat"><span className="lbl">SoFi welcome bonus</span><span className="val">$1,000</span></div>
-          <div className="cta-stat"><span className="lbl">Avg lifetime savings</span><span className="val">$23,792</span></div>
-          <div className="cta-stat"><span className="lbl">Members served</span><span className="val">800K+</span></div>
-          <div className="cta-stat"><span className="lbl">Time to rate quote</span><span className="val">60 sec</span></div>
-        </div>
-      </section>
-
-      {/* ════════════ DISCLAIMER ════════════ */}
-      <div className="disclaimer">
-        <b>Not tax advice.</b> This tool produces estimates based on 2024 IRS rules and the inputs you provide. Actual savings depend on your full financial picture, state of residence, and IRS interpretation. Consult a CPA or enrolled agent before filing. Loan Clarity earns affiliate revenue when you refinance through our links — it costs you nothing.
       </div>
-
-      {/* ════════════ FOOTER ════════════ */}
-      <footer className="footer">
-        <div className="footer-h">Built by borrowers, for borrowers.</div>
-        <div className="footer-p">No login. No spam. No selling your data. Free forever.</div>
-        <a href="/" className="cta cta-ghost" style={{display:'inline-flex'}}>← Back to the live stress index</a>
-        <div className="footer-links">
-          <a href="/">Dashboard</a>
-          <a href="/methodology">Methodology</a>
-          <a href="/sources">Sources</a>
-          <a href="/tax-tool">Tax Tool</a>
-          <a href="mailto:hello@loanclarty.com">Contact</a>
-        </div>
-      </footer>
 
       <div className="mobile-sticky">
         <a href="https://www.sofi.com/invite/medical-student-loans?gcp=6855762b-2867-4d08-ad5b-e4da0c004795&isAliasGcp=false" target="_blank" rel="noopener" data-cta="tax-sticky-sofi" className="cta cta-primary">💸 Get $1,000 + Lower Rate (SoFi) →</a>
