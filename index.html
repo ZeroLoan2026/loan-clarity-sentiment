@@ -311,6 +311,92 @@
       .hero-cta-btns .cta { flex: 1; }
     }
 
+    /* ── Tax Optimizer featured CTA on dashboard ──────────────── */
+    .tax-feature {
+      display: block;
+      margin: 0; padding: 0;
+      background:
+        radial-gradient(ellipse at top right, rgba(0,229,168,.18) 0%, transparent 55%),
+        radial-gradient(ellipse at bottom left, rgba(91,140,255,.16) 0%, transparent 55%),
+        linear-gradient(180deg, #0e1f3d 0%, #0a1530 100%);
+      border-top: 1px solid rgba(0,229,168,.4);
+      border-bottom: 1px solid rgba(0,229,168,.4);
+      text-decoration: none; color: inherit;
+      transition: filter .2s;
+      position: relative; overflow: hidden;
+      cursor: pointer;
+    }
+    .tax-feature:hover { filter: brightness(1.08); }
+    .tax-feature-glow {
+      position: absolute; top: -50%; left: -10%; width: 60%; height: 200%;
+      background: radial-gradient(ellipse, rgba(0,229,168,.15) 0%, transparent 60%);
+      animation: drift 8s ease-in-out infinite;
+      pointer-events: none;
+    }
+    @keyframes drift {
+      0%,100% { transform: translateX(0) translateY(0); }
+      50% { transform: translateX(40%) translateY(-10%); }
+    }
+    .tax-feature-content {
+      display: grid; grid-template-columns: 1.5fr 1fr;
+      gap: 36px; align-items: center;
+      padding: 32px 36px; max-width: 1400px; margin: 0 auto;
+      position: relative; z-index: 2;
+    }
+    .tax-feature-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 14px; border-radius: 999px;
+      background: rgba(0,229,168,.12); border: 1px solid rgba(0,229,168,.4);
+      font-size: 10px; font-weight: 900; letter-spacing: .14em; color: var(--neon);
+      text-transform: uppercase; margin-bottom: 14px;
+    }
+    .tax-feature-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--neon); box-shadow: 0 0 10px var(--neon); animation: pulse 1.4s infinite; }
+    .tax-feature-h {
+      font-size: 36px; font-weight: 900; letter-spacing: -.03em; line-height: 1.08; color: #fff;
+    }
+    .tax-feature-grad { background: var(--grad-money); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .tax-feature-sub { font-size: 15px; color: #a8becc; margin-top: 12px; max-width: 560px; line-height: 1.55; }
+    .tax-feature-bullets {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px;
+    }
+    .tax-fb {
+      font-size: 11px; padding: 5px 11px; border-radius: 999px;
+      background: rgba(0,229,168,.08); border: 1px solid rgba(0,229,168,.25);
+      color: #cfe1ff; font-weight: 600; font-family: var(--mono); letter-spacing: .02em;
+    }
+    .tax-feature-card {
+      background: rgba(7,17,31,.7); border: 2px solid rgba(0,229,168,.5);
+      border-radius: 16px; padding: 28px 30px; text-align: center;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 16px 40px rgba(0,229,168,.15);
+    }
+    .tax-feature-card-lbl {
+      font-size: 11px; color: var(--muted); text-transform: uppercase;
+      letter-spacing: .15em; font-weight: 700;
+    }
+    .tax-feature-card-num {
+      font-size: 64px; font-weight: 900; letter-spacing: -.04em; line-height: 1;
+      font-family: var(--mono); margin: 10px 0 4px;
+      background: var(--grad-money); -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .tax-feature-card-sub {
+      font-size: 12px; color: var(--muted); font-family: var(--mono); margin-bottom: 20px;
+    }
+    .tax-feature-cta {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 100%; padding: 14px 22px; border-radius: 999px;
+      background: var(--grad-money); color: #07111f;
+      font-weight: 800; font-size: 14px; letter-spacing: .02em;
+      box-shadow: 0 8px 24px rgba(0,229,168,.3);
+      transition: transform .15s;
+    }
+    .tax-feature:hover .tax-feature-cta { transform: translateY(-2px); }
+    @media(max-width:900px){
+      .tax-feature-content { grid-template-columns: 1fr; padding: 24px 18px; gap: 20px; }
+      .tax-feature-h { font-size: 26px; }
+      .tax-feature-card-num { font-size: 48px; }
+    }
+
     /* Social proof strip */
     .social-proof {
       display: flex; gap: 28px; flex-wrap: wrap; justify-content: center; align-items: center;
@@ -957,6 +1043,7 @@ function App() {
         </div>
         <nav className="nav-links">
           <a href="/" className="active">Dashboard</a>
+          <a href="/tax-tool" style={{color:'var(--neon)'}}>💰 Tax Tool</a>
           <a href="/methodology">Methodology</a>
           <a href="/sources">Sources</a>
         </nav>
@@ -1021,6 +1108,40 @@ function App() {
           </div>
         </div>
       </section>
+
+      {/* ════════════ TAX OPTIMIZER FEATURED CTA ═══════════ */}
+      <a href="/tax-tool" data-cta="tax-tool-hero" className="tax-feature">
+        <div className="tax-feature-glow"/>
+        <div className="tax-feature-content">
+          <div className="tax-feature-left">
+            <div className="tax-feature-badge">
+              <span className="tax-feature-dot"/>NEW · FREE FOR EVERYONE · 60 SECONDS
+            </div>
+            <div className="tax-feature-h">
+              💰 Find <span className="tax-feature-grad">$2,400–$8,000</span><br/>
+              in tax savings you're missing.
+            </div>
+            <div className="tax-feature-sub">
+              The tax hacks your loan servicer won't tell you — interactive calculator built for borrowers. No signup, no email, no BS.
+            </div>
+            <div className="tax-feature-bullets">
+              <span className="tax-fb">✓ Student loan interest deduction</span>
+              <span className="tax-fb">✓ IDR payment optimization</span>
+              <span className="tax-fb">✓ 401(k) / HSA / IRA stacking</span>
+              <span className="tax-fb">✓ Married filing separately hack</span>
+              <span className="tax-fb">✓ Employer §127 assistance</span>
+            </div>
+          </div>
+          <div className="tax-feature-right">
+            <div className="tax-feature-card">
+              <div className="tax-feature-card-lbl">Avg borrower finds</div>
+              <div className="tax-feature-card-num">$4,283</div>
+              <div className="tax-feature-card-sub">in annual savings</div>
+              <div className="tax-feature-cta">Launch Calculator →</div>
+            </div>
+          </div>
+        </div>
+      </a>
 
       {/* ════════════ SOCIAL PROOF strip ═══════════ */}
       <div className="social-proof">

@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Tax Optimizer · The hacks your loan servicer won't tell you — Loan Clarity</title>
+<meta name="description" content="Free tax optimization calculator for student loan borrowers. Find $2,400–$8,000/yr you're leaving on the table. Built for Gen Z and millennials."/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#050b16; --panel:#07111f; --card:#0b1626; --card-2:#0f1d33;
+    --border:#16294a; --border-2:#1e3a5f;
+    --text:#e6eef7; --muted:#6f88a5; --muted-2:#4a6888;
+    --accent:#2d7dd2; --accent-2:#6fb6ff;
+    --hot:#ff5577; --hot-2:#ff8a3d;
+    --neon:#00e5a8; --electric:#5b8cff;
+    --grad-hot:linear-gradient(135deg,#ff5577 0%,#ff8a3d 100%);
+    --grad-money:linear-gradient(135deg,#00e5a8 0%,#5b8cff 100%);
+    --grad-cool:linear-gradient(135deg,#5b8cff 0%,#00e5a8 100%);
+    --mono:'JetBrains Mono',ui-monospace,monospace;
+  }
+  html,body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased;padding-top:64px;min-height:100vh}
+  a{color:inherit;text-decoration:none}
+
+  /* Nav (matches platform) */
+  .nav{background:rgba(7,17,31,.92);border-bottom:1px solid var(--border);
+       padding:14px 28px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;
+       position:fixed;top:0;left:0;right:0;z-index:100;
+       backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  .nav-left{display:flex;align-items:center;gap:12px;justify-self:start}
+  .logo-mark{width:34px;height:34px;background:linear-gradient(135deg,#1a6eb5,#2d7dd2);border-radius:8px;
+             display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 0 14px rgba(45,125,210,.25)}
+  .nav-title{font-size:17px;font-weight:800;color:#fff;letter-spacing:-.02em}
+  .nav-sub{font-size:10px;color:#5a7d9d;letter-spacing:.12em;text-transform:uppercase;margin-top:1px}
+  .nav-right{display:flex;gap:28px;justify-self:center}
+  .nav-right a{color:#6f88a5;text-decoration:none;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:6px 0;border-bottom:2px solid transparent;transition:all .15s}
+  .nav-right a:hover{color:#6fb6ff}
+  .nav-right a.active{color:#fff;border-bottom-color:var(--accent)}
+  .nav-right a.tax-active{color:var(--neon);border-bottom-color:var(--neon)}
+  .nav-spacer{justify-self:end}
+
+  /* Hero */
+  .hero{padding:60px 32px 40px;text-align:center;
+        background:
+          radial-gradient(ellipse at top, rgba(0,229,168,.12) 0%, transparent 50%),
+          radial-gradient(ellipse at bottom, rgba(91,140,255,.08) 0%, transparent 50%)}
+  .hero-pill{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;
+             background:rgba(0,229,168,.12);border:1px solid rgba(0,229,168,.35);
+             font-size:11px;font-weight:800;letter-spacing:.16em;color:var(--neon);text-transform:uppercase;margin-bottom:18px}
+  .hero-pill .dot{width:6px;height:6px;border-radius:50%;background:var(--neon);box-shadow:0 0 8px var(--neon);animation:pulse 1.4s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  .hero h1{font-size:54px;font-weight:900;letter-spacing:-.04em;line-height:1.05;color:#fff;max-width:920px;margin:0 auto}
+  .hero h1 .grad{background:var(--grad-money);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero h1 .hot{background:var(--grad-hot);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero p{font-size:17px;color:#a8becc;max-width:680px;margin:18px auto 0;line-height:1.55}
+  .hero p b{color:#fff}
+
+  /* Stat strip */
+  .stat-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:0;max-width:980px;margin:36px auto 0;
+              border:1px solid var(--border-2);border-radius:14px;overflow:hidden;background:var(--panel)}
+  .stat-strip .col{padding:22px 24px;text-align:center;border-right:1px solid var(--border)}
+  .stat-strip .col:last-child{border-right:none}
+  .stat-strip .num{font-size:36px;font-weight:900;letter-spacing:-.03em;line-height:1;font-family:var(--mono)}
+  .stat-strip .num.n{color:var(--neon)} .stat-strip .num.h{color:var(--hot)} .stat-strip .num.e{color:var(--electric)}
+  .stat-strip .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.14em;font-weight:700;margin-top:8px}
+
+  /* Calculator section */
+  .calc-section{padding:60px 32px;max-width:1200px;margin:0 auto}
+  .calc-eyebrow{text-align:center;font-size:11px;font-weight:800;letter-spacing:.2em;color:var(--neon);text-transform:uppercase;margin-bottom:8px}
+  .calc-h{text-align:center;font-size:38px;font-weight:900;letter-spacing:-.03em;color:#fff;margin-bottom:8px}
+  .calc-sub{text-align:center;font-size:15px;color:var(--muted);max-width:620px;margin:0 auto 36px}
+
+  .calc-grid{display:grid;grid-template-columns:1fr 1.1fr;gap:24px}
+  .calc-form{background:linear-gradient(180deg,#0b1626 0%,#07111f 100%);border:1px solid var(--border-2);border-radius:16px;padding:28px 30px}
+  .calc-form h3{font-size:14px;font-weight:800;color:#fff;letter-spacing:-.01em;margin-bottom:4px;display:flex;align-items:center;gap:10px}
+  .calc-form .step-num{width:24px;height:24px;border-radius:50%;background:var(--grad-money);color:#07111f;font-size:12px;font-weight:900;display:flex;align-items:center;justify-content:center}
+  .calc-form .step-desc{font-size:12px;color:var(--muted);margin-bottom:16px;margin-left:34px}
+  .calc-form .step{padding:22px 0;border-bottom:1px solid var(--border)}
+  .calc-form .step:last-child{border-bottom:none;padding-bottom:0}
+  .calc-form .step:first-child{padding-top:0}
+
+  .field{margin-bottom:14px}
+  .field:last-child{margin-bottom:0}
+  .field label{display:block;font-size:12px;color:var(--muted);font-weight:600;margin-bottom:6px;letter-spacing:.02em}
+  .field input,.field select{
+    width:100%;background:rgba(7,17,31,.85);border:1px solid var(--border-2);border-radius:8px;
+    padding:11px 14px;color:#fff;font-size:14px;font-family:inherit;font-weight:600;
+    outline:none;transition:border-color .15s
+  }
+  .field input:focus,.field select:focus{border-color:var(--neon)}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .field .prefix{position:relative}
+  .field .prefix::before{content:'$';position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-weight:700;font-size:14px;pointer-events:none}
+  .field .prefix input{padding-left:26px}
+
+  .field .help{font-size:11px;color:var(--muted-2);margin-top:4px;font-style:italic}
+
+  /* Results panel */
+  .results{background:
+      radial-gradient(ellipse at top right,rgba(0,229,168,.15) 0%,transparent 50%),
+      radial-gradient(ellipse at bottom left,rgba(255,85,119,.1) 0%,transparent 50%),
+      linear-gradient(180deg,#0e1f3d 0%,#0a1530 100%);
+      border:2px solid rgba(0,229,168,.35);border-radius:16px;padding:32px;display:flex;flex-direction:column;gap:18px;
+      box-shadow:0 16px 50px rgba(0,229,168,.1)}
+  .res-eyebrow{font-size:11px;color:var(--neon);font-weight:800;letter-spacing:.2em;text-transform:uppercase;display:flex;align-items:center;gap:8px}
+  .res-headline{font-size:18px;color:#fff;font-weight:700;letter-spacing:-.01em;line-height:1.35}
+  .res-bignum-wrap{text-align:center;padding:24px 0;border-top:1px solid rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.08)}
+  .res-bignum-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.16em;font-weight:700;margin-bottom:6px}
+  .res-bignum{font-size:84px;font-weight:900;letter-spacing:-.05em;line-height:1;font-family:var(--mono);
+              background:var(--grad-money);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .res-bignum-sub{font-size:13px;color:var(--muted);margin-top:8px;font-family:var(--mono)}
+  .res-breakdown{display:flex;flex-direction:column;gap:10px;margin-top:4px}
+  .res-row{display:flex;justify-content:space-between;align-items:flex-start;padding:14px 16px;background:rgba(7,17,31,.5);border:1px solid var(--border);border-radius:8px;transition:all .15s}
+  .res-row:hover{border-color:var(--neon)}
+  .res-row.empty{opacity:.4}
+  .res-row .l{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+  .res-row .l .name{font-size:13px;font-weight:700;color:#fff}
+  .res-row .l .desc{font-size:11px;color:var(--muted);line-height:1.4}
+  .res-row .v{font-family:var(--mono);font-size:18px;font-weight:800;color:var(--neon);white-space:nowrap;margin-left:14px}
+  .res-row.empty .v{color:var(--muted-2)}
+
+  .res-cta-wrap{display:flex;gap:10px;margin-top:8px;flex-wrap:wrap}
+  .cta{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 22px;border-radius:999px;font-weight:800;font-size:14px;letter-spacing:.02em;text-decoration:none;transition:transform .15s,box-shadow .15s,filter .15s;cursor:pointer;border:none;white-space:nowrap}
+  .cta:hover{transform:translateY(-2px)}
+  .cta-primary{background:var(--grad-money);color:#07111f;box-shadow:0 8px 24px rgba(0,229,168,.3);flex:1}
+  .cta-primary:hover{filter:brightness(1.08)}
+  .cta-hot{background:var(--grad-hot);color:#fff;box-shadow:0 8px 24px rgba(255,85,119,.35)}
+  .cta-ghost{background:rgba(91,140,255,.08);color:#cfe1ff;border:1px solid rgba(91,140,255,.35)}
+  .cta-ghost:hover{background:rgba(91,140,255,.15);border-color:var(--electric)}
+
+  /* Strategy deep-dive cards */
+  .strategy-section{padding:40px 32px 60px;max-width:1200px;margin:0 auto}
+  .strat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+  .strat-card{background:linear-gradient(180deg,var(--card) 0%,var(--panel) 100%);border:1px solid var(--border);border-radius:14px;padding:24px 26px;transition:all .2s;cursor:default}
+  .strat-card:hover{border-color:var(--electric);transform:translateY(-2px)}
+  .strat-head{display:flex;align-items:flex-start;gap:14px;margin-bottom:14px}
+  .strat-icon{width:44px;height:44px;border-radius:10px;background:rgba(0,229,168,.1);border:1px solid rgba(0,229,168,.3);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+  .strat-icon.hot{background:rgba(255,85,119,.1);border-color:rgba(255,85,119,.3)}
+  .strat-icon.electric{background:rgba(91,140,255,.1);border-color:rgba(91,140,255,.3)}
+  .strat-title{font-size:17px;font-weight:800;color:#fff;letter-spacing:-.01em}
+  .strat-savings{font-size:12px;color:var(--neon);font-weight:700;margin-top:3px;font-family:var(--mono)}
+  .strat-savings.hot{color:var(--hot)} .strat-savings.electric{color:var(--electric)}
+  .strat-body{font-size:13.5px;color:#c0d8f0;line-height:1.6}
+  .strat-body b{color:#fff}
+  .strat-foot{margin-top:14px;padding-top:14px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+  .strat-tag{font-size:10px;color:var(--muted-2);font-family:var(--mono);text-transform:uppercase;letter-spacing:.1em}
+  .strat-link{font-size:12px;color:var(--electric);font-weight:700}
+
+  /* CTA refi section */
+  .cta-section{margin:30px 32px;border-radius:16px;
+               background:
+                 radial-gradient(ellipse at top right,rgba(0,229,168,.18) 0%,transparent 60%),
+                 radial-gradient(ellipse at bottom left,rgba(91,140,255,.15) 0%,transparent 60%),
+                 linear-gradient(180deg,#0e1f3d 0%,#0a1530 100%);
+               border:2px solid rgba(0,229,168,.4);padding:36px 40px;
+               display:grid;grid-template-columns:1.4fr 1fr;gap:32px;align-items:center;position:relative;overflow:hidden}
+  .cta-badge{position:absolute;top:-12px;left:32px;padding:6px 14px;border-radius:999px;background:var(--grad-money);color:#07111f;font-size:10px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;box-shadow:0 4px 16px rgba(0,229,168,.4)}
+  .cta-h{font-size:30px;font-weight:900;letter-spacing:-.025em;line-height:1.1;color:#fff}
+  .cta-h .grad{background:var(--grad-money);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .cta-p{font-size:14px;color:#a8becc;margin-top:12px;line-height:1.55}
+  .cta-p b{color:#fff}
+  .cta-btns{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+  .cta-stats{background:rgba(7,17,31,.7);border:1px solid var(--border-2);border-radius:12px;padding:22px}
+  .cta-stat{display:flex;justify-content:space-between;align-items:baseline;padding:10px 0;border-bottom:1px dashed rgba(255,255,255,.08)}
+  .cta-stat:last-child{border-bottom:none}
+  .cta-stat .lbl{font-size:12px;color:var(--muted)}
+  .cta-stat .val{font-family:var(--mono);font-size:18px;font-weight:800;color:var(--neon)}
+
+  /* Education strip */
+  .edu-strip{padding:30px 32px;background:var(--panel);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+  .edu-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;max-width:1100px;margin:0 auto}
+  .edu-card{display:flex;flex-direction:column;gap:6px}
+  .edu-icon{font-size:24px}
+  .edu-title{font-size:14px;font-weight:800;color:#fff}
+  .edu-desc{font-size:12px;color:var(--muted);line-height:1.4}
+
+  /* Footer */
+  .footer{padding:48px 32px 60px;background:var(--panel);border-top:1px solid var(--border);text-align:center}
+  .footer-h{font-size:24px;font-weight:900;color:#fff;letter-spacing:-.02em;margin-bottom:10px}
+  .footer-p{font-size:13px;color:var(--muted);margin-bottom:20px}
+  .footer-links{display:flex;gap:24px;justify-content:center;font-size:11px;color:var(--muted-2);font-family:var(--mono);text-transform:uppercase;letter-spacing:.1em;margin-top:24px;padding-top:24px;border-top:1px solid var(--border);flex-wrap:wrap}
+  .footer-links a{color:var(--muted-2);transition:color .15s}
+  .footer-links a:hover{color:var(--neon)}
+
+  /* Disclaimer */
+  .disclaimer{padding:20px 32px;background:rgba(255,138,61,.05);border-top:1px solid rgba(255,138,61,.2);font-size:11px;color:var(--muted);text-align:center;max-width:900px;margin:0 auto;line-height:1.6}
+  .disclaimer b{color:var(--hot-2)}
+
+  /* Sticky mobile bottom */
+  .mobile-sticky{display:none;position:fixed;bottom:0;left:0;right:0;z-index:90;padding:10px 12px;background:rgba(7,17,31,.96);border-top:1px solid var(--border-2);backdrop-filter:blur(10px);box-shadow:0 -8px 24px rgba(0,0,0,.5)}
+  .mobile-sticky .cta{width:100%;padding:14px;font-size:14px}
+
+  @media(max-width:900px){
+    .hero h1{font-size:38px}
+    .hero p{font-size:15px}
+    .stat-strip{grid-template-columns:1fr;border-radius:10px}
+    .stat-strip .col{border-right:none;border-bottom:1px solid var(--border)}
+    .stat-strip .col:last-child{border-bottom:none}
+    .calc-grid{grid-template-columns:1fr}
+    .strat-grid{grid-template-columns:1fr}
+    .cta-section{grid-template-columns:1fr;padding:28px 24px;margin:20px 14px}
+    .edu-grid{grid-template-columns:1fr 1fr}
+    .res-bignum{font-size:60px}
+    .calc-h{font-size:26px}
+  }
+  @media(max-width:760px){
+    html,body{padding-top:110px;padding-bottom:70px}
+    .nav{display:grid;grid-template-columns:auto 1fr auto;grid-template-rows:auto auto;row-gap:8px;padding:10px 14px}
+    .nav-left{grid-row:1;grid-column:1}
+    .nav-spacer{grid-row:1;grid-column:3}
+    .nav-right{grid-row:2;grid-column:1/-1;justify-self:stretch;justify-content:space-around;gap:0;padding-top:8px;border-top:1px solid var(--border);width:100%}
+    .nav-right a{font-size:10px;letter-spacing:.08em;padding:4px 6px}
+    .nav-sub{display:none}
+    .nav-title{font-size:15px}
+    .logo-mark{width:30px;height:30px;font-size:14px}
+    .hero{padding:36px 18px 28px}
+    .hero h1{font-size:30px}
+    .calc-section,.strategy-section{padding:32px 16px}
+    .calc-form,.results{padding:22px 18px}
+    .field-row{grid-template-columns:1fr}
+    .mobile-sticky{display:block}
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-left">
+    <a href="/" style="display:flex;align-items:center;gap:12px;text-decoration:none">
+      <div class="logo-mark">📊</div>
+      <div>
+        <div class="nav-title">Loan Clarity</div>
+        <div class="nav-sub">Borrower Sentiment Index™</div>
+      </div>
+    </a>
+  </div>
+  <div class="nav-right">
+    <a href="/">Dashboard</a>
+    <a href="/tax-tool" class="tax-active">💰 Tax Tool</a>
+    <a href="/methodology">Methodology</a>
+    <a href="/sources">Sources</a>
+  </div>
+  <div class="nav-spacer"></div>
+</nav>
+
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useMemo } = React;
+
+/* ════════════ CALCULATION ENGINE ═══════════════════════════════════════════ */
+
+// 2024 federal tax brackets (simplified — single & married joint)
+const BRACKETS = {
+  single:  [[11600,.10],[47150,.12],[100525,.22],[191950,.24],[243725,.32],[609350,.35],[Infinity,.37]],
+  married: [[23200,.10],[94300,.12],[201050,.22],[383900,.24],[487450,.32],[731200,.35],[Infinity,.37]],
+};
+
+const IDR_RATE = { SAVE: 0.05, PAYE: 0.10, IBR: 0.10, ICR: 0.20, Standard: 0 };
+
+function getBracket(income, status) {
+  const brackets = BRACKETS[status === 'married' ? 'married' : 'single'];
+  for (const [cap, rate] of brackets) {
+    if (income < cap) return rate;
+  }
+  return 0.37;
+}
+
+function calculate(inputs) {
+  const income      = Number(inputs.income) || 0;
+  const loanBalance = Number(inputs.loanBalance) || 0;
+  const interestPd  = Number(inputs.interestPaid) || 0;
+  const contrib401k = Number(inputs.contrib401k) || 0;
+  const status      = inputs.filingStatus || 'single';
+  const plan        = inputs.plan || 'Standard';
+  const employerAid = Number(inputs.employerAid) || 0;
+
+  const marginal = getBracket(income, status);
+  const idrRate  = IDR_RATE[plan] || 0;
+
+  /* 1. Student Loan Interest Deduction (above-the-line, max $2,500) */
+  const phaseStart = status === 'married' ? 165000 : 80000;
+  const phaseEnd   = status === 'married' ? 195000 : 95000;
+  let interestDeductible = Math.min(interestPd, 2500);
+  if (income > phaseStart) {
+    const pct = Math.max(0, 1 - (income - phaseStart) / (phaseEnd - phaseStart));
+    interestDeductible *= pct;
+  }
+  const interestSavings = Math.round(interestDeductible * marginal);
+
+  /* 2. 401(k) — reduces AGI: tax savings + IDR payment reduction */
+  const max401k = 23000;
+  const cur401k = Math.min(contrib401k, max401k);
+  const room401k = max401k - cur401k;
+  const taxSav401k = Math.round(room401k * marginal);
+  const idrSav401k = Math.round(room401k * idrRate); // annual reduction in IDR payment
+
+  /* 3. HSA — triple tax advantage (assume eligible) */
+  const hsaMax = status === 'married' ? 8300 : 4150;
+  const hsaTaxSav = Math.round(hsaMax * (marginal + 0.0765)); // income tax + FICA
+  const hsaIdrSav = Math.round(hsaMax * idrRate);
+
+  /* 4. Traditional IRA — if eligible */
+  const iraMax = 7000;
+  const iraSav = Math.round(iraMax * marginal);
+  const iraIdr = Math.round(iraMax * idrRate);
+
+  /* 5. Married Filing Separately for IDR (rough estimate) */
+  // Crude approx: if married & on IDR, MFS could shield ~$30K of spouse income from payment calc
+  // Net IDR savings ≈ $30K * idrRate, minus ~$2K in lost tax breaks
+  const mfsSavings = (status === 'married' && idrRate > 0)
+    ? Math.max(0, Math.round(30000 * idrRate - 2000))
+    : 0;
+
+  /* 6. Employer student loan assistance — up to $5,250 tax-free */
+  const employerCap = Math.min(employerAid, 5250);
+  const employerSav = Math.round(employerCap * marginal);
+
+  /* 7. Refi savings (rough estimate) — if balance > $25K, assume 1.5% rate reduction */
+  const refiAnnualSavings = loanBalance > 25000
+    ? Math.round(loanBalance * 0.015)
+    : 0;
+
+  const total =
+    interestSavings + taxSav401k + idrSav401k +
+    hsaTaxSav + hsaIdrSav + iraSav + iraIdr +
+    mfsSavings + employerSav + refiAnnualSavings;
+
+  return {
+    marginal:        Math.round(marginal * 100),
+    idrRate:         Math.round(idrRate * 100),
+    interestSavings,
+    taxSav401k, idrSav401k, room401k,
+    hsaTaxSav, hsaIdrSav, hsaMax,
+    iraSav, iraIdr,
+    mfsSavings,
+    employerSav,
+    refiAnnualSavings,
+    total,
+  };
+}
+
+/* ════════════ UI ═══════════════════════════════════════════════════════════ */
+
+function App() {
+  const [inputs, setInputs] = useState({
+    income: 75000,
+    loanBalance: 45000,
+    interestPaid: 2400,
+    contrib401k: 5000,
+    filingStatus: 'single',
+    plan: 'SAVE',
+    employerAid: 0,
+  });
+
+  const set = (key) => (e) => setInputs({...inputs, [key]: e.target.value});
+  const r = useMemo(() => calculate(inputs), [inputs]);
+
+  const fmt = (n) => '$' + (n || 0).toLocaleString();
+
+  // Build breakdown rows dynamically (empty when 0)
+  const rows = [
+    {
+      name: 'Student Loan Interest Deduction',
+      desc: `Deduct up to $2,500 of interest (you paid ${fmt(inputs.interestPaid)})`,
+      v: r.interestSavings,
+    },
+    {
+      name: 'Max Your 401(k) → Lower AGI',
+      desc: r.room401k > 0
+        ? `Increase contributions by ${fmt(r.room401k)} (toward $23K max). Reduces taxes AND your IDR payment.`
+        : 'You\'re already maxing your 401(k). Nice work.',
+      v: r.taxSav401k + r.idrSav401k,
+    },
+    {
+      name: 'Open an HSA (Triple Tax Advantage)',
+      desc: `Contribute up to ${fmt(r.hsaMax)} pre-tax. Best account in the tax code — no income tax, no FICA, no tax on growth or withdrawal for medical.`,
+      v: r.hsaTaxSav + r.hsaIdrSav,
+    },
+    {
+      name: 'Traditional IRA Deduction',
+      desc: 'Contribute up to $7,000 pre-tax (if your income qualifies). Also lowers AGI → lowers IDR.',
+      v: r.iraSav + r.iraIdr,
+    },
+    {
+      name: 'Married Filing Separately (IDR hack)',
+      desc: inputs.filingStatus === 'married'
+        ? 'On SAVE/PAYE/IBR? File separately and your payment is based on YOUR income only — not your spouse\'s.'
+        : 'Available only if you\'re married. Switch filing status to see the impact.',
+      v: r.mfsSavings,
+    },
+    {
+      name: 'Employer Student Loan Assistance',
+      desc: r.employerSav > 0
+        ? `Your employer can pay up to $5,250/yr tax-free toward your loans (CARES Act §127, extended through 2025).`
+        : 'Ask HR if your company offers this — it\'s a tax-free perk many don\'t use. Add an amount above to estimate.',
+      v: r.employerSav,
+    },
+    {
+      name: 'Refinance to Lower Rate',
+      desc: r.refiAnnualSavings > 0
+        ? `Estimated savings if you refi to a rate ~1.5% lower than current. Loan balance ${fmt(inputs.loanBalance)}.`
+        : 'Refinance kicks in for balances over $25K. Note: refinancing federal loans means losing IDR and PSLF.',
+      v: r.refiAnnualSavings,
+    },
+  ];
+
+  return (
+    <div>
+      {/* ════════════ HERO ════════════ */}
+      <section className="hero">
+        <div className="hero-pill"><span className="dot"/>NEW · Free for borrowers, forever</div>
+        <h1>
+          The tax hacks your loan<br/>servicer <span className="hot">won't tell you.</span>
+        </h1>
+        <p>
+          Most student loan borrowers leave <b>$2,400–$8,000/yr</b> on the table.
+          This calculator finds yours in 60 seconds — no signup, no email, no BS.
+          <br/>Built for the borrowers schools never taught.
+        </p>
+
+        <div className="stat-strip">
+          <div className="col">
+            <div className="num n">$2,500</div>
+            <div className="lbl">Interest deductible<br/>above-the-line</div>
+          </div>
+          <div className="col">
+            <div className="num h">$23,000</div>
+            <div className="lbl">401(k) max — lowers<br/>both taxes &amp; IDR</div>
+          </div>
+          <div className="col">
+            <div className="num e">$5,250</div>
+            <div className="lbl">Employer loan aid<br/>tax-free (2025)</div>
+          </div>
+        </div>
+      </section>
+
+      {/* ════════════ CALCULATOR ════════════ */}
+      <section className="calc-section">
+        <div className="calc-eyebrow">◆ Live calculator · updates as you type</div>
+        <div className="calc-h">Your savings, in <span style={{background:'var(--grad-money)',WebkitBackgroundClip:'text',backgroundClip:'text',color:'transparent'}}>real time.</span></div>
+        <div className="calc-sub">Plug in your numbers below. We don't store anything — calculations run entirely in your browser.</div>
+
+        <div className="calc-grid">
+          {/* Form */}
+          <div className="calc-form">
+            <div className="step">
+              <h3><span className="step-num">1</span>About you</h3>
+              <div className="step-desc">We need two numbers to calculate your tax bracket.</div>
+              <div className="field-row">
+                <div className="field">
+                  <label>Annual income (gross)</label>
+                  <div className="prefix"><input type="number" value={inputs.income} onChange={set('income')} placeholder="75000"/></div>
+                </div>
+                <div className="field">
+                  <label>Filing status</label>
+                  <select value={inputs.filingStatus} onChange={set('filingStatus')}>
+                    <option value="single">Single</option>
+                    <option value="married">Married filing jointly</option>
+                  </select>
+                </div>
+              </div>
+              <div style={{fontSize:11,color:'var(--neon)',marginTop:6,fontFamily:'var(--mono)',fontWeight:700}}>
+                ◉ Your marginal tax bracket: {r.marginal}%
+              </div>
+            </div>
+
+            <div className="step">
+              <h3><span className="step-num">2</span>Your loans</h3>
+              <div className="step-desc">Find these on your servicer's dashboard (MOHELA, Aidvantage, Nelnet, etc.).</div>
+              <div className="field-row">
+                <div className="field">
+                  <label>Total loan balance</label>
+                  <div className="prefix"><input type="number" value={inputs.loanBalance} onChange={set('loanBalance')} placeholder="45000"/></div>
+                </div>
+                <div className="field">
+                  <label>Interest paid this year</label>
+                  <div className="prefix"><input type="number" value={inputs.interestPaid} onChange={set('interestPaid')} placeholder="2400"/></div>
+                </div>
+              </div>
+              <div className="field">
+                <label>Repayment plan</label>
+                <select value={inputs.plan} onChange={set('plan')}>
+                  <option value="Standard">Standard / Graduated</option>
+                  <option value="SAVE">SAVE (5% of disc. income)</option>
+                  <option value="PAYE">PAYE (10%)</option>
+                  <option value="IBR">IBR (10%)</option>
+                  <option value="ICR">ICR (20%)</option>
+                </select>
+                <div className="help">Your plan determines if lowering AGI also lowers your monthly payment.</div>
+              </div>
+            </div>
+
+            <div className="step">
+              <h3><span className="step-num">3</span>Current optimization</h3>
+              <div className="step-desc">What pre-tax moves are you already making? We'll find what's left.</div>
+              <div className="field-row">
+                <div className="field">
+                  <label>401(k) contribution / yr</label>
+                  <div className="prefix"><input type="number" value={inputs.contrib401k} onChange={set('contrib401k')} placeholder="5000"/></div>
+                </div>
+                <div className="field">
+                  <label>Employer loan aid / yr</label>
+                  <div className="prefix"><input type="number" value={inputs.employerAid} onChange={set('employerAid')} placeholder="0"/></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Results panel */}
+          <div className="results">
+            <div className="res-eyebrow"><span style={{width:6,height:6,borderRadius:'50%',background:'var(--neon)',boxShadow:'0 0 8px var(--neon)',display:'inline-block'}}/>YOUR ANNUAL SAVINGS PLAN</div>
+            <div className="res-headline">
+              Based on your inputs, here's the money you're <span style={{background:'var(--grad-money)',WebkitBackgroundClip:'text',backgroundClip:'text',color:'transparent'}}>leaving on the table</span> each year.
+            </div>
+
+            <div className="res-bignum-wrap">
+              <div className="res-bignum-lbl">Total annual opportunity</div>
+              <div className="res-bignum">${r.total.toLocaleString()}</div>
+              <div className="res-bignum-sub">≈ ${Math.round(r.total/12).toLocaleString()}/mo · ${(r.total*10).toLocaleString()} over 10 years</div>
+            </div>
+
+            <div className="res-breakdown">
+              {rows.map((row, i) => (
+                <div key={i} className={`res-row ${row.v === 0 ? 'empty' : ''}`}>
+                  <div className="l">
+                    <div className="name">{row.name}</div>
+                    <div className="desc">{row.desc}</div>
+                  </div>
+                  <div className="v">{row.v > 0 ? '+$' + row.v.toLocaleString() : '—'}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="res-cta-wrap">
+              <a href="https://www.sofi.com/invite/medical-student-loans?gcp=6855762b-2867-4d08-ad5b-e4da0c004795&isAliasGcp=false" target="_blank" rel="noopener" data-cta="tax-tool-sofi" className="cta cta-primary">💸 Lock In Refi Savings →</a>
+              <a href="#" onClick={(e)=>{e.preventDefault();navigator.clipboard.writeText(window.location.href);alert('Link copied! Share with a friend.');}} data-cta="tax-tool-share" className="cta cta-ghost">🔗 Share</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ════════════ EDUCATION STRIP ════════════ */}
+      <section className="edu-strip">
+        <div className="edu-grid">
+          <div className="edu-card">
+            <div className="edu-icon">📅</div>
+            <div className="edu-title">File by April 15</div>
+            <div className="edu-desc">Most of these deductions need to land on this year's return.</div>
+          </div>
+          <div className="edu-card">
+            <div className="edu-icon">📄</div>
+            <div className="edu-title">Get Form 1098-E</div>
+            <div className="edu-desc">Your servicer mails it by Jan 31 if you paid $600+ in interest.</div>
+          </div>
+          <div className="edu-card">
+            <div className="edu-icon">📊</div>
+            <div className="edu-title">Recertify IDR yearly</div>
+            <div className="edu-desc">Low AGI = low payment. Time it with your max 401(k) year.</div>
+          </div>
+          <div className="edu-card">
+            <div className="edu-icon">⚠️</div>
+            <div className="edu-title">PSLF is tax-free</div>
+            <div className="edu-desc">IDR forgiveness is federally tax-free through 2025 — watch your state.</div>
+          </div>
+        </div>
+      </section>
+
+      {/* ════════════ STRATEGY DEEP DIVES ════════════ */}
+      <section className="strategy-section">
+        <div className="calc-eyebrow">◆ The full playbook</div>
+        <div className="calc-h">7 strategies. <span style={{background:'var(--grad-hot)',WebkitBackgroundClip:'text',backgroundClip:'text',color:'transparent'}}>Most borrowers use 1.</span></div>
+        <div className="calc-sub">Each one is legal, well-documented, and ignored by 80% of borrowers. Stack them.</div>
+
+        <div className="strat-grid">
+          <div className="strat-card">
+            <div className="strat-head">
+              <div className="strat-icon">💰</div>
+              <div>
+                <div className="strat-title">Student Loan Interest Deduction</div>
+                <div className="strat-savings">Save up to $550/yr</div>
+              </div>
+            </div>
+            <div className="strat-body">
+              Deduct up to <b>$2,500</b> of student loan interest <b>above the line</b> — meaning you get it whether you itemize or take the standard deduction. Phases out between $80K–$95K income (single) or $165K–$195K (married). Your servicer mails Form <b>1098-E</b> in January.
+            </div>
+            <div className="strat-foot">
+              <span className="strat-tag">IRS Publication 970</span>
+              <a href="https://www.irs.gov/taxtopics/tc456" target="_blank" rel="noopener" className="strat-link">IRS source ↗</a>
+            </div>
+          </div>
+
+          <div className="strat-card">
+            <div className="strat-head">
+              <div className="strat-icon hot">🎯</div>
+              <div>
+                <div className="strat-title">401(k) Max → Double Win</div>
+                <div className="strat-savings hot">Save $5,000+/yr</div>
+              </div>
+            </div>
+            <div className="strat-body">
+              Every dollar into your 401(k) lowers AGI. If you're on <b>SAVE/PAYE/IBR</b>, that AGI feeds your IDR payment calculation — so maxing your 401(k) cuts your loan payment AND your taxes. <b>2024 limit: $23,000.</b> If your employer matches, you also get free money on top.
+            </div>
+            <div className="strat-foot">
+              <span className="strat-tag">IRC §401(k)</span>
+              <a href="https://www.irs.gov/retirement-plans/plan-participant-employee/retirement-topics-401k-and-profit-sharing-plan-contribution-limits" target="_blank" rel="noopener" className="strat-link">IRS source ↗</a>
+            </div>
+          </div>
+
+          <div className="strat-card">
+            <div className="strat-head">
+              <div className="strat-icon electric">🏥</div>
+              <div>
+                <div className="strat-title">HSA — The Triple Tax Win</div>
+                <div className="strat-savings electric">Save $1,200+/yr</div>
+              </div>
+            </div>
+            <div className="strat-body">
+              The only account with <b>three tax advantages</b>: (1) deduct contributions, (2) grow tax-free, (3) withdraw tax-free for medical. Bonus: contributions reduce AGI for IDR. Need a high-deductible health plan to qualify. <b>2024 max: $4,150 single / $8,300 family.</b>
+            </div>
+            <div className="strat-foot">
+              <span className="strat-tag">IRC §223</span>
+              <a href="https://www.irs.gov/publications/p969" target="_blank" rel="noopener" className="strat-link">IRS source ↗</a>
+            </div>
+          </div>
+
+          <div className="strat-card">
+            <div className="strat-head">
+              <div className="strat-icon hot">💒</div>
+              <div>
+                <div className="strat-title">Married Filing Separately</div>
+                <div className="strat-savings hot">Save $3,000+/yr</div>
+              </div>
+            </div>
+            <div className="strat-body">
+              If you're married and on SAVE/PAYE/IBR, filing separately means your IDR payment is based on <b>only your income</b> — not your household's. Best when one spouse has high income, the other has high loans. Trade-off: you lose some tax credits (Roth IRA, child credits). Run the numbers — often a net win.
+            </div>
+            <div className="strat-foot">
+              <span className="strat-tag">34 CFR §685</span>
+              <a href="https://studentaid.gov/manage-loans/repayment/plans/income-driven" target="_blank" rel="noopener" className="strat-link">studentaid.gov ↗</a>
+            </div>
+          </div>
+
+          <div className="strat-card">
+            <div className="strat-head">
+              <div className="strat-icon">🏢</div>
+              <div>
+                <div className="strat-title">Employer Loan Assistance (§127)</div>
+                <div className="strat-savings">Save $1,150+/yr</div>
+              </div>
+            </div>
+            <div className="strat-body">
+              Under CARES Act §127, your employer can pay <b>up to $5,250/yr</b> directly toward your student loans — completely tax-free to you. Many companies offer it but don't advertise. <b>Ask HR.</b> Currently extended through 2025; Congress is debating making it permanent.
+            </div>
+            <div className="strat-foot">
+              <span className="strat-tag">IRC §127</span>
+              <a href="https://www.irs.gov/newsroom/employer-provided-educational-assistance-can-help-pay-workers-student-loans" target="_blank" rel="noopener" className="strat-link">IRS source ↗</a>
+            </div>
+          </div>
+
+          <div className="strat-card">
+            <div className="strat-head">
+              <div className="strat-icon electric">🏛️</div>
+              <div>
+                <div className="strat-title">State Tax Deductions</div>
+                <div className="strat-savings electric">Save $200–$1,500/yr</div>
+              </div>
+            </div>
+            <div className="strat-body">
+              States that allow <b>additional</b> deductions on top of federal: <b>Maine</b> (Opportunity Tax Credit), <b>Maryland</b> (Student Loan Debt Relief Credit, up to $1,000), <b>Massachusetts</b> (full interest deduction), <b>Rhode Island</b> (Wavemaker Fellowship). Check your state revenue website.
+            </div>
+            <div className="strat-foot">
+              <span className="strat-tag">State-by-state</span>
+              <a href="https://www.tax-brackets.org/" target="_blank" rel="noopener" className="strat-link">Compare states ↗</a>
+            </div>
+          </div>
+
+          <div className="strat-card">
+            <div className="strat-head">
+              <div className="strat-icon">🎓</div>
+              <div>
+                <div className="strat-title">PSLF — Tax-Free Forgiveness</div>
+                <div className="strat-savings">Forgive $50K–$200K+</div>
+              </div>
+            </div>
+            <div className="strat-body">
+              Work for a 501(c)(3), government, or qualifying nonprofit? After <b>120 qualifying payments</b> (10 years) on an IDR plan, your remaining federal loan balance is <b>forgiven completely tax-free</b>. The single most powerful tool in the tax code for borrowers — and the most under-used.
+            </div>
+            <div className="strat-foot">
+              <span className="strat-tag">34 CFR §685.219</span>
+              <a href="https://studentaid.gov/manage-loans/forgiveness-cancellation/public-service" target="_blank" rel="noopener" className="strat-link">studentaid.gov ↗</a>
+            </div>
+          </div>
+
+          <div className="strat-card">
+            <div className="strat-head">
+              <div className="strat-icon hot">🔁</div>
+              <div>
+                <div className="strat-title">529 → Roth IRA Rollover</div>
+                <div className="strat-savings hot">Convert $35,000</div>
+              </div>
+            </div>
+            <div className="strat-body">
+              New under <b>SECURE 2.0</b> (effective 2024): roll up to <b>$35,000 from a 529 plan into a Roth IRA</b> tax-free and penalty-free. Has to be the same beneficiary, account open 15+ years. For families with overfunded 529s, this is a generational wealth move.
+            </div>
+            <div className="strat-foot">
+              <span className="strat-tag">SECURE 2.0 §126</span>
+              <a href="https://www.congress.gov/bill/117th-congress/house-bill/2954" target="_blank" rel="noopener" className="strat-link">Law text ↗</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ════════════ REFI CTA — SoFi primary ════════════ */}
+      <section className="cta-section">
+        <div className="cta-badge">★ Stack savings on top of tax moves</div>
+        <div>
+          <div className="cta-h">
+            Tax moves get you the deduction.<br/>
+            <span className="grad">Refinancing gets you the cash.</span>
+          </div>
+          <div className="cta-p">
+            Even with every tax hack above, your <b>interest rate</b> is still the biggest lever you have. If you earn $100K+ and have $50K+ in loans, refinancing with <b>SoFi</b> gets you a lower rate, a <b>$1,000 welcome bonus</b>, and free financial coaching. Soft credit check — see your real rate in 60 seconds.
+          </div>
+          <div className="cta-btns">
+            <a href="https://www.sofi.com/invite/medical-student-loans?gcp=6855762b-2867-4d08-ad5b-e4da0c004795&isAliasGcp=false" target="_blank" rel="noopener" data-cta="tax-page-sofi" className="cta cta-primary" style={{flex:'unset'}}>Claim My $1,000 Bonus →</a>
+            <a href="https://www.elfi.com/?code=39543" target="_blank" rel="noopener" data-cta="tax-page-elfi" className="cta cta-ghost">Or compare ELFI</a>
+          </div>
+        </div>
+        <div className="cta-stats">
+          <div className="cta-stat"><span className="lbl">SoFi welcome bonus</span><span className="val">$1,000</span></div>
+          <div className="cta-stat"><span className="lbl">Avg lifetime savings</span><span className="val">$23,792</span></div>
+          <div className="cta-stat"><span className="lbl">Members served</span><span className="val">800K+</span></div>
+          <div className="cta-stat"><span className="lbl">Time to rate quote</span><span className="val">60 sec</span></div>
+        </div>
+      </section>
+
+      {/* ════════════ DISCLAIMER ════════════ */}
+      <div className="disclaimer">
+        <b>Not tax advice.</b> This tool produces estimates based on 2024 IRS rules and the inputs you provide. Actual savings depend on your full financial picture, state of residence, and IRS interpretation. Consult a CPA or enrolled agent before filing. Loan Clarity earns affiliate revenue when you refinance through our links — it costs you nothing.
+      </div>
+
+      {/* ════════════ FOOTER ════════════ */}
+      <footer className="footer">
+        <div className="footer-h">Built by borrowers, for borrowers.</div>
+        <div className="footer-p">No login. No spam. No selling your data. Free forever.</div>
+        <a href="/" className="cta cta-ghost" style={{display:'inline-flex'}}>← Back to the live stress index</a>
+        <div className="footer-links">
+          <a href="/">Dashboard</a>
+          <a href="/methodology">Methodology</a>
+          <a href="/sources">Sources</a>
+          <a href="/tax-tool">Tax Tool</a>
+          <a href="mailto:hello@loanclarty.com">Contact</a>
+        </div>
+      </footer>
+
+      <div className="mobile-sticky">
+        <a href="https://www.sofi.com/invite/medical-student-loans?gcp=6855762b-2867-4d08-ad5b-e4da0c004795&isAliasGcp=false" target="_blank" rel="noopener" data-cta="tax-sticky-sofi" className="cta cta-primary">💸 Get $1,000 + Lower Rate (SoFi) →</a>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

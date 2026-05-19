@@ -884,6 +884,11 @@ async def serve_onepager():
     return FileResponse(Path(__file__).parent / "onepager.html")
 
 
+@app.get("/tax-tool")
+async def serve_tax_tool():
+    return FileResponse(Path(__file__).parent / "tax-tool.html")
+
+
 # ─── Entry point ──────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     import uvicorn
