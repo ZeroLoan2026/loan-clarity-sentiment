@@ -652,9 +652,9 @@
       .metrics-grid{grid-template-columns:repeat(2,1fr)}
       .signals-grid{grid-template-columns:repeat(3,1fr)}
     }
-    /* ── Mobile (tablet & phone) — keep nav links visible & accessible ── */
+    /* ── Mobile (tablet & phone) — UNIFIED across all 4 pages ────────────── */
     @media(max-width:760px){
-      body { padding-top: 112px; } /* header is now 2 rows tall */
+      body { padding-top: 110px; } /* matches methodology/sources/tax-tool */
       .header {
         display: grid;
         grid-template-columns: auto 1fr auto;
@@ -666,14 +666,21 @@
       .header-right { grid-row: 1; grid-column: 3; justify-self: end; }
       .nav-links {
         grid-row: 2; grid-column: 1 / -1;
-        justify-self: stretch;
-        justify-content: space-around;
+        display: flex;
         gap: 0;
         padding-top: 8px;
         border-top: 1px solid var(--border);
         width: 100%;
       }
-      .nav-links a { font-size: 11px; letter-spacing: .1em; padding: 4px 12px; }
+      /* Equal-width nav items — no layout shift between pages */
+      .nav-links a {
+        flex: 1 1 0;
+        text-align: center;
+        font-size: 10.5px;
+        letter-spacing: .06em;
+        padding: 4px 2px;
+        white-space: nowrap;
+      }
       .logo-sub { display: none; }
       .logo-name { font-size: 15px; }
       .logo-icon { width: 30px; height: 30px; font-size: 14px; }
@@ -686,7 +693,8 @@
     }
     @media(max-width:420px){
       .kpi-bar, .metrics-grid, .signals-grid { grid-template-columns: 1fr; }
-      .nav-links a { font-size: 10px; padding: 4px 6px; }
+      .nav-links a { font-size: 9.5px; letter-spacing: .04em; padding: 4px 2px; }
+      .nav-emoji { display: none; } /* hide 💰 on smallest screens */
     }
   </style>
 </head>
@@ -1043,7 +1051,7 @@ function App() {
         </div>
         <nav className="nav-links">
           <a href="/" className="active">Dashboard</a>
-          <a href="/tax-tool" style={{color:'var(--neon)'}}>💰 Tax Tool</a>
+          <a href="/tax-tool" style={{color:'var(--neon)'}}><span className="nav-emoji">💰 </span>Tax Tool</a>
           <a href="/methodology">Methodology</a>
           <a href="/sources">Sources</a>
         </nav>
