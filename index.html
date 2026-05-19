@@ -361,6 +361,94 @@
       .lm-stat-num { font-size: 44px; }
     }
 
+    /* ── Premium leadmag (SoFi hero) ────────────────────────── */
+    .leadmag-premium {
+      background:
+        radial-gradient(ellipse at top right, rgba(0,229,168,.22) 0%, transparent 55%),
+        radial-gradient(ellipse at bottom left, rgba(91,140,255,.18) 0%, transparent 55%),
+        linear-gradient(180deg, #0e1f3d 0%, #0a1530 100%);
+      border: 1px solid rgba(0,229,168,.35);
+      position: relative;
+      box-shadow: 0 20px 60px rgba(0,229,168,.08), 0 0 0 1px rgba(0,229,168,.1) inset;
+    }
+    .lm-badge {
+      position: absolute; top: -12px; left: 32px; z-index: 5;
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 14px; border-radius: 999px;
+      background: var(--grad-money); color: #07111f;
+      font-size: 10px; font-weight: 900; letter-spacing: .14em; text-transform: uppercase;
+      box-shadow: 0 4px 16px rgba(0,229,168,.4);
+    }
+    .lm-badge-dot { width: 7px; height: 7px; border-radius: 50%; background: #07111f; animation: pulse 1.4s infinite; }
+    .lm-side-premium {
+      background: linear-gradient(180deg, rgba(0,229,168,.06) 0%, rgba(7,17,31,.7) 100%);
+      border-color: rgba(0,229,168,.25);
+    }
+
+    /* ── Lender comparison section ────────────────────────────── */
+    .lender-compare {
+      padding: 32px;
+      background: linear-gradient(180deg, var(--bg) 0%, #08111e 100%);
+    }
+    .lc-head { text-align: center; max-width: 640px; margin: 0 auto 28px; }
+    .lc-eyebrow { font-size: 11px; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; color: var(--hot); }
+    .lc-title { font-size: 32px; font-weight: 900; letter-spacing: -.025em; line-height: 1.1; color: #fff; margin-top: 8px; }
+    .lc-sub { font-size: 14px; color: var(--muted); margin-top: 10px; }
+    .lc-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+      max-width: 1100px; margin: 0 auto;
+    }
+    .lc-card {
+      position: relative;
+      background: linear-gradient(180deg, var(--card) 0%, var(--panel) 100%);
+      border: 1px solid var(--border-2);
+      border-radius: 16px;
+      padding: 24px 26px;
+      transition: all .2s;
+      text-decoration: none; color: inherit;
+      display: flex; flex-direction: column;
+      cursor: pointer;
+    }
+    .lc-card:hover { transform: translateY(-3px); border-color: var(--electric); box-shadow: 0 16px 40px rgba(0,0,0,.4); }
+    .lc-card-featured {
+      background:
+        radial-gradient(ellipse at top right, rgba(0,229,168,.15) 0%, transparent 60%),
+        linear-gradient(180deg, #0e1f3d 0%, #0a1530 100%);
+      border: 2px solid rgba(0,229,168,.5);
+      box-shadow: 0 16px 50px rgba(0,229,168,.12);
+    }
+    .lc-card-featured:hover { border-color: var(--neon); transform: translateY(-5px); box-shadow: 0 24px 60px rgba(0,229,168,.25); }
+    .lc-ribbon {
+      position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+      padding: 6px 16px; border-radius: 999px;
+      background: var(--grad-money); color: #07111f;
+      font-size: 10px; font-weight: 900; letter-spacing: .16em;
+      box-shadow: 0 4px 14px rgba(0,229,168,.5);
+      white-space: nowrap;
+    }
+    .lc-card-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+    .lc-lender { font-size: 28px; font-weight: 900; color: #fff; letter-spacing: -.02em; }
+    .lc-tagline { font-size: 12px; color: var(--muted); margin-top: 2px; letter-spacing: .04em; }
+    .lc-score { font-size: 32px; font-weight: 900; font-family: var(--mono); letter-spacing: -.02em; }
+    .lc-perks { display: flex; flex-direction: column; gap: 9px; flex: 1; }
+    .lc-perk {
+      font-size: 13px; color: #c0d8f0; line-height: 1.5;
+      padding-left: 22px; position: relative;
+    }
+    .lc-perk::before {
+      content: '✓'; position: absolute; left: 0; top: 0;
+      color: var(--neon); font-weight: 900;
+    }
+    .lc-card:not(.lc-card-featured) .lc-perk::before { color: var(--electric); }
+    .lc-footrow { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); }
+    .lc-best-lbl { font-size: 10px; color: var(--muted-2); text-transform: uppercase; letter-spacing: .14em; font-weight: 700; }
+    .lc-best-val { font-size: 12px; color: #fff; font-weight: 600; margin-top: 4px; line-height: 1.4; }
+    @media(max-width:760px){
+      .lender-compare { padding: 24px 16px; }
+      .lc-grid { grid-template-columns: 1fr; }
+      .lc-title { font-size: 24px; }
+    }
+
     /* Email capture form */
     .email-form { display: flex; gap: 8px; margin-top: 14px; max-width: 440px; }
     .email-form input {
@@ -424,6 +512,15 @@
       transition: all .2s; cursor: pointer;
     }
     .lcf-card:hover { border-color: var(--hot); transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,.4); }
+    .lcf-card-featured {
+      background:
+        radial-gradient(ellipse at top right, rgba(0,229,168,.12) 0%, transparent 60%),
+        var(--card);
+      border-color: rgba(0,229,168,.4);
+      box-shadow: 0 0 0 1px rgba(0,229,168,.15) inset;
+    }
+    .lcf-card-featured:hover { border-color: var(--neon); box-shadow: 0 16px 40px rgba(0,229,168,.2); }
+    .lcf-card-featured .clink { color: var(--neon); }
     .lcf-card .icon { font-size: 28px; }
     .lcf-card .ctitle { font-size: 16px; font-weight: 800; color: #fff; }
     .lcf-card .cdesc { font-size: 13px; color: var(--muted); line-height: 1.5; }
@@ -918,8 +1015,8 @@ function App() {
             <div className="hero-cta-sub">Three free tools built for borrowers like you. No login. No spam. Takes 60 seconds.</div>
           </div>
           <div className="hero-cta-btns">
-            <a href="https://www.elfi.com/?code=39543" target="_blank" rel="noopener" data-cta="refi" className="cta cta-primary cta-lg">💸 Lower My Payment</a>
-            <a href="https://www.elfi.com/?code=39543" target="_blank" rel="noopener" data-cta="score" className="cta cta-money">📊 Get My Score</a>
+            <a href="https://www.sofi.com/invite/medical-student-loans?gcp=6855762b-2867-4d08-ad5b-e4da0c004795&isAliasGcp=false" target="_blank" rel="noopener" data-cta="refi-sofi" className="cta cta-primary cta-lg">💸 Refi With SoFi — $1,000 Bonus</a>
+            <a href="https://www.elfi.com/?code=39543" target="_blank" rel="noopener" data-cta="refi-elfi" className="cta cta-money">📊 Compare ELFI Rates</a>
             <a href="mailto:subscribe@loanclarty.com" data-cta="newsletter" className="cta cta-ghost">📧 Weekly Report</a>
           </div>
         </div>
@@ -1058,39 +1155,114 @@ function App() {
         </div>
       </div>
 
-      {/* ════════════ BIG LEAD MAGNET — Refinance CTA ═══════════ */}
-      <section className="leadmag">
+      {/* ════════════ BIG LEAD MAGNET — SoFi Premium (high earners) ═══════════ */}
+      <section className="leadmag leadmag-premium">
+        <div className="lm-badge">
+          <span className="lm-badge-dot"/>EDITOR'S PICK · FOR HIGH EARNERS
+        </div>
         <div style={{position:'relative',zIndex:2}}>
-          <div className="lm-eyebrow">◆ While the panic is high, rates are dropping</div>
+          <div className="lm-eyebrow">◆ Built for doctors, lawyers, MBAs &amp; engineers</div>
           <div className="lm-title">
-            Stop paying <span className="accent">interest you don't owe.</span>
+            Refinance with <span className="accent" style={{background:'var(--grad-money)',WebkitBackgroundClip:'text',backgroundClip:'text',color:'transparent'}}>SoFi.</span> Get <span className="accent">$1,000.</span>
           </div>
           <div className="lm-sub">
-            45M borrowers are stuck on plans that don't fit. The average refi saves <b style={{color:'#fff'}}>$278/mo</b> — that's a phone bill, a car payment, or your entire grocery budget. Takes 60 seconds. Soft credit check only.
+            If you earn <b style={{color:'#fff'}}>$100K+</b> and have <b style={{color:'#fff'}}>$50K+</b> in student loans, SoFi is built for you. The highest-rated lender for high-income professionals — average member saves <b style={{color:'#fff'}}>$23,792</b> over the life of their loan, plus a $1,000 welcome bonus that lands in your account in 30 days.
           </div>
           <div className="lm-bullets" style={{marginTop:14}}>
-            <div className="lm-bullet"><span className="lm-check">✓</span>See your real rate without hurting your credit</div>
-            <div className="lm-bullet"><span className="lm-check">✓</span>Compare 8+ lenders side-by-side in one place</div>
-            <div className="lm-bullet"><span className="lm-check">✓</span>100% free — we get paid by lenders, not you</div>
+            <div className="lm-bullet"><span className="lm-check">✓</span><b style={{color:'#fff'}}>$1,000 welcome bonus</b> — paid in cash, no strings</div>
+            <div className="lm-bullet"><span className="lm-check">✓</span><b style={{color:'#fff'}}>0.25% rate discount</b> with autopay enrollment</div>
+            <div className="lm-bullet"><span className="lm-check">✓</span><b style={{color:'#fff'}}>Unemployment protection</b> — pause payments if you lose your job</div>
+            <div className="lm-bullet"><span className="lm-check">✓</span><b style={{color:'#fff'}}>Free career coaching</b> + financial advisor access</div>
+            <div className="lm-bullet"><span className="lm-check">✓</span>Soft credit check — see your real rate in 60 seconds</div>
           </div>
           <div className="lm-btns">
-            <a href="https://www.sofi.com/invite/medical-student-loans?gcp=6855762b-2867-4d08-ad5b-e4da0c004795&isAliasGcp=false" target="_blank" rel="noopener" data-cta="refi" className="cta cta-primary cta-lg">Check My Rate →</a>
-            <a href="https://www.elfi.com/?code=39543" target="_blank" rel="noopener" data-cta="refi-learn" className="cta cta-ghost">How it works</a>
+            <a href="https://www.sofi.com/invite/medical-student-loans?gcp=6855762b-2867-4d08-ad5b-e4da0c004795&isAliasGcp=false" target="_blank" rel="noopener" data-cta="refi-sofi-hero" className="cta cta-primary cta-lg">Claim My $1,000 Bonus →</a>
+            <a href="https://www.elfi.com/?code=39543" target="_blank" rel="noopener" data-cta="refi-elfi-alt" className="cta cta-ghost">Or compare ELFI</a>
+          </div>
+          <div style={{fontSize:11,color:'var(--muted-2)',marginTop:14,fontFamily:'var(--mono)'}}>
+            ◉ 800,000+ professionals refinanced · A+ BBB · Member FDIC
           </div>
         </div>
-        <div className="lm-side" style={{position:'relative',zIndex:2}}>
+        <div className="lm-side lm-side-premium" style={{position:'relative',zIndex:2}}>
           <div className="lm-stat-row">
-            <div className="lm-stat-num neon">$278</div>
-            <div className="lm-stat-lbl">avg monthly<br/>savings</div>
+            <div className="lm-stat-num neon">$1,000</div>
+            <div className="lm-stat-lbl">welcome<br/>bonus</div>
           </div>
           <div style={{height:1,background:'rgba(255,255,255,.08)',margin:'18px 0'}}/>
           <div className="lm-stat-row">
-            <div className="lm-stat-num hot">60s</div>
-            <div className="lm-stat-lbl">to see your<br/>real rate</div>
+            <div className="lm-stat-num hot">$23,792</div>
+            <div className="lm-stat-lbl">avg lifetime<br/>savings</div>
           </div>
-          <div style={{marginTop:18,fontSize:12,color:'var(--muted)',fontFamily:'var(--mono)'}}>
-            ◉ As of today · Top 8 student loan refi lenders
+          <div style={{height:1,background:'rgba(255,255,255,.08)',margin:'18px 0'}}/>
+          <div className="lm-stat-row">
+            <div className="lm-stat-num" style={{color:'var(--electric)',fontSize:36}}>4.9★</div>
+            <div className="lm-stat-lbl">800K+<br/>members</div>
           </div>
+          <div style={{marginTop:18,padding:'10px 12px',background:'rgba(0,229,168,.08)',border:'1px solid rgba(0,229,168,.25)',borderRadius:8,fontSize:11,color:'var(--neon)',fontFamily:'var(--mono)',textAlign:'center',fontWeight:700,letterSpacing:'.06em'}}>
+            ◉ LIMITED — BONUS EXPIRES SOON
+          </div>
+        </div>
+      </section>
+
+      {/* ════════════ COMPARISON TABLE — SoFi vs ELFI ═══════════ */}
+      <section className="lender-compare">
+        <div className="lc-head">
+          <div className="lc-eyebrow">◆ Top 2 lenders right now</div>
+          <div className="lc-title">Which one fits <span className="grad-text">you</span>?</div>
+          <div className="lc-sub">Both have soft credit checks. Both are free to apply. Pick the one that matches your income and loan size.</div>
+        </div>
+        <div className="lc-grid">
+          <a href="https://www.sofi.com/invite/medical-student-loans?gcp=6855762b-2867-4d08-ad5b-e4da0c004795&isAliasGcp=false" target="_blank" rel="noopener" data-cta="compare-sofi" className="lc-card lc-card-featured">
+            <div className="lc-ribbon">★ RECOMMENDED</div>
+            <div className="lc-card-head">
+              <div>
+                <div className="lc-lender">SoFi</div>
+                <div className="lc-tagline">For high earners</div>
+              </div>
+              <div className="lc-score" style={{color:'var(--neon)'}}>9.6<span style={{fontSize:13,color:'var(--muted-2)'}}>/10</span></div>
+            </div>
+            <div className="lc-perks">
+              <div className="lc-perk"><b style={{color:'#fff'}}>$1,000</b> welcome bonus</div>
+              <div className="lc-perk"><b style={{color:'#fff'}}>Best rates</b> for $100K+ earners</div>
+              <div className="lc-perk"><b style={{color:'#fff'}}>Free</b> career &amp; financial coaching</div>
+              <div className="lc-perk"><b style={{color:'#fff'}}>Unemployment</b> protection built-in</div>
+              <div className="lc-perk"><b style={{color:'#fff'}}>800,000+</b> members served</div>
+            </div>
+            <div className="lc-footrow">
+              <div className="lc-best">
+                <div className="lc-best-lbl">Best for</div>
+                <div className="lc-best-val">Doctors · Lawyers · MBAs · Engineers · Tech</div>
+              </div>
+            </div>
+            <div className="cta cta-primary cta-lg" style={{width:'100%',marginTop:14}}>
+              Get My $1,000 Bonus →
+            </div>
+          </a>
+          <a href="https://www.elfi.com/?code=39543" target="_blank" rel="noopener" data-cta="compare-elfi" className="lc-card">
+            <div className="lc-card-head">
+              <div>
+                <div className="lc-lender">ELFI</div>
+                <div className="lc-tagline">For everyone else</div>
+              </div>
+              <div className="lc-score" style={{color:'var(--electric)'}}>8.9<span style={{fontSize:13,color:'var(--muted-2)'}}>/10</span></div>
+            </div>
+            <div className="lc-perks">
+              <div className="lc-perk"><b style={{color:'#fff'}}>No</b> origination or application fees</div>
+              <div className="lc-perk"><b style={{color:'#fff'}}>Dedicated</b> loan advisor (real human)</div>
+              <div className="lc-perk"><b style={{color:'#fff'}}>Transparent</b> rates, no gimmicks</div>
+              <div className="lc-perk">Refi <b style={{color:'#fff'}}>any amount</b> ($10K minimum)</div>
+              <div className="lc-perk">Education First Federal Credit Union backed</div>
+            </div>
+            <div className="lc-footrow">
+              <div className="lc-best">
+                <div className="lc-best-lbl">Best for</div>
+                <div className="lc-best-val">Teachers · Nurses · First-time refi · Smaller loans</div>
+              </div>
+            </div>
+            <div className="cta cta-money" style={{width:'100%',marginTop:14}}>
+              Compare ELFI Rates →
+            </div>
+          </a>
         </div>
       </section>
 
@@ -1198,17 +1370,17 @@ function App() {
           </div>
 
           <div className="lcf-grid">
-            <a href="https://www.sofi.com/invite/medical-student-loans?gcp=6855762b-2867-4d08-ad5b-e4da0c004795&isAliasGcp=false" target="_blank" rel="noopener" data-cta="footer-refi" className="lcf-card">
-              <div className="icon">💸</div>
-              <div className="ctitle">Lower your payment</div>
-              <div className="cdesc">Compare refi rates from 8+ lenders. Soft credit check. Avg savings $278/mo.</div>
-              <div className="clink">Check my rate →</div>
+            <a href="https://www.sofi.com/invite/medical-student-loans?gcp=6855762b-2867-4d08-ad5b-e4da0c004795&isAliasGcp=false" target="_blank" rel="noopener" data-cta="footer-sofi" className="lcf-card lcf-card-featured">
+              <div className="icon">⭐</div>
+              <div className="ctitle">Refi with SoFi · $1,000 bonus</div>
+              <div className="cdesc">Top pick for $100K+ earners. Avg member saves $23,792 over loan life. Soft credit check.</div>
+              <div className="clink">Claim my $1,000 →</div>
             </a>
-            <a href="https://www.elfi.com/?code=39543" target="_blank" rel="noopener" data-cta="footer-calculator" className="lcf-card">
-              <div className="icon">📊</div>
-              <div className="ctitle">Get your stress score</div>
-              <div className="cdesc">60-second quiz. See how your loan stress compares to the national index.</div>
-              <div className="clink">Take the quiz →</div>
+            <a href="https://www.elfi.com/?code=39543" target="_blank" rel="noopener" data-cta="footer-elfi" className="lcf-card">
+              <div className="icon">💸</div>
+              <div className="ctitle">Compare ELFI rates</div>
+              <div className="cdesc">No fees, dedicated loan advisor, refi any amount from $10K. Best for first-time refinancers.</div>
+              <div className="clink">See my rate →</div>
             </a>
             <a href="mailto:subscribe@loanclarty.com" data-cta="footer-newsletter" className="lcf-card">
               <div className="icon">📧</div>
@@ -1235,7 +1407,7 @@ function App() {
 
       {/* ════════════ MOBILE STICKY BOTTOM CTA ═══════════ */}
       <div className="mobile-sticky">
-        <a href="https://www.elfi.com/?code=39543" target="_blank" rel="noopener" data-cta="sticky-refi" className="cta cta-primary">💸 See if you can save $278/mo →</a>
+        <a href="https://www.sofi.com/invite/medical-student-loans?gcp=6855762b-2867-4d08-ad5b-e4da0c004795&isAliasGcp=false" target="_blank" rel="noopener" data-cta="sticky-sofi" className="cta cta-primary">💸 Get $1,000 + Lower Rate (SoFi) →</a>
       </div>
     </div>
   );
