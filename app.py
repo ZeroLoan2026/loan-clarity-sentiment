@@ -889,6 +889,11 @@ async def serve_tax_tool():
     return FileResponse(Path(__file__).parent / "tax-tool.html")
 
 
+@app.get("/social-signals")
+async def serve_social_signals():
+    return FileResponse(Path(__file__).parent / "social-signals.html")
+
+
 # ─── Entry point ──────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     import uvicorn

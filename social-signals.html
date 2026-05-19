@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Social Signals · What borrowers are actually saying — Loan Clarity</title>
+<meta name="description" content="Live AI analysis of Reddit, Google Trends, and social sentiment from 45M student loan borrowers. Updated every 5 minutes."/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#050b16; --panel:#07111f; --card:#0b1626; --card-2:#0f1d33;
+    --border:#16294a; --border-2:#1e3a5f;
+    --text:#e6eef7; --muted:#6f88a5; --muted-2:#4a6888;
+    --accent:#2d7dd2; --accent-2:#6fb6ff;
+    --hot:#ff5577; --hot-2:#ff8a3d;
+    --neon:#00e5a8; --electric:#5b8cff;
+    --reddit:#ff4500; --google:#4285f4;
+    --grad-hot:linear-gradient(135deg,#ff5577 0%,#ff8a3d 100%);
+    --grad-money:linear-gradient(135deg,#00e5a8 0%,#5b8cff 100%);
+    --grad-social:linear-gradient(135deg,#ff8a3d 0%,#a78bfa 100%);
+    --mono:'JetBrains Mono',ui-monospace,monospace;
+  }
+  html,body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased;padding-top:64px;min-height:100vh}
+  a{color:inherit;text-decoration:none}
+
+  /* ── Nav (identical to other pages) ───────────────────── */
+  .nav{background:rgba(7,17,31,.92);border-bottom:1px solid var(--border);
+       padding:14px 28px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;
+       position:fixed;top:0;left:0;right:0;z-index:100;
+       backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  .nav-left{display:flex;align-items:center;gap:12px;justify-self:start}
+  .logo-mark{width:34px;height:34px;background:linear-gradient(135deg,#1a6eb5,#2d7dd2);border-radius:8px;
+             display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 0 14px rgba(45,125,210,.25)}
+  .nav-title{font-size:17px;font-weight:800;color:#fff;letter-spacing:-.02em}
+  .nav-sub{font-size:10px;color:#5a7d9d;letter-spacing:.12em;text-transform:uppercase;margin-top:1px}
+  .nav-right{display:flex;gap:32px;justify-self:center}
+  .nav-right a{color:#6f88a5;text-decoration:none;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:6px 0;border-bottom:2px solid transparent;transition:all .15s}
+  .nav-right a:hover{color:#6fb6ff}
+  .nav-right a.active{color:#fff;border-bottom-color:var(--accent)}
+  .nav-right a.social-active{color:var(--hot-2);border-bottom-color:var(--hot-2)}
+  .nav-spacer{justify-self:end}
+
+  /* ── Hero ───────────────────────────────────────────── */
+  .hero{padding:48px 32px 32px;text-align:center;
+        background:
+          radial-gradient(ellipse at top, rgba(255,138,61,.14) 0%, transparent 55%),
+          radial-gradient(ellipse at bottom, rgba(167,139,250,.10) 0%, transparent 55%)}
+  .hero-pill{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;
+             background:rgba(255,138,61,.12);border:1px solid rgba(255,138,61,.35);
+             font-size:11px;font-weight:800;letter-spacing:.16em;color:var(--hot-2);text-transform:uppercase;margin-bottom:16px}
+  .hero-pill .dot{width:6px;height:6px;border-radius:50%;background:var(--hot-2);box-shadow:0 0 8px var(--hot-2);animation:pulse 1.4s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  .hero h1{font-size:46px;font-weight:900;letter-spacing:-.035em;line-height:1.05;color:#fff;max-width:880px;margin:0 auto}
+  .hero h1 .grad{background:var(--grad-social);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero p{font-size:16px;color:#a8becc;max-width:640px;margin:14px auto 0;line-height:1.55}
+
+  /* Mini stats below hero */
+  .hero-stats{display:flex;gap:28px;justify-content:center;margin-top:22px;flex-wrap:wrap;
+              font-family:var(--mono);font-size:12px;color:var(--muted)}
+  .hero-stats b{color:var(--hot-2);font-size:16px;font-weight:800;margin-right:6px}
+
+  /* ── Content sections ───────────────────────────────── */
+  .container{max-width:1200px;margin:0 auto;padding:24px 32px 48px}
+  .section{margin-bottom:32px}
+  .section-eyebrow{font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--muted-2);margin-bottom:10px;display:flex;align-items:center;gap:10px}
+  .section-eyebrow .src-link{margin-left:auto;font-size:10px;color:var(--electric);text-transform:uppercase;letter-spacing:.1em}
+
+  /* ── AI Summary Spotlight ────────────────────────────── */
+  .ai-spotlight{
+    background:
+      radial-gradient(ellipse at top right, rgba(167,139,250,.15) 0%, transparent 60%),
+      linear-gradient(180deg, #0e1730 0%, #0a1426 100%);
+    border:1px solid rgba(167,139,250,.4);border-radius:14px;padding:28px 32px;
+    box-shadow:0 12px 30px rgba(0,0,0,.3)}
+  .ai-eyebrow{font-size:11px;font-weight:800;letter-spacing:.16em;color:#a78bfa;text-transform:uppercase;display:flex;align-items:center;gap:8px;margin-bottom:12px}
+  .ai-eyebrow .ic{width:6px;height:6px;border-radius:50%;background:#a78bfa;box-shadow:0 0 8px #a78bfa;animation:pulse 1.4s infinite}
+  .ai-text{font-size:18px;color:#fff;font-weight:600;line-height:1.5;letter-spacing:-.005em;font-style:italic}
+  .ai-source{font-size:11.5px;color:var(--muted);margin-top:14px;font-family:var(--mono);padding-top:14px;border-top:1px solid rgba(255,255,255,.06);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+
+  /* ── Two-column: Emotions + Themes ──────────────────── */
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .card{background:linear-gradient(180deg,var(--card) 0%,var(--panel) 100%);border:1px solid var(--border);border-radius:12px;padding:22px 24px}
+
+  .emotion-grid{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+  .emotion-row{display:flex;align-items:center;gap:10px}
+  .e-label{font-size:12px;color:#8ab0d8;width:96px;flex-shrink:0;font-weight:600;text-transform:capitalize}
+  .e-track{flex:1;height:8px;background:var(--card-2);border-radius:4px;overflow:hidden}
+  .e-fill{height:100%;border-radius:4px;transition:width 1s ease;box-shadow:0 0 10px currentColor}
+  .e-pct{font-size:12px;color:var(--muted-2);width:36px;text-align:right;font-family:var(--mono);font-weight:600}
+
+  .theme-list{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+  .theme-row{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--card-2);border:1px solid var(--border-2);border-radius:7px;font-size:12.5px;color:#c0d8f0;cursor:pointer;transition:all .15s;text-decoration:none}
+  .theme-row:hover{border-color:var(--hot-2);background:rgba(255,138,61,.05);color:#fff}
+  .theme-num{font-family:var(--mono);font-size:11px;color:var(--hot-2);font-weight:700;min-width:18px}
+  .theme-ext{margin-left:auto;opacity:.5;font-size:11px}
+
+  /* ── Reddit Posts Feed ───────────────────────────────── */
+  .post-list{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+  .post-row{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:8px;transition:all .15s;text-decoration:none;color:inherit}
+  .post-row:hover{border-color:var(--reddit);background:rgba(255,69,0,.04);transform:translateX(2px)}
+  .post-sub{font-family:var(--mono);font-size:11px;color:var(--reddit);white-space:nowrap;flex-shrink:0;font-weight:700;padding:3px 8px;background:rgba(255,69,0,.1);border-radius:4px;border:1px solid rgba(255,69,0,.3)}
+  .post-title{font-size:13.5px;color:#d8e3f0;line-height:1.4;flex:1}
+  .post-link{font-size:11px;color:var(--muted-2);flex-shrink:0}
+
+  /* ── Signal cards (Reddit + Google Trends side by side) ── */
+  .signal-pair{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .sig-big{background:linear-gradient(180deg,var(--card) 0%,var(--panel) 100%);border:1px solid var(--border-2);border-radius:12px;padding:22px 24px;display:flex;flex-direction:column;gap:12px;text-decoration:none;color:inherit;transition:all .2s}
+  .sig-big:hover{transform:translateY(-2px);border-color:var(--hot-2)}
+  .sig-big-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .sig-big-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900}
+  .sig-big-icon.reddit{background:rgba(255,69,0,.12);border:1px solid rgba(255,69,0,.4);color:var(--reddit)}
+  .sig-big-icon.google{background:rgba(66,133,244,.12);border:1px solid rgba(66,133,244,.4);color:var(--google)}
+  .sig-big-label{font-size:13px;color:#fff;font-weight:700;letter-spacing:-.005em}
+  .sig-big-sub{font-size:10.5px;color:var(--muted);font-family:var(--mono);margin-top:1px}
+  .sig-big-score{font-size:48px;font-weight:900;letter-spacing:-.04em;line-height:1;font-family:var(--mono);margin:6px 0}
+  .sig-big-raw{font-size:12px;color:var(--muted);line-height:1.45}
+  .sig-big-foot{display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid var(--border);font-size:10.5px;color:var(--muted-2);font-family:var(--mono)}
+
+  /* ── Pulse list (breaking news) ──────────────────────── */
+  .pulse-list{display:flex;flex-direction:column;gap:10px}
+  .pulse-item{display:flex;align-items:flex-start;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:9px;padding:13px 16px;text-decoration:none;color:inherit;transition:all .15s}
+  .pulse-item:hover{border-color:var(--hot-2);background:var(--card-2)}
+  .pulse-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:5px;box-shadow:0 0 6px currentColor}
+  .pulse-body{flex:1;min-width:0}
+  .pulse-title{font-size:13px;font-weight:600;color:#e0f0ff;line-height:1.4}
+  .pulse-detail{font-size:11.5px;color:var(--muted);margin-top:3px;line-height:1.45}
+  .pulse-meta{display:flex;align-items:center;justify-content:space-between;margin-top:6px;font-family:var(--mono);font-size:10px;color:var(--muted-2)}
+
+  /* ── Mini refi CTA ───────────────────────────────────── */
+  .mini-refi{margin:32px 0 0}
+  .mini-refi-inner{
+    background:
+      radial-gradient(ellipse at top right,rgba(0,229,168,.12) 0%,transparent 60%),
+      linear-gradient(180deg,#0e1f3d 0%,#0a1530 100%);
+    border:1px solid rgba(0,229,168,.4);border-radius:14px;padding:24px 28px;
+    display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap}
+  .mini-refi-eyebrow{font-size:10.5px;font-weight:800;letter-spacing:.18em;color:var(--hot);text-transform:uppercase}
+  .mini-refi-h{font-size:22px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1.15;margin-top:5px}
+  .mini-refi-grad{background:var(--grad-money);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .mini-refi-btns{display:flex;gap:8px;flex-wrap:wrap}
+  .cta{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 22px;border-radius:999px;font-weight:800;font-size:13.5px;letter-spacing:.02em;text-decoration:none;transition:transform .15s,filter .15s;cursor:pointer;border:none;white-space:nowrap}
+  .cta:hover{transform:translateY(-2px)}
+  .cta-primary{background:var(--grad-money);color:#07111f;box-shadow:0 8px 24px rgba(0,229,168,.3)}
+  .cta-primary:hover{filter:brightness(1.08)}
+  .cta-ghost{background:rgba(91,140,255,.08);color:#cfe1ff;border:1px solid rgba(91,140,255,.35)}
+  .cta-ghost:hover{background:rgba(91,140,255,.15);border-color:var(--electric)}
+
+  /* ── Mini footer ─────────────────────────────────────── */
+  .mini-footer-wrap{padding:24px 32px 32px;background:var(--panel);border-top:1px solid var(--border)}
+  .mini-disc{max-width:1100px;margin:0 auto 14px;font-size:11.5px;color:var(--muted);text-align:center;line-height:1.6}
+  .mini-footer-row{max-width:1100px;margin:0 auto;padding-top:14px;border-top:1px solid var(--border);
+    display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;
+    font-size:11px;color:var(--muted-2);font-family:var(--mono)}
+  .mini-footer-links{display:flex;gap:18px}
+  .mini-footer-links a{font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted-2);transition:color .15s}
+  .mini-footer-links a:hover{color:var(--hot-2)}
+
+  /* ── Loading state ───────────────────────────────────── */
+  .loading{display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;gap:18px}
+  .spinner{width:42px;height:42px;border:3px solid var(--border-2);border-top-color:var(--hot-2);border-radius:50%;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* ── Mobile sticky bottom CTA ────────────────────────── */
+  .mobile-sticky{display:none;position:fixed;bottom:0;left:0;right:0;z-index:90;padding:10px 12px;background:rgba(7,17,31,.96);border-top:1px solid var(--border-2);backdrop-filter:blur(10px);box-shadow:0 -8px 24px rgba(0,0,0,.5)}
+  .mobile-sticky .cta{width:100%;padding:13px;font-size:13.5px}
+
+  /* ── Responsive ──────────────────────────────────────── */
+  @media(max-width:900px){
+    .hero h1{font-size:34px}
+    .two-col{grid-template-columns:1fr}
+    .signal-pair{grid-template-columns:1fr}
+  }
+  @media(max-width:760px){
+    html,body{padding-top:110px;padding-bottom:70px}
+    .nav{display:grid;grid-template-columns:auto 1fr auto;grid-template-rows:auto auto;row-gap:8px;padding:10px 14px}
+    .nav-left{grid-row:1;grid-column:1}
+    .nav-spacer{grid-row:1;grid-column:3}
+    .nav-right{grid-row:2;grid-column:1/-1;display:flex;gap:0;padding-top:8px;border-top:1px solid var(--border);width:100%}
+    .nav-right a{flex:1 1 0;text-align:center;font-size:10.5px;letter-spacing:.06em;padding:4px 2px;white-space:nowrap}
+    .nav-sub{display:none}
+    .nav-title{font-size:15px}
+    .logo-mark{width:30px;height:30px;font-size:14px}
+    .hero{padding:32px 16px 24px}
+    .hero h1{font-size:26px}
+    .hero p{font-size:14px}
+    .container{padding:18px 14px 32px}
+    .ai-spotlight{padding:20px 18px}
+    .ai-text{font-size:15px}
+    .card{padding:18px 16px}
+    .sig-big{padding:18px 16px}
+    .sig-big-score{font-size:38px}
+    .mini-refi-inner{padding:20px;flex-direction:column;text-align:center}
+    .mini-refi-h{font-size:18px}
+    .mini-refi-btns .cta{flex:1}
+    .mobile-sticky{display:block}
+  }
+  @media(max-width:420px){
+    .nav-right a{font-size:9.5px;letter-spacing:.04em;padding:4px 2px}
+    .nav-emoji{display:none}
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-left">
+    <a href="/" style="display:flex;align-items:center;gap:12px;text-decoration:none">
+      <div class="logo-mark">📊</div>
+      <div>
+        <div class="nav-title">Loan Clarity</div>
+        <div class="nav-sub">Borrower Sentiment Index™</div>
+      </div>
+    </a>
+  </div>
+  <div class="nav-right">
+    <a href="/">Dashboard</a>
+    <a href="/social-signals" class="social-active"><span class="nav-emoji">📡 </span>Social Signals</a>
+    <a href="/tax-tool" style="color:#00e5a8"><span class="nav-emoji">💰 </span>Tax Tool</a>
+    <a href="/methodology">Methodology</a>
+    <a href="/sources">Sources</a>
+  </div>
+  <div class="nav-spacer"></div>
+</nav>
+
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+const ECOL = {anxiety:'#f97316',confusion:'#eab308',frustration:'#ef4444',optimism:'#22c55e',hopelessness:'#dc2626',urgency:'#f97316',fear:'#dc2626'};
+
+function App() {
+  const [data, setData] = useState(null);
+  const [err, setErr] = useState(null);
+
+  useEffect(() => {
+    fetch('/api/sentiment')
+      .then(r => r.ok ? r.json() : Promise.reject(`HTTP ${r.status}`))
+      .then(setData)
+      .catch(e => setErr(String(e)));
+  }, []);
+
+  if (err) return (
+    <div className="loading">
+      <div style={{color:'#ef4444',fontSize:18}}>⚠️ Couldn't load social signals</div>
+      <div style={{color:'#4a6888',fontSize:13,fontFamily:'JetBrains Mono'}}>{err}</div>
+    </div>
+  );
+  if (!data) return (
+    <div className="loading">
+      <div className="spinner"/>
+      <div style={{color:'#5a7d9d',fontSize:13,fontFamily:'JetBrains Mono'}}>Pulling live signals from Reddit + Google Trends…</div>
+    </div>
+  );
+
+  const emotions = data.emotions || {};
+  const topics   = data.trending_topics || [];
+  const posts    = data.trending_posts || [];
+  const pulse    = data.borrower_pulse || [];
+  const reddit   = (data.signals && data.signals.reddit)        || {};
+  const google   = (data.signals && data.signals.google_trends) || {};
+  const aiSummary = data.ai_summary || '';
+  const redditPostCount = reddit.posts ?? posts.length ?? 0;
+
+  // Filter pulse items to social-relevant ones (Reddit, social, AI, trends)
+  // Fallback: show all if filtering removes everything
+  const socialPulse = pulse.filter(p => {
+    const s = (p.source || '').toLowerCase();
+    return s.includes('reddit') || s.includes('google') || s.includes('twitter') ||
+           s.includes('ai') || s.includes('clarity') || s.includes('social') ||
+           s.includes('trends') || s.includes('search');
+  });
+  const displayPulse = socialPulse.length > 0 ? socialPulse : pulse.slice(0, 4);
+
+  return (
+    <div>
+      {/* ════════════ HERO ════════════ */}
+      <section className="hero">
+        <div className="hero-pill"><span className="dot"/>SOCIAL SIGNALS · LIVE</div>
+        <h1>
+          What borrowers are <span className="grad">actually saying.</span><br/>
+          Right now.
+        </h1>
+        <p>
+          AI-analyzed Reddit posts, Google search panic, and live social discussion from <b style={{color:'#fff'}}>r/StudentLoans</b>, <b style={{color:'#fff'}}>r/personalfinance</b>, and <b style={{color:'#fff'}}>r/povertyfinance</b>. Updated every 5 minutes.
+        </p>
+        <div className="hero-stats">
+          <span><b>{redditPostCount}</b>Reddit posts analyzed</span>
+          <span><b>{google.score ?? '—'}/100</b>Google panic index</span>
+          <span><b>{topics.length}</b>themes detected</span>
+        </div>
+      </section>
+
+      <div className="container">
+
+        {/* ════════════ AI SUMMARY SPOTLIGHT ════════════ */}
+        {aiSummary && (
+          <section className="section">
+            <div className="ai-spotlight">
+              <div className="ai-eyebrow"><span className="ic"/>◆ LOAN CLARITY AI · LIVE READ</div>
+              <div className="ai-text">"{aiSummary}"</div>
+              <div className="ai-source">
+                <span>Analyzed {redditPostCount} Reddit posts across r/StudentLoans, r/personalfinance, r/povertyfinance</span>
+                <span>Updated · {data.timestamp || 'just now'}</span>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ════════════ TWO SIGNAL CARDS — Reddit + Google ════════════ */}
+        <section className="section">
+          <div className="section-eyebrow">
+            <span>Primary Social Signals</span>
+            <a href="/methodology#weighted-index" className="src-link">How weights are computed ↗</a>
+          </div>
+          <div className="signal-pair">
+            <a className="sig-big" href="https://www.reddit.com/r/StudentLoans/" target="_blank" rel="noopener">
+              <div className="sig-big-head">
+                <div className="sig-big-icon reddit">r/</div>
+                <div style={{flex:1,marginLeft:12}}>
+                  <div className="sig-big-label">Reddit Sentiment</div>
+                  <div className="sig-big-sub">AI-classified · {redditPostCount} posts</div>
+                </div>
+              </div>
+              <div className="sig-big-score" style={{color:'#ff4500'}}>{reddit.score ?? '—'}</div>
+              <div className="sig-big-raw">{reddit.raw || 'Live AI analysis of borrower posts across r/StudentLoans, r/personalfinance, r/povertyfinance'}</div>
+              <div className="sig-big-foot">
+                <span>Weight · {reddit.weight ?? '20%'}</span>
+                <span>↗ View Reddit</span>
+              </div>
+            </a>
+            <a className="sig-big" href="https://trends.google.com/trends/explore?q=student%20loan%20refinance,student%20loan%20forgiveness,can%27t%20pay%20student%20loans" target="_blank" rel="noopener">
+              <div className="sig-big-head">
+                <div className="sig-big-icon google">G</div>
+                <div style={{flex:1,marginLeft:12}}>
+                  <div className="sig-big-label">Google Search Panic</div>
+                  <div className="sig-big-sub">Trends index · last 24 hours</div>
+                </div>
+              </div>
+              <div className="sig-big-score" style={{color:'#4285f4'}}>{google.score ?? '—'}</div>
+              <div className="sig-big-raw">{google.raw || 'Volume of distress-related queries: "can\'t pay student loans", "loan forgiveness", "refinance student loans"'}</div>
+              <div className="sig-big-foot">
+                <span>Weight · {google.weight ?? '20%'}</span>
+                <span>↗ View Trends</span>
+              </div>
+            </a>
+          </div>
+        </section>
+
+        {/* ════════════ TWO COLUMN — Emotions + Themes ════════════ */}
+        <section className="section">
+          <div className="two-col">
+            <div className="card">
+              <div className="section-eyebrow"><span>How borrowers feel — right now</span></div>
+              <div className="emotion-grid">
+                {Object.entries(emotions).map(([k,v]) => (
+                  <div key={k} className="emotion-row">
+                    <span className="e-label">{k}</span>
+                    <div className="e-track">
+                      <div className="e-fill" style={{width:`${Math.round((v||0)*100)}%`,background:ECOL[k]||'#a78bfa',color:ECOL[k]||'#a78bfa'}}/>
+                    </div>
+                    <span className="e-pct">{Math.round((v||0)*100)}%</span>
+                  </div>
+                ))}
+              </div>
+              <div style={{fontSize:11,color:'var(--muted-2)',fontFamily:'var(--mono)',marginTop:14,paddingTop:12,borderTop:'1px solid var(--border)'}}>
+                ◉ Loan Clarity AI · Classified from Reddit posts
+              </div>
+            </div>
+
+            <div className="card">
+              <div className="section-eyebrow"><span>What's blowing up</span></div>
+              <div className="theme-list">
+                {topics.length === 0 ? (
+                  <div style={{fontSize:13,color:'var(--muted)',padding:'8px 0'}}>No themes detected yet. Refresh in a few minutes.</div>
+                ) : topics.map((t,i) => (
+                  <a key={i} href={`https://www.reddit.com/r/StudentLoans/search/?q=${encodeURIComponent(t)}`} target="_blank" rel="noopener" className="theme-row">
+                    <span className="theme-num">#{i+1}</span>
+                    <span>{t}</span>
+                    <span className="theme-ext">↗</span>
+                  </a>
+                ))}
+              </div>
+              <div style={{fontSize:11,color:'var(--muted-2)',fontFamily:'var(--mono)',marginTop:14,paddingTop:12,borderTop:'1px solid var(--border)'}}>
+                ◉ AI-detected from {redditPostCount} live posts
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ════════════ LIVE REDDIT FEED ════════════ */}
+        <section className="section">
+          <div className="section-eyebrow">
+            <span>Live from r/StudentLoans, r/personalfinance, r/povertyfinance</span>
+            <a href="https://www.reddit.com/r/StudentLoans/" target="_blank" rel="noopener" className="src-link">View all posts ↗</a>
+          </div>
+          <div className="post-list">
+            {posts.length === 0 ? (
+              <div style={{fontSize:13,color:'var(--muted)',padding:'14px 18px',background:'var(--card)',border:'1px solid var(--border)',borderRadius:8}}>
+                Reddit feed loading — refresh in a moment.
+              </div>
+            ) : posts.slice(0,8).map((p,i) => (
+              <a key={i} href={p.url || '#'} target="_blank" rel="noopener" className="post-row">
+                <span className="post-sub">r/{p.subreddit}</span>
+                <span className="post-title">{p.title}</span>
+                <span className="post-link">↗</span>
+              </a>
+            ))}
+          </div>
+        </section>
+
+        {/* ════════════ BREAKING SOCIAL PULSE ════════════ */}
+        {displayPulse.length > 0 && (
+          <section className="section">
+            <div className="section-eyebrow"><span>Breaking · what's driving the conversation</span></div>
+            <div className="pulse-list">
+              {displayPulse.map((item,i) => (
+                <a key={i} className="pulse-item" href={item.source_url || '#'} target={item.source_url ? '_blank' : '_self'} rel="noopener">
+                  <div className="pulse-dot" style={{background:item.color==='red'?'#ef4444':item.color==='yellow'?'#eab308':'#22c55e',color:item.color==='red'?'#ef4444':item.color==='yellow'?'#eab308':'#22c55e'}}/>
+                  <div className="pulse-body">
+                    <div className="pulse-title">{item.title}</div>
+                    {item.detail && <div className="pulse-detail">{item.detail}</div>}
+                    <div className="pulse-meta">
+                      <span>{item.source || 'Loan Clarity'}</span>
+                      <span>↗ View Source</span>
+                    </div>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ════════════ REFI CTA ════════════ */}
+        <section className="mini-refi">
+          <div className="mini-refi-inner">
+            <div>
+              <div className="mini-refi-eyebrow">◆ Done watching the panic? Take action.</div>
+              <div className="mini-refi-h">Cut your payment, <span className="mini-refi-grad">get $1,000.</span></div>
+            </div>
+            <div className="mini-refi-btns">
+              <a href="https://www.sofi.com/invite/medical-student-loans?gcp=6855762b-2867-4d08-ad5b-e4da0c004795&isAliasGcp=false" target="_blank" rel="noopener" data-cta="social-page-sofi" className="cta cta-primary">Claim $1,000 →</a>
+              <a href="https://www.elfi.com/?code=39543" target="_blank" rel="noopener" data-cta="social-page-elfi" className="cta cta-ghost">Compare ELFI</a>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      {/* ════════════ MINI FOOTER ════════════ */}
+      <div className="mini-footer-wrap">
+        <div className="mini-disc">
+          Social data pulled live from <a href="https://www.reddit.com" target="_blank" rel="noopener" style={{color:'#ff4500'}}>Reddit</a> public API and <a href="https://trends.google.com" target="_blank" rel="noopener" style={{color:'#4285f4'}}>Google Trends</a>. AI classification via Loan Clarity sentiment engine. Updated every 5 minutes.
+        </div>
+        <div className="mini-footer-row">
+          <span>© 2026 Loan Clarity</span>
+          <span className="mini-footer-links">
+            <a href="/">Dashboard</a>
+            <a href="/tax-tool">Tax Tool</a>
+            <a href="/methodology">Methodology</a>
+            <a href="/sources">Sources</a>
+          </span>
+        </div>
+      </div>
+
+      <div className="mobile-sticky">
+        <a href="https://www.sofi.com/invite/medical-student-loans?gcp=6855762b-2867-4d08-ad5b-e4da0c004795&isAliasGcp=false" target="_blank" rel="noopener" data-cta="social-sticky-sofi" className="cta cta-primary">💸 Get $1,000 + Lower Rate (SoFi) →</a>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
