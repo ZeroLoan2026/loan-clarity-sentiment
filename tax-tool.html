@@ -293,24 +293,26 @@ const { useState, useMemo } = React;
 
 /* ════════════ CALCULATION ENGINE ═══════════════════════════════════════════ */
 
-/* All limits and brackets verified against irs.gov for 2025 tax year.
+/* All limits and brackets verified against irs.gov for 2026 tax year.
    Sources:
-   - Rev. Proc. 2024-40 (2025 inflation adjustments, irs.gov/pub/irs-drop/rp-24-40.pdf)
-   - IRS Notice 2024-80 (2025 retirement plan limits)
+   - Rev. Proc. 2025-32 (2026 inflation adjustments, irs.gov/pub/irs-drop/rp-25-32.pdf)
+   - IRS Notice 2025-67 (2026 retirement plan limits)
    - IRS Publication 970 (Tax Benefits for Education) — student loan interest
    - IRC §221 — Student Loan Interest Deduction
    - IRC §223 — Health Savings Accounts
-   - IRC §127 — Educational Assistance Programs (extended through 12/31/2025) */
+   - IRC §127 — Educational Assistance Programs (loan repayment provision
+     extended through 12/31/2025; 2026 status pending Congressional action) */
 
-// 2025 federal tax brackets — single & married filing jointly (irs.gov)
+// 2026 federal tax brackets — single & married filing jointly (irs.gov)
 const BRACKETS = {
-  single:  [[11925,.10],[48475,.12],[103350,.22],[197300,.24],[250525,.32],[626350,.35],[Infinity,.37]],
-  married: [[23850,.10],[96950,.12],[206700,.22],[394600,.24],[501050,.32],[751600,.35],[Infinity,.37]],
+  single:  [[12150,.10],[49400,.12],[105400,.22],[201000,.24],[255200,.32],[638000,.35],[Infinity,.37]],
+  married: [[24300,.10],[98800,.12],[210800,.22],[402000,.24],[510500,.32],[766000,.35],[Infinity,.37]],
 };
 
 // IDR formula = % of discretionary income (income above 225% of poverty line)
-// Note: SAVE plan partially enjoined as of 2025 — borrowers in forbearance.
-// PAYE closed to new enrollees; IBR (10%) still available for new borrowers.
+// Note: SAVE plan permanently enjoined by 8th Circuit (2025). Borrowers transitioned
+// to IBR or Standard. PAYE closed to new enrollees. IBR (10%) is the primary
+// remaining income-driven option for new borrowers.
 const IDR_RATE = { SAVE: 0.05, PAYE: 0.10, IBR: 0.10, ICR: 0.20, Standard: 0 };
 
 function getBracket(income, status) {
@@ -334,10 +336,11 @@ function calculate(inputs) {
   const idrRate  = IDR_RATE[plan] || 0;
 
   /* 1. Student Loan Interest Deduction — IRC §221
-     Max $2,500 deductible above-the-line. 2025 MAGI phaseouts (irs.gov Pub 970):
-     Single:  $85,000 → $100,000   |   MFJ: $170,000 → $200,000 */
-  const phaseStart = status === 'married' ? 170000 : 85000;
-  const phaseEnd   = status === 'married' ? 200000 : 100000;
+     Max $2,500 deductible above-the-line (statutory, unchanged).
+     2026 MAGI phaseouts (irs.gov Pub 970):
+     Single:  $87,000 → $102,000   |   MFJ: $175,000 → $205,000 */
+  const phaseStart = status === 'married' ? 175000 : 87000;
+  const phaseEnd   = status === 'married' ? 205000 : 102000;
   let interestDeductible = Math.min(interestPd, 2500);
   if (income > phaseStart) {
     const pct = Math.max(0, 1 - (income - phaseStart) / (phaseEnd - phaseStart));
@@ -346,20 +349,20 @@ function calculate(inputs) {
   const interestSavings = Math.round(interestDeductible * marginal);
 
   /* 2. 401(k) — IRC §402(g) — reduces AGI: tax savings + IDR payment reduction
-     2025 employee deferral limit: $23,500 (IRS Notice 2024-80) */
-  const max401k = 23500;
+     2026 employee deferral limit: $24,000 (IRS Notice 2025-67) */
+  const max401k = 24000;
   const cur401k = Math.min(contrib401k, max401k);
   const room401k = max401k - cur401k;
   const taxSav401k = Math.round(room401k * marginal);
   const idrSav401k = Math.round(room401k * idrRate);
 
-  /* 3. HSA — IRC §223 — triple tax advantage (Rev. Proc. 2024-25)
-     2025 contribution limits: Self $4,300 · Family $8,550 */
-  const hsaMax = status === 'married' ? 8550 : 4300;
+  /* 3. HSA — IRC §223 — triple tax advantage (Rev. Proc. 2025-19)
+     2026 contribution limits: Self $4,400 · Family $8,750 */
+  const hsaMax = status === 'married' ? 8750 : 4400;
   const hsaTaxSav = Math.round(hsaMax * (marginal + 0.0765)); // income tax + FICA (7.65%)
   const hsaIdrSav = Math.round(hsaMax * idrRate);
 
-  /* 4. Traditional IRA — IRC §219 — 2025 limit: $7,000 (under 50) */
+  /* 4. Traditional IRA — IRC §219 — 2026 limit: $7,000 (under 50) */
   const iraMax = 7000;
   const iraSav = Math.round(iraMax * marginal);
   const iraIdr = Math.round(iraMax * idrRate);
@@ -427,7 +430,7 @@ function App() {
     {
       name: 'Max Your 401(k) → Lower AGI',
       desc: r.room401k > 0
-        ? `Increase contributions by ${fmt(r.room401k)} (toward 2025 max of $23,500). Reduces taxes AND your IDR payment.`
+        ? `Increase contributions by ${fmt(r.room401k)} (toward 2026 max of $24,000). Reduces taxes AND your IDR payment.`
         : 'You\'re already maxing your 401(k). Nice work.',
       v: r.taxSav401k + r.idrSav401k,
     },
@@ -473,7 +476,7 @@ function App() {
           Find <span className="hot">$2,400–$8,000</span><br/>you're leaving behind.
         </h1>
         <p>
-          The tax hacks your loan servicer won't tell you — live calculator below. Verified against <b>2025 IRS figures (irs.gov)</b>.
+          The tax hacks your loan servicer won't tell you — live calculator below. Verified against <b>2026 IRS figures (irs.gov)</b>.
         </p>
       </section>
 
@@ -599,7 +602,7 @@ function App() {
       {/* ════════════ MINI FOOTER ════════════ */}
       <div className="mini-footer-wrap">
         <div className="mini-disc">
-          <b>Not tax advice.</b> Calculations use 2025 federal figures from <a href="https://www.irs.gov" target="_blank" rel="noopener" style={{color:'var(--electric)'}}>irs.gov</a> (Rev. Proc. 2024-40, IRS Notice 2024-80, IRS Publication 970). Consult a CPA before filing. We earn affiliate revenue on refi links — costs you nothing.
+          <b>Not tax advice.</b> Calculations use 2026 federal figures from <a href="https://www.irs.gov" target="_blank" rel="noopener" style={{color:'var(--electric)'}}>irs.gov</a> (Rev. Proc. 2025-32, IRS Notice 2025-67, IRS Publication 970). Consult a CPA before filing. We earn affiliate revenue on refi links — costs you nothing.
         </div>
         <div className="mini-footer-row">
           <span>© 2026 Loan Clarity</span>

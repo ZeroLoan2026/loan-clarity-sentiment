@@ -231,42 +231,66 @@ SOURCES = {
 # ─── Data Fetchers ────────────────────────────────────────────────────────────
 
 async def fetch_reddit_posts() -> list[dict]:
-    """Pull hot posts from student loan subreddits via public JSON API."""
+    """Pull posts from past 30 days across student loan subreddits.
+    Combines /hot, /new, and /top?t=month for breadth + recency."""
     keywords = {
         "student loan", "loans", "debt", "payment", "save plan",
         "refinanc", "idr", "forgiveness", "repay", "delinquent",
         "default", "servicer", "navient", "mohela", "pslf", "income-driven",
+        "tuition", "fafsa", "interest", "garnish", "collections",
     }
     posts = []
+    seen_urls = set()
+    cutoff_ts = (datetime.now() - timedelta(days=30)).timestamp()
 
-    async with httpx.AsyncClient(timeout=12.0) as client:
-        for sub in ["StudentLoans", "personalfinance", "povertyfinance"]:
+    # For each sub, pull /top.json?t=month (top 100 of past month — gives us 30 days of signal)
+    # Plus /new.json for recency. r/StudentLoans is the primary signal source.
+    endpoints = [
+        ("StudentLoans",     "top",  100, "month"),
+        ("StudentLoans",     "new",  50,  None),
+        ("personalfinance",  "top",  100, "month"),
+        ("povertyfinance",   "top",  100, "month"),
+    ]
+
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        for sub, sort, limit, t in endpoints:
             try:
-                resp = await client.get(
-                    f"https://www.reddit.com/r/{sub}/hot.json?limit=50",
-                    headers=REDDIT_HEADERS,
-                )
+                url = f"https://www.reddit.com/r/{sub}/{sort}.json?limit={limit}"
+                if t:
+                    url += f"&t={t}"
+                resp = await client.get(url, headers=REDDIT_HEADERS)
                 if resp.status_code != 200:
                     continue
                 children = resp.json().get("data", {}).get("children", [])
                 for item in children:
                     d = item.get("data", {})
+                    created = d.get("created_utc", 0)
+                    # Only keep posts from past 30 days
+                    if created < cutoff_ts:
+                        continue
                     title = d.get("title", "").lower()
-                    if any(kw in title for kw in keywords):
+                    permalink = d.get("permalink", "")
+                    if permalink in seen_urls:
+                        continue
+                    # Filter to student-loan-relevant content
+                    if sub == "StudentLoans" or any(kw in title for kw in keywords):
+                        seen_urls.add(permalink)
                         posts.append({
                             "title": d.get("title", ""),
                             "text":  d.get("selftext", "")[:400],
                             "score": d.get("score", 0),
                             "comments": d.get("num_comments", 0),
                             "subreddit": sub,
-                            "created": d.get("created_utc", 0),
-                            "url": "https://www.reddit.com" + d.get("permalink", ""),
+                            "created": created,
+                            "url": "https://www.reddit.com" + permalink,
                         })
             except Exception as e:
-                print(f"[Reddit] r/{sub} error: {e}")
+                print(f"[Reddit] r/{sub} {sort} error: {e}")
 
+    # Rank by engagement (score + 2× comments) for "top discussions"
     posts.sort(key=lambda p: p["score"] + p["comments"] * 2, reverse=True)
-    return posts[:25]
+    print(f"[Reddit] Pulled {len(posts)} posts spanning past 30 days")
+    return posts
 
 
 async def fetch_cfpb_complaints() -> dict:
@@ -782,9 +806,24 @@ async def get_live_sentiment():
          "methodology_ref": "/methodology#reddit"},
     ]
 
+    # Latest posts (most recent first) — for the live feed
+    posts_by_recency = sorted(posts, key=lambda p: p.get("created", 0), reverse=True)
     trending_posts = [
         {"title": p["title"], "subreddit": p["subreddit"], "url": p.get("url", "")}
-        for p in posts[:6]
+        for p in posts_by_recency[:12]
+    ]
+
+    # Top discussions of the past 30 days (ranked by engagement)
+    # posts list is already sorted by score + 2*comments
+    top_discussions = [
+        {
+            "title":     p["title"],
+            "subreddit": p["subreddit"],
+            "url":       p.get("url", ""),
+            "score":     p.get("score", 0),
+            "comments":  p.get("comments", 0),
+        }
+        for p in posts[:10]
     ]
 
     result = {
@@ -828,6 +867,8 @@ async def get_live_sentiment():
         "borrower_pulse":   borrower_pulse,
         "key_metrics":      key_metrics,
         "trending_posts":   trending_posts,
+        "top_discussions":  top_discussions,
+        "reddit_window_days": 30,
         "trend_history":    build_trend_history(final_score),
         "history":          build_multi_window_history(final_score),
         "trend_source": {

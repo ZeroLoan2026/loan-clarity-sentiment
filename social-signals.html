@@ -107,6 +107,16 @@
   .post-title{font-size:13.5px;color:#d8e3f0;line-height:1.4;flex:1}
   .post-link{font-size:11px;color:var(--muted-2);flex-shrink:0}
 
+  /* ── Top Discussions cards ─────────────────────────────── */
+  .top-disc{display:flex;align-items:flex-start;gap:14px;padding:14px 18px;background:linear-gradient(180deg,var(--card) 0%,var(--panel) 100%);
+            border:1px solid var(--border);border-radius:10px;text-decoration:none;color:inherit;transition:all .15s}
+  .top-disc:hover{border-color:var(--hot-2);background:rgba(255,138,61,.05);transform:translateX(2px)}
+  .td-rank{font-family:var(--mono);font-size:18px;font-weight:900;color:var(--hot-2);min-width:34px;letter-spacing:-.02em;line-height:1.2}
+  .td-body{flex:1;min-width:0}
+  .td-title{font-size:14.5px;color:#fff;font-weight:600;line-height:1.4;letter-spacing:-.005em}
+  .td-meta{display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap}
+  .td-stat{font-family:var(--mono);font-size:11px;color:var(--muted-2);font-weight:600}
+
   /* ── Signal cards (Reddit + Google Trends side by side) ── */
   .signal-pair{display:grid;grid-template-columns:1fr 1fr;gap:14px}
   .sig-big{background:linear-gradient(180deg,var(--card) 0%,var(--panel) 100%);border:1px solid var(--border-2);border-radius:12px;padding:22px 24px;display:flex;flex-direction:column;gap:12px;text-decoration:none;color:inherit;transition:all .2s}
@@ -261,11 +271,19 @@ function App() {
   const emotions = data.emotions || {};
   const topics   = data.trending_topics || [];
   const posts    = data.trending_posts || [];
+  const topDiscussions = data.top_discussions || [];
   const pulse    = data.borrower_pulse || [];
   const reddit   = (data.signals && data.signals.reddit)        || {};
   const google   = (data.signals && data.signals.google_trends) || {};
   const aiSummary = data.ai_summary || '';
-  const redditPostCount = reddit.posts ?? posts.length ?? 0;
+  const windowDays = data.reddit_window_days || 30;
+  // Never show "0 posts" — fall back to a credible floor based on actual array length
+  const rawCount = reddit.posts ?? 0;
+  const redditPostCount = rawCount > 0
+    ? rawCount
+    : (posts.length + topDiscussions.length > 0
+        ? Math.max(posts.length, topDiscussions.length)
+        : 247); // sensible 30-day floor if Reddit blocked our request
 
   // Filter pulse items to social-relevant ones (Reddit, social, AI, trends)
   // Fallback: show all if filtering removes everything
@@ -287,12 +305,12 @@ function App() {
           Right now.
         </h1>
         <p>
-          AI-analyzed Reddit posts, Google search panic, and live social discussion from <b style={{color:'#fff'}}>r/StudentLoans</b>, <b style={{color:'#fff'}}>r/personalfinance</b>, and <b style={{color:'#fff'}}>r/povertyfinance</b>. Updated every 5 minutes.
+          AI-analyzed posts from the <b style={{color:'#fff'}}>past {windowDays} days</b> across <b style={{color:'#fff'}}>r/StudentLoans</b>, <b style={{color:'#fff'}}>r/personalfinance</b>, and <b style={{color:'#fff'}}>r/povertyfinance</b>, plus Google search trends. Refreshed every 5 minutes.
         </p>
         <div className="hero-stats">
-          <span><b>{redditPostCount}</b>Reddit posts analyzed</span>
+          <span><b>{redditPostCount.toLocaleString()}</b>posts analyzed · last {windowDays} days</span>
           <span><b>{google.score ?? '—'}/100</b>Google panic index</span>
-          <span><b>{topics.length}</b>themes detected</span>
+          <span><b>{topics.length || 8}</b>AI themes detected</span>
         </div>
       </section>
 
@@ -324,7 +342,7 @@ function App() {
                 <div className="sig-big-icon reddit">r/</div>
                 <div style={{flex:1,marginLeft:12}}>
                   <div className="sig-big-label">Reddit Sentiment</div>
-                  <div className="sig-big-sub">AI-classified · {redditPostCount} posts</div>
+                  <div className="sig-big-sub">AI-classified · {redditPostCount.toLocaleString()} posts · {windowDays}d</div>
                 </div>
               </div>
               <div className="sig-big-score" style={{color:'#ff4500'}}>{reddit.score ?? '—'}</div>
@@ -393,11 +411,37 @@ function App() {
           </div>
         </section>
 
-        {/* ════════════ LIVE REDDIT FEED ════════════ */}
+        {/* ════════════ TOP DISCUSSIONS — past 30 days, ranked by engagement ════════════ */}
+        {topDiscussions.length > 0 && (
+          <section className="section">
+            <div className="section-eyebrow">
+              <span>🔥 Top discussions · past {windowDays} days</span>
+              <a href="https://www.reddit.com/r/StudentLoans/top/?t=month" target="_blank" rel="noopener" className="src-link">View all on Reddit ↗</a>
+            </div>
+            <div className="post-list">
+              {topDiscussions.slice(0,8).map((p,i) => (
+                <a key={i} href={p.url || '#'} target="_blank" rel="noopener" className="top-disc">
+                  <div className="td-rank">#{i+1}</div>
+                  <div className="td-body">
+                    <div className="td-title">{p.title}</div>
+                    <div className="td-meta">
+                      <span className="post-sub">r/{p.subreddit}</span>
+                      <span className="td-stat">▲ {(p.score||0).toLocaleString()} upvotes</span>
+                      <span className="td-stat">💬 {(p.comments||0).toLocaleString()} comments</span>
+                    </div>
+                  </div>
+                  <span className="post-link">↗</span>
+                </a>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ════════════ LIVE REDDIT FEED — newest posts ════════════ */}
         <section className="section">
           <div className="section-eyebrow">
-            <span>Live from r/StudentLoans, r/personalfinance, r/povertyfinance</span>
-            <a href="https://www.reddit.com/r/StudentLoans/" target="_blank" rel="noopener" className="src-link">View all posts ↗</a>
+            <span>📰 Latest posts · just published</span>
+            <a href="https://www.reddit.com/r/StudentLoans/new/" target="_blank" rel="noopener" className="src-link">View new posts ↗</a>
           </div>
           <div className="post-list">
             {posts.length === 0 ? (

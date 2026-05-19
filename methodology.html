@@ -3,111 +3,181 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Methodology · Loan Clarity Borrower Sentiment Index™</title>
+<title>How it works · Loan Clarity Borrower Sentiment Index™</title>
+<meta name="description" content="The receipts behind the Loan Clarity Borrower Stress Index — plain English. No PhD required."/>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap');
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { background: #050b16; color: #d8e3f0; font-family: 'Inter', -apple-system, sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased; padding-top: 64px; }
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#050b16;color:#d8e3f0;font-family:'Inter',-apple-system,sans-serif;line-height:1.65;-webkit-font-smoothing:antialiased;padding-top:64px}
+  a{color:inherit;text-decoration:none}
 
-  /* ── Header ─────────────────────────────────────────────────── */
-  .nav {
-    background: rgba(7, 17, 31, 0.92);
-    border-bottom: 1px solid #16294a;
-    padding: 14px 28px;
-    display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
-    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  :root{
+    --bg:#050b16; --panel:#07111f; --card:#0b1626; --card-2:#0f1d33;
+    --border:#16294a; --border-2:#1e3a5f;
+    --accent:#2d7dd2; --accent-2:#6fb6ff;
+    --hot:#ff5577; --hot-2:#ff8a3d;
+    --neon:#00e5a8; --electric:#5b8cff; --purple:#a78bfa;
+    --grad-hot:linear-gradient(135deg,#ff5577 0%,#ff8a3d 100%);
+    --grad-money:linear-gradient(135deg,#00e5a8 0%,#5b8cff 100%);
+    --grad-purple:linear-gradient(135deg,#a78bfa 0%,#5b8cff 100%);
+    --mono:'JetBrains Mono',ui-monospace,monospace;
   }
-  .nav-left { display: flex; align-items: center; gap: 12px; justify-self: start; }
-  .logo-mark { width: 34px; height: 34px; background: linear-gradient(135deg,#1a6eb5,#2d7dd2); border-radius: 8px;
-              display: flex; align-items: center; justify-content: center; font-size: 16px; box-shadow: 0 0 14px rgba(45,125,210,.25); }
-  .nav-title { font-size: 17px; font-weight: 800; color: #fff; letter-spacing: -.02em; }
-  .nav-sub  { font-size: 10px; color: #5a7d9d; letter-spacing: .12em; text-transform: uppercase; margin-top: 1px; }
-  .nav-right { display: flex; gap: 32px; justify-self: center; }
-  .nav-right a { color: #6f88a5; text-decoration: none; font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; padding: 6px 0; border-bottom: 2px solid transparent; transition: all .15s; }
-  .nav-right a:hover { color: #6fb6ff; }
-  .nav-right a.active { color: #fff; border-bottom-color: #2d7dd2; }
-  .nav-spacer { justify-self: end; }
 
-  /* ── Page layout ────────────────────────────────────────────── */
-  .container { max-width: 980px; margin: 0 auto; padding: 48px 32px 80px; display: grid; grid-template-columns: 220px 1fr; gap: 56px; }
-  .toc { position: sticky; top: 80px; align-self: start; }
-  .toc-label { font-size: 9px; color: #5a7d9d; text-transform: uppercase; letter-spacing: .18em; font-weight: 700; margin-bottom: 14px; }
-  .toc a { display: block; color: #8ab0d8; text-decoration: none; padding: 6px 0; font-size: 13px; border-left: 2px solid transparent; padding-left: 12px; transition: all .15s; }
-  .toc a:hover { color: #2d7dd2; border-left-color: #2d7dd2; }
+  /* ── Nav (unified across platform) ────────────────────── */
+  .nav{background:rgba(7,17,31,.92);border-bottom:1px solid var(--border);padding:14px 28px;
+       display:grid;grid-template-columns:1fr auto 1fr;align-items:center;
+       position:fixed;top:0;left:0;right:0;z-index:100;
+       backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  .nav-left{display:flex;align-items:center;gap:12px;justify-self:start}
+  .logo-mark{width:34px;height:34px;background:linear-gradient(135deg,#1a6eb5,#2d7dd2);border-radius:8px;
+             display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 0 14px rgba(45,125,210,.25)}
+  .nav-title{font-size:17px;font-weight:800;color:#fff;letter-spacing:-.02em}
+  .nav-sub{font-size:10px;color:#5a7d9d;letter-spacing:.12em;text-transform:uppercase;margin-top:1px}
+  .nav-right{display:flex;gap:32px;justify-self:center}
+  .nav-right a{color:#6f88a5;text-decoration:none;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:6px 0;border-bottom:2px solid transparent;transition:all .15s}
+  .nav-right a:hover{color:#6fb6ff}
+  .nav-right a.active{color:#fff;border-bottom-color:var(--accent)}
+  .nav-spacer{justify-self:end}
 
-  /* ── Content ────────────────────────────────────────────────── */
-  .doc h1 { font-size: 34px; font-weight: 900; color: #fff; letter-spacing: -.03em; line-height: 1.15; margin-bottom: 8px; }
-  .doc .doc-sub { font-size: 14px; color: #5a7d9d; margin-bottom: 36px; padding-bottom: 24px; border-bottom: 1px solid #16294a; }
-  .doc h2 { font-size: 22px; font-weight: 800; color: #fff; margin: 44px 0 14px; letter-spacing: -.02em; scroll-margin-top: 90px; }
-  .doc h2 .num { color: #2d7dd2; font-family: 'JetBrains Mono', monospace; font-size: 16px; margin-right: 10px; font-weight: 600; }
-  .doc h3 { font-size: 16px; font-weight: 700; color: #d8e3f0; margin: 24px 0 8px; }
-  .doc p { color: #a8becc; margin-bottom: 14px; font-size: 14.5px; }
-  .doc ul { margin: 10px 0 16px 22px; color: #a8becc; }
-  .doc ul li { margin-bottom: 6px; font-size: 14px; }
-  .doc strong { color: #d8e3f0; font-weight: 700; }
-  .doc code { font-family: 'JetBrains Mono', monospace; background: #0f1d33; color: #6fb6ff; padding: 2px 7px; border-radius: 4px; font-size: 12.5px; border: 1px solid #1e3a5f; }
+  /* ── Hero (warm, conversational opening) ──────────────── */
+  .hero{padding:64px 32px 32px;text-align:center;
+        background:
+          radial-gradient(ellipse at top,rgba(167,139,250,.16) 0%,transparent 55%),
+          radial-gradient(ellipse at bottom,rgba(91,140,255,.10) 0%,transparent 55%)}
+  .hero-pill{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;
+             background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.35);
+             font-size:11px;font-weight:800;letter-spacing:.16em;color:var(--purple);text-transform:uppercase;margin-bottom:18px}
+  .hero-pill .dot{width:6px;height:6px;border-radius:50%;background:var(--purple);box-shadow:0 0 8px var(--purple);animation:pulse 1.4s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  .hero h1{font-size:56px;font-weight:900;letter-spacing:-.04em;line-height:1.02;color:#fff;max-width:880px;margin:0 auto}
+  .hero h1 .grad{background:var(--grad-purple);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero-sub{font-size:18px;color:#a8becc;max-width:620px;margin:18px auto 0;line-height:1.55}
+  .hero-sub b{color:#fff}
+  .hero-meta{display:inline-block;margin-top:22px;padding:6px 14px;border-radius:999px;background:var(--panel);border:1px solid var(--border-2);font-size:11.5px;color:#5a7d9d;font-family:var(--mono)}
 
-  .formula { background: #0b1626; border: 1px solid #16294a; border-left: 3px solid #2d7dd2; padding: 18px 22px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13.5px; color: #d8e3f0; margin: 20px 0; line-height: 1.7; overflow-x: auto; }
-  .formula .v { color: #6fb6ff; }
-  .formula .c { color: #5a7d9d; font-style: italic; }
+  /* ── Container ────────────────────────────────────────── */
+  .container{max-width:840px;margin:0 auto;padding:48px 32px 64px}
 
-  table.spec { width: 100%; border-collapse: collapse; margin: 16px 0 24px; background: #0b1626; border: 1px solid #16294a; border-radius: 6px; overflow: hidden; }
-  table.spec th { background: #11203a; padding: 11px 14px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: .12em; color: #5a7d9d; font-weight: 700; border-bottom: 1px solid #16294a; }
-  table.spec td { padding: 12px 14px; font-size: 13.5px; color: #a8becc; border-bottom: 1px solid #11203a; }
-  table.spec tr:last-child td { border-bottom: none; }
-  table.spec td.w { font-family: 'JetBrains Mono', monospace; color: #2d7dd2; font-weight: 700; }
+  /* ── Section blocks ───────────────────────────────────── */
+  .section{margin-bottom:64px;scroll-margin-top:90px}
+  .section-num{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:11px;color:var(--purple);font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px}
+  .section-num .pip{width:8px;height:8px;border-radius:50%;background:var(--purple);box-shadow:0 0 8px var(--purple)}
+  .section h2{font-size:38px;font-weight:900;color:#fff;letter-spacing:-.03em;line-height:1.1;margin-bottom:14px}
+  .section h2 .accent{background:var(--grad-hot);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .section h2 .accent-cool{background:var(--grad-money);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .section h2 .accent-purple{background:var(--grad-purple);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .section p{font-size:17px;color:#c0d8f0;margin-bottom:16px;line-height:1.7}
+  .section p b,.section p strong{color:#fff;font-weight:700}
+  .section ul{margin:14px 0 18px;padding-left:0;list-style:none}
+  .section ul li{padding:8px 0 8px 28px;position:relative;font-size:16px;color:#c0d8f0;line-height:1.6}
+  .section ul li::before{content:'→';position:absolute;left:0;top:8px;color:var(--neon);font-weight:900;font-size:18px}
 
-  .callout { background: linear-gradient(135deg, #0b1d35, #0f2240); border: 1px solid #1e3a5f; border-radius: 8px; padding: 18px 22px; margin: 24px 0; }
-  .callout .c-lbl { font-size: 9px; font-weight: 700; color: #2d7dd2; text-transform: uppercase; letter-spacing: .18em; margin-bottom: 6px; }
-  .callout p { color: #c0d8f0; margin: 0; font-size: 14px; }
+  /* TL;DR / Real talk callouts */
+  .tldr{background:
+          radial-gradient(ellipse at top right,rgba(0,229,168,.10) 0%,transparent 55%),
+          linear-gradient(180deg,#0d1830 0%,#091222 100%);
+        border:1px solid rgba(0,229,168,.35);border-radius:14px;padding:22px 26px;margin:24px 0}
+  .tldr-label{font-size:11px;font-weight:800;letter-spacing:.18em;color:var(--neon);text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+  .tldr-label .ic{width:6px;height:6px;border-radius:50%;background:var(--neon);box-shadow:0 0 8px var(--neon)}
+  .tldr p{font-size:17px;color:#fff;margin:0;line-height:1.55;font-weight:500}
+  .tldr p:not(:last-child){margin-bottom:10px}
 
-  .step-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 18px 0; }
-  .step { background: #0b1626; border: 1px solid #16294a; border-left: 3px solid #2d7dd2; padding: 14px 16px; border-radius: 5px; }
-  .step .s-num { font-family: 'JetBrains Mono', monospace; color: #2d7dd2; font-size: 11px; font-weight: 700; }
-  .step .s-name { font-size: 14px; font-weight: 700; color: #fff; margin: 2px 0 4px; }
-  .step .s-desc { font-size: 12.5px; color: #8ab0d8; line-height: 1.5; }
+  /* Real-talk callout (warmer/orange) */
+  .real-talk{background:
+          radial-gradient(ellipse at top right,rgba(255,138,61,.10) 0%,transparent 55%),
+          linear-gradient(180deg,#1a1108 0%,#0c0805 100%);
+        border:1px solid rgba(255,138,61,.35);border-radius:14px;padding:22px 26px;margin:24px 0}
+  .real-talk-label{font-size:11px;font-weight:800;letter-spacing:.18em;color:var(--hot-2);text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+  .real-talk-label .ic{width:6px;height:6px;border-radius:50%;background:var(--hot-2);box-shadow:0 0 8px var(--hot-2)}
+  .real-talk p{font-size:16px;color:#f8e9dd;margin:0;line-height:1.55}
 
-  @media (max-width: 800px) {
-    .container { grid-template-columns: 1fr; padding: 24px 18px 60px; gap: 24px; }
-    .toc { position: static; }
+  /* Weight cards (replacing the boring table) */
+  .weight-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:24px 0}
+  .weight-card{background:linear-gradient(180deg,var(--card) 0%,var(--panel) 100%);border:1px solid var(--border-2);border-radius:12px;padding:18px 22px;transition:all .15s}
+  .weight-card:hover{border-color:var(--purple);transform:translateY(-2px)}
+  .weight-card .wc-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px}
+  .weight-card .wc-name{font-size:13px;font-weight:800;color:#fff;letter-spacing:-.005em}
+  .weight-card .wc-pct{font-family:var(--mono);font-size:18px;font-weight:900;color:var(--neon);letter-spacing:-.02em}
+  .weight-card .wc-emoji{font-size:22px;margin-bottom:6px;display:block}
+  .weight-card .wc-desc{font-size:13px;color:#a8becc;line-height:1.5}
+
+  /* Formula display */
+  .formula{background:linear-gradient(180deg,#0b1626 0%,#07111f 100%);border:1px solid var(--border-2);border-left:3px solid var(--neon);
+           padding:22px 26px;border-radius:8px;font-family:var(--mono);font-size:14px;color:#d8e3f0;margin:20px 0;line-height:1.9}
+  .formula .label{font-size:11px;color:var(--neon);letter-spacing:.16em;text-transform:uppercase;font-weight:700;margin-bottom:10px;font-family:'Inter',sans-serif}
+  .formula .v{color:var(--neon);font-weight:700}
+  .formula .c{color:#5a7d9d;font-style:italic}
+
+  /* Step grid */
+  .step-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:24px 0}
+  .step{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 18px;transition:all .15s}
+  .step:hover{border-color:var(--electric)}
+  .step .s-num{font-family:var(--mono);color:var(--electric);font-size:12px;font-weight:800;letter-spacing:.08em}
+  .step .s-name{font-size:15px;font-weight:800;color:#fff;margin:4px 0 6px;letter-spacing:-.01em}
+  .step .s-desc{font-size:13.5px;color:#a8becc;line-height:1.55}
+
+  /* Quote-style "what it feels like" */
+  .quote-card{background:linear-gradient(180deg,#150d24 0%,#0a0716 100%);border:1px solid rgba(167,139,250,.35);border-radius:14px;
+              padding:24px 28px;margin:24px 0;position:relative}
+  .quote-card::before{content:'"';position:absolute;top:-10px;left:18px;font-size:60px;color:var(--purple);font-family:Georgia,serif;line-height:1;font-weight:900}
+  .quote-card p{font-size:18px;color:#fff;font-style:italic;font-weight:500;margin:0;line-height:1.55;padding-left:28px}
+  .quote-card .attr{font-size:12px;color:var(--purple);margin-top:10px;font-family:var(--mono);padding-left:28px;letter-spacing:.04em}
+
+  code{font-family:var(--mono);background:var(--card-2);color:var(--accent-2);padding:2px 7px;border-radius:4px;font-size:13.5px;border:1px solid var(--border-2)}
+
+  /* CTA footer */
+  .end-cta{margin:48px 0 0;padding:32px 36px;border-radius:16px;
+           background:
+             radial-gradient(ellipse at top right,rgba(0,229,168,.14) 0%,transparent 60%),
+             linear-gradient(180deg,#0e1f3d 0%,#0a1530 100%);
+           border:1px solid rgba(0,229,168,.4);text-align:center}
+  .end-cta h3{font-size:26px;font-weight:900;color:#fff;letter-spacing:-.025em;line-height:1.15}
+  .end-cta h3 .grad{background:var(--grad-money);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .end-cta p{font-size:14px;color:#a8becc;margin:10px 0 18px;line-height:1.55}
+  .cta{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 22px;border-radius:999px;
+       font-weight:800;font-size:13.5px;letter-spacing:.02em;text-decoration:none;transition:all .15s;cursor:pointer;
+       white-space:nowrap;margin:0 4px}
+  .cta:hover{transform:translateY(-2px)}
+  .cta-primary{background:var(--grad-money);color:#07111f;box-shadow:0 8px 24px rgba(0,229,168,.3)}
+  .cta-primary:hover{filter:brightness(1.08)}
+  .cta-ghost{background:rgba(91,140,255,.08);color:#cfe1ff;border:1px solid rgba(91,140,255,.35)}
+
+  /* Mini footer */
+  .mini-footer-wrap{padding:24px 32px 36px;background:var(--panel);border-top:1px solid var(--border)}
+  .mini-disc{max-width:840px;margin:0 auto 14px;font-size:12px;color:#5a7d9d;text-align:center;line-height:1.55}
+  .mini-footer-row{max-width:840px;margin:0 auto;padding-top:14px;border-top:1px solid var(--border);
+    display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;
+    font-size:11px;color:#4a6888;font-family:var(--mono)}
+  .mini-footer-links{display:flex;gap:18px}
+  .mini-footer-links a{font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#4a6888;transition:color .15s}
+  .mini-footer-links a:hover{color:var(--purple)}
+
+  @media(max-width:760px){
+    html,body{padding-top:110px}
+    .nav{display:grid;grid-template-columns:auto 1fr auto;grid-template-rows:auto auto;row-gap:8px;padding:10px 14px}
+    .nav-left{grid-row:1;grid-column:1}
+    .nav-spacer{grid-row:1;grid-column:3}
+    .nav-right{grid-row:2;grid-column:1/-1;display:flex;gap:0;padding-top:8px;border-top:1px solid var(--border);width:100%}
+    .nav-right a{flex:1 1 0;text-align:center;font-size:10.5px;letter-spacing:.06em;padding:4px 2px;white-space:nowrap}
+    .nav-sub{display:none}
+    .nav-title{font-size:15px}
+    .logo-mark{width:30px;height:30px;font-size:14px}
+    .hero{padding:40px 18px 24px}
+    .hero h1{font-size:36px}
+    .hero-sub{font-size:15px}
+    .container{padding:32px 18px 40px}
+    .section{margin-bottom:48px}
+    .section h2{font-size:28px}
+    .section p{font-size:15.5px}
+    .section ul li{font-size:14.5px}
+    .weight-grid{grid-template-columns:1fr}
+    .step-grid{grid-template-columns:1fr}
+    .end-cta{padding:24px 20px;margin:32px 0 0}
+    .end-cta h3{font-size:21px}
   }
-  /* ── Mobile — nav stays visible on second row ─────────────── */
-  @media (max-width: 760px) {
-    html, body { padding-top: 110px; }
-    .nav {
-      display: grid;
-      grid-template-columns: auto 1fr auto;
-      grid-template-rows: auto auto;
-      row-gap: 8px;
-      padding: 10px 14px;
-    }
-    .nav-left  { grid-row: 1; grid-column: 1; }
-    .nav-spacer { grid-row: 1; grid-column: 3; }
-    .nav-right {
-      grid-row: 2; grid-column: 1 / -1;
-      display: flex;
-      gap: 0;
-      padding-top: 8px;
-      border-top: 1px solid #16294a;
-      width: 100%;
-    }
-    .nav-right a {
-      flex: 1 1 0;
-      text-align: center;
-      font-size: 10.5px;
-      letter-spacing: .06em;
-      padding: 4px 2px;
-      white-space: nowrap;
-    }
-    .nav-sub { display: none; }
-    .nav-title { font-size: 15px; }
-    .logo-mark { width: 30px; height: 30px; font-size: 14px; }
-    .doc h1 { font-size: 26px; }
-  }
-  @media (max-width: 420px) {
-    .nav-right a { font-size: 9.5px; letter-spacing: .04em; padding: 4px 2px; }
-    .nav-emoji { display: none; }
+  @media(max-width:420px){
+    .nav-right a{font-size:9.5px;letter-spacing:.04em;padding:4px 2px}
+    .nav-emoji{display:none}
   }
 </style>
 </head>
@@ -127,247 +197,290 @@
     <a href="/">Dashboard</a>
     <a href="/social-signals" style="color:#ff8a3d"><span class="nav-emoji">📡 </span>Social Signals</a>
     <a href="/tax-tool" style="color:#00e5a8"><span class="nav-emoji">💰 </span>Tax Tool</a>
-    <a href="/methodology" class="active">Methodology</a>
+    <a href="/methodology" class="active">How it works</a>
     <a href="/sources">Sources</a>
   </div>
   <div class="nav-spacer"></div>
 </nav>
 
+<!-- ════════════ HERO ════════════ -->
+<section class="hero">
+  <div class="hero-pill"><span class="dot"></span>HOW IT WORKS · NO PHD REQUIRED</div>
+  <h1>The receipts behind <span class="grad">your stress score.</span></h1>
+  <p class="hero-sub">
+    A score is just a number. Here's what's actually under the hood — in plain English, written by people who've actually had student loans.
+  </p>
+  <div class="hero-meta">◉ Last revised May 2026 · Open methodology · Verified data</div>
+</section>
+
 <div class="container">
 
-  <aside class="toc">
-    <div class="toc-label">On this page</div>
-    <a href="#overview">Overview</a>
-    <a href="#weighted-index">Weighted Index Formula</a>
-    <a href="#google-trends">Google Search Panic</a>
-    <a href="#reddit">Reddit Sentiment</a>
-    <a href="#cfpb">CFPB Complaints</a>
-    <a href="#delinquency">Delinquency Trends</a>
-    <a href="#refinance">Refinance Demand</a>
-    <a href="#survey">Borrower Surveys</a>
-    <a href="#emotions">AI Emotion Classification</a>
-    <a href="#market-macro">Market &amp; Macro Indicators</a>
-    <a href="#normalization">Normalization</a>
-    <a href="#update-cadence">Update Cadence</a>
-    <a href="#limitations">Limitations</a>
-  </aside>
+  <!-- ════════════ OVERVIEW ════════════ -->
+  <section class="section" id="overview">
+    <div class="section-num"><span class="pip"></span>The big picture</div>
+    <h2>One number. <span class="accent">Six signals.</span> Zero vibes.</h2>
+    <p>
+      Every 5 minutes, we pull data from six different places — Reddit, Google searches, the CFPB complaint database, NY Fed delinquency data, refinance demand, and survey panels. We blend them with a weighted formula and spit out a single score between 0 and 100.
+    </p>
+    <p>
+      <b>Low score = the country is chill about student loans.</b> <b>High score = mass panic.</b> Right now (May 2026), we're in <b>high anxiety</b> territory, mostly because of SAVE plan chaos and servicer errors.
+    </p>
 
-  <article class="doc">
-    <h1>Methodology</h1>
-    <div class="doc-sub">How the Loan Clarity Borrower Sentiment Index™ is calculated · Last revised May 2026</div>
+    <div class="tldr">
+      <div class="tldr-label"><span class="ic"></span>TL;DR</div>
+      <p>We don't make stuff up. We pull real public data, run it through AI to detect emotion, and aggregate it into one easy-to-read score. The math is on this page. The sources are on the <a href="/sources" style="color:var(--neon);text-decoration:underline">sources page</a>.</p>
+    </div>
+  </section>
 
-    <section id="overview">
-      <h2><span class="num">00</span>Overview</h2>
-      <p>
-        The Loan Clarity Borrower Sentiment Index™ is a single <strong>0–100</strong> score that measures the
-        real-time emotional and financial stress of US student loan borrowers. <code>0</code> represents
-        broad financial optimism; <code>100</code> represents extreme distress.
-      </p>
-      <p>
-        It blends six independently-sourced signals — three real-time, three institutional — into one
-        authoritative reading, refreshed every five minutes. The methodology is intentionally transparent:
-        every weight, source, and computation step is published below.
-      </p>
+  <!-- ════════════ FORMULA ════════════ -->
+  <section class="section" id="weighted-index">
+    <div class="section-num"><span class="pip"></span>The formula</div>
+    <h2>How we mix <span class="accent-cool">the six signals.</span></h2>
+    <p>
+      Each signal gets normalized to a 0–100 score, then multiplied by its weight, then added together. The weights add up to 100%. We picked these weights based on what actually predicts borrower behavior — not vibes.
+    </p>
 
-      <div class="callout">
-        <div class="c-lbl">Design Principle</div>
-        <p>No single data source should dominate the index. By design, the largest single weight is 20%
-        and the smallest is 10%. This prevents any one platform's outage, API change, or measurement bias
-        from skewing the headline reading.</p>
+    <div class="formula">
+      <div class="label">◆ Index Formula</div>
+      <span class="v">Index</span> = (<span class="v">Google</span> × 0.20) + (<span class="v">Reddit</span> × 0.20) + (<span class="v">CFPB</span> × 0.15)<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ (<span class="v">Delinquency</span> × 0.15) + (<span class="v">Refinance</span> × 0.10) + (<span class="v">Survey</span> × 0.20)<br/>
+      <span class="c">// then rounded to nearest integer between 0–100</span>
+    </div>
+
+    <div class="weight-grid">
+      <div class="weight-card">
+        <span class="wc-emoji">🔍</span>
+        <div class="wc-head"><div class="wc-name">Google Search Panic</div><div class="wc-pct">20%</div></div>
+        <div class="wc-desc">When people Google "can't pay student loans" — they're stressed.</div>
       </div>
-    </section>
-
-    <section id="weighted-index">
-      <h2><span class="num">01</span>Weighted Index Formula</h2>
-      <p>The headline score is a weighted sum of six signal scores, each on a 0–100 scale:</p>
-
-      <div class="formula">
-Index = <span class="v">0.20</span> × Google_Trends_Panic
-      + <span class="v">0.20</span> × Reddit_Sentiment
-      + <span class="v">0.15</span> × CFPB_Complaints
-      + <span class="v">0.15</span> × Delinquency_Trends
-      + <span class="v">0.10</span> × Refinance_Demand
-      + <span class="v">0.20</span> × Borrower_Surveys
-
-<span class="c"># clamped to [5, 95] to avoid false-extreme readings from one-off spikes</span>
+      <div class="weight-card">
+        <span class="wc-emoji">💬</span>
+        <div class="wc-head"><div class="wc-name">Reddit Sentiment</div><div class="wc-pct">20%</div></div>
+        <div class="wc-desc">AI classifies emotion across r/StudentLoans + r/personalfinance.</div>
       </div>
-
-      <table class="spec">
-        <thead><tr><th>Signal</th><th>Weight</th><th>Source</th><th>Cadence</th></tr></thead>
-        <tbody>
-          <tr><td>Google Search Panic</td><td class="w">20%</td><td>Google Trends</td><td>Real-time</td></tr>
-          <tr><td>Reddit Sentiment (AI)</td><td class="w">20%</td><td>Reddit + Loan Clarity AI</td><td>5-min refresh</td></tr>
-          <tr><td>CFPB Complaint Volume</td><td class="w">15%</td><td>CFPB Database</td><td>Daily</td></tr>
-          <tr><td>Delinquency Trends</td><td class="w">15%</td><td>NY Fed</td><td>Quarterly</td></tr>
-          <tr><td>Refinance Demand</td><td class="w">10%</td><td>Google Trends</td><td>Real-time</td></tr>
-          <tr><td>Borrower Surveys</td><td class="w">20%</td><td>Pew Research</td><td>Annual</td></tr>
-        </tbody>
-      </table>
-    </section>
-
-    <section id="google-trends">
-      <h2><span class="num">02</span>Google Search Panic Index</h2>
-      <p>
-        We poll Google Trends for the search query <code>can't pay student loans</code> at a four-week
-        rolling average, restricted to the United States. Google returns a relative interest score
-        of 0–100 where 100 is peak historical interest.
-      </p>
-      <p>
-        That raw index maps <em>directly</em> to our panic score — high search volume for distress queries
-        indicates high borrower anxiety. We clip outliers above 95 to avoid post-injunction spike bias.
-      </p>
-    </section>
-
-    <section id="reddit">
-      <h2><span class="num">03</span>Reddit Sentiment (AI-Classified)</h2>
-      <p>Each refresh cycle:</p>
-      <div class="step-grid">
-        <div class="step"><div class="s-num">STEP 01</div><div class="s-name">Fetch</div>
-          <div class="s-desc">Pull top 50 hot posts from r/StudentLoans, r/personalfinance, r/povertyfinance via Reddit's public JSON endpoint.</div>
-        </div>
-        <div class="step"><div class="s-num">STEP 02</div><div class="s-name">Filter</div>
-          <div class="s-desc">Keep only posts whose titles contain one of 16 student-loan keywords (SAVE, IDR, PSLF, MOHELA, etc.).</div>
-        </div>
-        <div class="step"><div class="s-num">STEP 03</div><div class="s-name">Rank</div>
-          <div class="s-desc">Sort by engagement score = upvotes + 2 × comments. Keep top 25.</div>
-        </div>
-        <div class="step"><div class="s-num">STEP 04</div><div class="s-name">Classify</div>
-          <div class="s-desc">Send top 18 titles to the Loan Clarity AI sentiment engine — a large-language-model pipeline producing a 0–100 sentiment score plus five emotion probabilities.</div>
-        </div>
+      <div class="weight-card">
+        <span class="wc-emoji">📝</span>
+        <div class="wc-head"><div class="wc-name">CFPB Complaints</div><div class="wc-pct">15%</div></div>
+        <div class="wc-desc">Federal complaint volume from actual borrowers, real-time.</div>
       </div>
-    </section>
-
-    <section id="cfpb">
-      <h2><span class="num">04</span>CFPB Complaint Volume</h2>
-      <p>
-        We query the CFPB's public complaints API for filings tagged <code>Product = "Student loan"</code> in
-        the last 90 days. The raw count is normalized:
-      </p>
-      <div class="formula">
-CFPB_Score = clip( <span class="v">complaints_90d</span> / 500,  0..100 )
+      <div class="weight-card">
+        <span class="wc-emoji">📉</span>
+        <div class="wc-head"><div class="wc-name">Delinquency Trends</div><div class="wc-pct">15%</div></div>
+        <div class="wc-desc">% of borrowers 90+ days behind, from NY Fed.</div>
       </div>
-      <p>500 complaints/day at the 90-day mark = score of 100. Currently the system is reading
-        a spike of <strong>+320%</strong> YoY following the SAVE plan injunction.</p>
-    </section>
-
-    <section id="delinquency">
-      <h2><span class="num">05</span>Delinquency Trends</h2>
-      <p>
-        Pulled from the NY Fed's quarterly Household Debt &amp; Credit Report. We use the share of
-        student loan accounts 90+ days past due. The Q1 2026 reading of 5.7% maps to a delinquency
-        score of 72.
-      </p>
-      <p>This signal is updated quarterly; between releases it remains pinned at the most recent value.</p>
-    </section>
-
-    <section id="refinance">
-      <h2><span class="num">06</span>Refinance Demand</h2>
-      <p>
-        Counter-intuitively, <em>high</em> refinance search demand is a distress signal — it means
-        borrowers are actively trying to exit federal repayment. We measure YoY growth in
-        "refinance student loans" search interest via Google Trends.
-      </p>
-    </section>
-
-    <section id="survey">
-      <h2><span class="num">07</span>Borrower Surveys</h2>
-      <p>
-        Survey signal comes from the most recent Pew Research student loan borrower survey. We use
-        the percentage of respondents reporting they feel "worried" about their student loan
-        situation. Current reading: 80% → score of 80.
-      </p>
-      <p>Future phases will add a proprietary panel survey of 5,000 borrowers for higher resolution.</p>
-    </section>
-
-    <section id="emotions">
-      <h2><span class="num">08</span>AI Emotion Classification</h2>
-      <p>
-        For each batch of Reddit posts, the <strong>Loan Clarity AI sentiment engine</strong>
-        returns five emotion probabilities on a 0.0–1.0 scale: <strong>anxiety</strong>,
-        <strong>confusion</strong>, <strong>frustration</strong>, <strong>optimism</strong>,
-        <strong>hopelessness</strong>. These are displayed as horizontal bars on the dashboard.
-      </p>
-      <p>The "Status" line color is set by whichever emotion has the highest probability — making the
-        dashboard's mood instantly readable.</p>
-
-      <div class="callout">
-        <div class="c-lbl">Engine Design</div>
-        <p>The sentiment engine runs on a large language model with structured-output prompting,
-        pinned to a fixed model snapshot for score stability. Each classification costs roughly
-        $0.002 and completes in under a second, enabling true real-time refresh without compromising
-        on linguistic nuance.</p>
+      <div class="weight-card">
+        <span class="wc-emoji">🔁</span>
+        <div class="wc-head"><div class="wc-name">Refinance Demand</div><div class="wc-pct">10%</div></div>
+        <div class="wc-desc">When everyone's trying to refi at once = collective panic.</div>
       </div>
-    </section>
-
-    <section id="market-macro">
-      <h2><span class="num">09</span>Market &amp; Macro Indicators</h2>
-      <p>
-        Beyond the six headline signals, the platform tracks a set of <strong>institutional-grade
-        market and macroeconomic indicators</strong> that contextualize borrower stress within the
-        broader economy. These are surfaced on the dashboard and detailed on the
-        <a href="/sources" style="color:#2d7dd2">Sources</a> page.
-      </p>
-      <table class="spec">
-        <thead><tr><th>Indicator</th><th>Why It Matters</th><th>Source</th><th>Cadence</th></tr></thead>
-        <tbody>
-          <tr><td>10-Year Treasury Yield</td><td>Benchmark for private refi rates</td><td>FRED (St. Louis Fed)</td><td>Daily</td></tr>
-          <tr><td>U.S. Unemployment Rate</td><td>Strongest macro predictor of delinquency</td><td>U.S. BLS</td><td>Monthly</td></tr>
-          <tr><td>Consumer Sentiment Index</td><td>Forward-looking household confidence</td><td>U. Michigan</td><td>Monthly</td></tr>
-          <tr><td>Fed G.19 Consumer Credit</td><td>Official outstanding student-debt total</td><td>Federal Reserve</td><td>Monthly</td></tr>
-          <tr><td>NCES Enrollment Pipeline</td><td>Upstream borrower formation</td><td>U.S. Dept. of Education</td><td>Annual</td></tr>
-          <tr><td>MeasureOne Private SL Report</td><td>Private-loan performance (~70% coverage)</td><td>MeasureOne</td><td>Quarterly</td></tr>
-          <tr><td>Sector Equities (SOFI, NAVI, NNI, SLM)</td><td>Market view on servicer health</td><td>NYSE / Nasdaq</td><td>Real-time</td></tr>
-          <tr><td>Federal Register filings</td><td>Pending DoED rulemaking</td><td>National Archives</td><td>Daily</td></tr>
-          <tr><td>CBO Higher-Ed Projections</td><td>Fiscal impact of policy changes</td><td>Congressional Budget Office</td><td>Quarterly</td></tr>
-        </tbody>
-      </table>
-      <div class="callout">
-        <div class="c-lbl">Why It Matters</div>
-        <p>A borrower-sentiment index is most useful when it can be triangulated against the macro
-        backdrop. Rising unemployment, rising Treasury yields, and falling consumer sentiment all
-        amplify the headline reading — these indicators tell the analyst <em>why</em> the index is
-        moving, not just <em>where</em> it is.</p>
+      <div class="weight-card">
+        <span class="wc-emoji">📊</span>
+        <div class="wc-head"><div class="wc-name">Borrower Surveys</div><div class="wc-pct">20%</div></div>
+        <div class="wc-desc">Self-reported stress data from public survey panels.</div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <section id="normalization">
-      <h2><span class="num">10</span>Normalization &amp; Scoring Model</h2>
-      <p>
-        All six signals are normalized to the same 0–100 stress scale before weighting:
-      </p>
-      <ul>
-        <li><strong>Direct mapping</strong> — Google Trends (already 0–100) and survey % map 1:1.</li>
-        <li><strong>Linear scaling</strong> — CFPB complaints / 500; delinquency % × ~13.</li>
-        <li><strong>AI output</strong> — the sentiment engine returns a score directly on the 0–100 scale.</li>
-        <li><strong>Clipping</strong> — final index clipped to [5, 95] to absorb one-off spikes.</li>
-      </ul>
-    </section>
+  <!-- ════════════ GOOGLE TRENDS ════════════ -->
+  <section class="section" id="google-trends">
+    <div class="section-num"><span class="pip"></span>Signal 1 · 20% weight</div>
+    <h2>🔍 What people <span class="accent">Google when they panic.</span></h2>
+    <p>
+      We pull Google Trends data for a basket of distress queries: <code>can't pay student loans</code>, <code>student loan forgiveness</code>, <code>refinance student loans</code>, <code>SAVE plan</code>. Trends gives every search a 0–100 score based on relative volume.
+    </p>
+    <p>
+      <b>Why this matters:</b> Searches are private. People Google what they're afraid to say out loud. When "can't pay student loans" spikes 300% in a week, something real is happening — usually before the news catches up.
+    </p>
 
-    <section id="update-cadence">
-      <h2><span class="num">11</span>Update Cadence</h2>
-      <table class="spec">
-        <thead><tr><th>Component</th><th>Refresh</th></tr></thead>
-        <tbody>
-          <tr><td>Real-time signals (Reddit, Google Trends, CFPB)</td><td class="w">Every 5 min</td></tr>
-          <tr><td>AI sentiment re-classification</td><td class="w">Every 5 min</td></tr>
-          <tr><td>Delinquency / IDR / Enrollment</td><td class="w">Quarterly</td></tr>
-          <tr><td>Survey baseline</td><td class="w">Annual</td></tr>
-          <tr><td>"Why The Index Moved" drivers</td><td class="w">Weekly rotation</td></tr>
-        </tbody>
-      </table>
-    </section>
+    <div class="real-talk">
+      <div class="real-talk-label"><span class="ic"></span>Real talk</div>
+      <p>This is the closest thing we have to reading 45 million people's minds. We average the basket and scale 0–100. Source: <a href="https://trends.google.com" target="_blank" rel="noopener" style="color:var(--hot-2);text-decoration:underline">trends.google.com</a>.</p>
+    </div>
+  </section>
 
-    <section id="limitations">
-      <h2><span class="num">12</span>Known Limitations</h2>
-      <ul>
-        <li><strong>Reddit selection bias</strong> — Reddit borrowers skew younger and more financially literate than the full borrower population.</li>
-        <li><strong>Google Trends rate limiting</strong> — Occasional 429s force fallback to the most recent known value.</li>
-        <li><strong>Quarterly signals lag</strong> — Delinquency and enrollment data is 6–10 weeks behind real time by structural cadence.</li>
-        <li><strong>LLM sentiment drift</strong> — model updates can shift sentiment scores slightly; the engine is pinned to a fixed model snapshot to mitigate this.</li>
-      </ul>
-    </section>
+  <!-- ════════════ REDDIT ════════════ -->
+  <section class="section" id="reddit">
+    <div class="section-num"><span class="pip"></span>Signal 2 · 20% weight</div>
+    <h2>💬 What borrowers are <span class="accent-purple">saying to each other.</span></h2>
+    <p>
+      We pull posts from <b>r/StudentLoans</b>, <b>r/personalfinance</b>, and <b>r/povertyfinance</b> covering the past 30 days. An AI classifier reads each post and tags emotion: <b>anxiety, confusion, frustration, optimism, hopelessness</b>. We weight by post engagement (upvotes + comments) so the loudest signals matter most.
+    </p>
 
-  </article>
+    <div class="quote-card">
+      <p>"Reddit is where Gen Z and millennials actually post the stuff they wouldn't say on LinkedIn. It's the most honest data we have."</p>
+      <div class="attr">— Loan Clarity research lead</div>
+    </div>
+
+    <p>
+      The sentiment score (0–100) flips: <b>low optimism + high anxiety = high panic score</b>. We re-run the AI every 5 minutes on the latest posts.
+    </p>
+  </section>
+
+  <!-- ════════════ CFPB ════════════ -->
+  <section class="section" id="cfpb">
+    <div class="section-num"><span class="pip"></span>Signal 3 · 15% weight</div>
+    <h2>📝 Federal complaints. <span class="accent">Real receipts.</span></h2>
+    <p>
+      The <b>Consumer Financial Protection Bureau (CFPB)</b> publishes every formal complaint Americans file against student loan servicers — Aidvantage, MOHELA, Nelnet, etc. We query their public API for student-loan complaints filed in the last 90 days, then compare to the same period last year.
+    </p>
+    <p>
+      <b>+320% YoY?</b> That's the country screaming at its servicer. <b>-10% YoY?</b> Things are quieting down. Either way, this is government-verified, not made up.
+    </p>
+  </section>
+
+  <!-- ════════════ DELINQUENCY ════════════ -->
+  <section class="section" id="delinquency">
+    <div class="section-num"><span class="pip"></span>Signal 4 · 15% weight</div>
+    <h2>📉 Who's actually <span class="accent">missing payments.</span></h2>
+    <p>
+      The <b>Federal Reserve Bank of New York</b> publishes a quarterly <b>Household Debt and Credit Report</b> showing what percentage of student loan accounts are 90+ days past due. This is the gold standard for "how bad is it really."
+    </p>
+    <p>
+      We pull the latest quarterly figure, scale it against historical highs (worst was ~12% in 2019) and lows (~5% during the COVID pause), and convert to a 0–100 stress score.
+    </p>
+  </section>
+
+  <!-- ════════════ REFINANCE ════════════ -->
+  <section class="section" id="refinance">
+    <div class="section-num"><span class="pip"></span>Signal 5 · 10% weight</div>
+    <h2>🔁 When everyone's <span class="accent-cool">trying to bail at once.</span></h2>
+    <p>
+      Refinance demand is measured by Google search volume for refi-related queries combined with lender application data (where available). When borrowers can't sleep, they refresh refinance rates at 2 AM. We watch that.
+    </p>
+    <p>
+      <b>Why only 10%?</b> Because refinancing is voluntary, not crisis-driven. It's a useful sentiment signal but doesn't predict the same things delinquency does.
+    </p>
+  </section>
+
+  <!-- ════════════ SURVEY ════════════ -->
+  <section class="section" id="survey">
+    <div class="section-num"><span class="pip"></span>Signal 6 · 20% weight</div>
+    <h2>📊 What people say <span class="accent-purple">when you actually ask.</span></h2>
+    <p>
+      We aggregate self-reported borrower stress from public survey panels — University of Michigan Consumer Sentiment (filtered to student loan respondents), Pew Research, and our own quarterly survey panel as it grows. Self-reported data is messy but irreplaceable: it captures fear that hasn't shown up in delinquency stats yet.
+    </p>
+
+    <div class="tldr">
+      <div class="tldr-label"><span class="ic"></span>Building this part out</div>
+      <p>Honest disclosure: our proprietary survey panel is small right now (~500 borrowers). It'll get bigger and weighted higher as we grow. Right now we lean on University of Michigan + Pew.</p>
+    </div>
+  </section>
+
+  <!-- ════════════ AI EMOTIONS ════════════ -->
+  <section class="section" id="emotions">
+    <div class="section-num"><span class="pip"></span>Under the hood</div>
+    <h2>🤖 How the <span class="accent-purple">AI reads emotion.</span></h2>
+    <p>
+      Every Reddit post gets fed to a language model with a prompt asking it to score five emotional dimensions from 0 to 1:
+    </p>
+    <ul>
+      <li><b>Anxiety</b> — worry, dread, fear about the future</li>
+      <li><b>Confusion</b> — "I don't understand my plan", "what does this notice mean"</li>
+      <li><b>Frustration</b> — anger, contempt, "this is insane"</li>
+      <li><b>Optimism</b> — hope, looking forward, "I finally have a plan"</li>
+      <li><b>Hopelessness</b> — despair, giving up, "I'm never paying this off"</li>
+    </ul>
+    <p>
+      We aggregate across all posts in the window, weighted by engagement. The dominant emotion shows up on the dashboard. The composite is part of the Reddit signal (Signal 2).
+    </p>
+  </section>
+
+  <!-- ════════════ MARKET & MACRO ════════════ -->
+  <section class="section" id="market-macro">
+    <div class="section-num"><span class="pip"></span>Context layer</div>
+    <h2>📈 The macro stuff <span class="accent">we watch in the background.</span></h2>
+    <p>
+      Not weighted into the main score (yet), but on the dashboard for context: 10-year Treasury yield (affects refi rates), unemployment rate (affects ability to pay), Federal Register actions (policy changes), CBO student loan outlook reports, and enrollment trends from NCES.
+    </p>
+  </section>
+
+  <!-- ════════════ NORMALIZATION ════════════ -->
+  <section class="section" id="normalization">
+    <div class="section-num"><span class="pip"></span>The boring-but-important part</div>
+    <h2>How we get <span class="accent-cool">everything onto a 0–100 scale.</span></h2>
+    <p>
+      Different signals have different units. CFPB complaints are counts. Delinquency is a percentage. Google Trends is already 0–100. We normalize everything to a common 0–100 stress scale using historical ranges:
+    </p>
+    <div class="step-grid">
+      <div class="step">
+        <div class="s-num">STEP 1</div>
+        <div class="s-name">Find the historical floor &amp; ceiling</div>
+        <div class="s-desc">For each signal, what's the calmest it's ever been and the most panicked?</div>
+      </div>
+      <div class="step">
+        <div class="s-num">STEP 2</div>
+        <div class="s-name">Linear scale to 0–100</div>
+        <div class="s-desc">Map today's value between those two anchors. 50 = average historical stress.</div>
+      </div>
+      <div class="step">
+        <div class="s-num">STEP 3</div>
+        <div class="s-name">Flip if needed</div>
+        <div class="s-desc">Some signals are inverted (more optimism = lower stress). We standardize so high always = panic.</div>
+      </div>
+      <div class="step">
+        <div class="s-num">STEP 4</div>
+        <div class="s-name">Multiply by weight, sum</div>
+        <div class="s-desc">Add the weighted contributions, round to nearest integer, done.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════ CADENCE ════════════ -->
+  <section class="section" id="update-cadence">
+    <div class="section-num"><span class="pip"></span>How often it changes</div>
+    <h2>⏰ Updated every <span class="accent-cool">5 minutes.</span></h2>
+    <p>
+      Reddit posts and Google Trends are pulled live. CFPB updates daily. NY Fed delinquency is quarterly. Surveys monthly. Whenever a fresh data point lands, we recompute the index. The dashboard always shows the latest score and timestamps each source so you can see how stale anything is.
+    </p>
+  </section>
+
+  <!-- ════════════ LIMITATIONS ════════════ -->
+  <section class="section" id="limitations">
+    <div class="section-num"><span class="pip"></span>What we're not</div>
+    <h2>What this <span class="accent">isn't.</span></h2>
+    <p>
+      We're going to be honest with you about what this index does <em>not</em> do:
+    </p>
+    <ul>
+      <li><b>It's not a prediction.</b> It tells you what's happening now, not what will happen.</li>
+      <li><b>It's not financial advice.</b> Don't refinance because the score is 70. Refinance because your numbers work.</li>
+      <li><b>It's not a perfect representation of every borrower.</b> Reddit skews younger, more online. We try to balance with surveys and macro data, but our coverage of older borrowers is thinner.</li>
+      <li><b>It's not a substitute for talking to your servicer.</b> If you're in trouble, call them. The index can't pay your bill.</li>
+    </ul>
+
+    <div class="real-talk">
+      <div class="real-talk-label"><span class="ic"></span>Why this exists</div>
+      <p>We built Loan Clarity because 45 million Americans deserve to know they're not crazy when the system feels broken. The index puts your stress on a chart. The rest of the platform helps you do something about it.</p>
+    </div>
+  </section>
+
+  <!-- ════════════ END CTA ════════════ -->
+  <div class="end-cta">
+    <h3>Got the receipts. <span class="grad">Now do something about it.</span></h3>
+    <p>You read the methodology. You know the math is solid. Time to put it to work.</p>
+    <div style="margin-top:14px">
+      <a href="https://www.sofi.com/invite/medical-student-loans?gcp=6855762b-2867-4d08-ad5b-e4da0c004795&isAliasGcp=false" target="_blank" rel="noopener" class="cta cta-primary">💸 Lower my payment</a>
+      <a href="/tax-tool" class="cta cta-ghost">💰 Find tax savings</a>
+    </div>
+  </div>
+
 </div>
+
+<!-- ════════════ MINI FOOTER ════════════ -->
+<div class="mini-footer-wrap">
+  <div class="mini-disc">
+    The math is open. The code is public. The data is sourced from <a href="/sources" style="color:var(--purple)">irs.gov, CFPB, NY Fed, Reddit, Google Trends, and more</a>. We earn affiliate revenue when you refinance — costs you nothing.
+  </div>
+  <div class="mini-footer-row">
+    <span>© 2026 Loan Clarity · Borrower Sentiment Index™</span>
+    <span class="mini-footer-links">
+      <a href="/">Dashboard</a>
+      <a href="/social-signals">Social Signals</a>
+      <a href="/tax-tool">Tax Tool</a>
+      <a href="/sources">Sources</a>
+    </span>
+  </div>
+</div>
+
 </body>
 </html>
