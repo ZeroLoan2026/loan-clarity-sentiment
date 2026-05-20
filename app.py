@@ -22,7 +22,7 @@ try:
 except Exception as _e:
     anthropic = None
     print(f"[startup] anthropic import skipped: {_e}")
-from fastapi import FastAPI
+from fastapi import FastAPI, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
@@ -931,9 +931,6 @@ async def serve_tax_tool():
 
 
 # ─── Newsletter Subscription ──────────────────────────────────────────────────
-from fastapi import Body
-import json as _json
-
 _SUBSCRIBERS_FILE = Path(__file__).parent / "subscribers.jsonl"
 
 @app.post("/api/subscribe")
@@ -941,7 +938,6 @@ async def subscribe(payload: dict = Body(...)):
     """Append a newsletter signup to subscribers.jsonl (one JSON object per line)."""
     name  = (payload.get("name")  or "").strip()[:120]
     email = (payload.get("email") or "").strip().lower()[:200]
-    # Minimal email sanity check
     if "@" not in email or "." not in email.split("@")[-1]:
         return {"ok": False, "error": "Please provide a valid email."}
     if not name:
@@ -954,7 +950,7 @@ async def subscribe(payload: dict = Body(...)):
     }
     try:
         with open(_SUBSCRIBERS_FILE, "a") as f:
-            f.write(_json.dumps(entry) + "\n")
+            f.write(json.dumps(entry) + "\n")
         return {"ok": True, "message": "You're in! Look out for Friday's edition."}
     except Exception as e:
         print(f"[subscribe] write error: {e}")
