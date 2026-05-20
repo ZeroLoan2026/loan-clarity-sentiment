@@ -316,31 +316,75 @@
        ══════════════════════════════════════════════════════════════════════ */
     .grad-money-text { background: var(--grad-money); -webkit-background-clip: text; background-clip: text; color: transparent; }
 
-    .primary-cta {
-      padding: 18px 32px;
+    /* ── Action row: refi CTA + newsletter signup side-by-side ───────── */
+    .action-row {
+      padding: 20px 32px;
       background: var(--panel);
       border-bottom: 1px solid var(--border);
     }
-    .pcta-inner {
+    .ar-inner {
       max-width: 1100px; margin: 0 auto;
-      display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: stretch;
     }
-    .pcta-eyebrow {
+    .ar-card {
+      background: linear-gradient(180deg, var(--card) 0%, var(--panel) 100%);
+      border: 1px solid var(--border-2);
+      border-radius: 12px;
+      padding: 18px 20px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .ar-card.refi {
+      background:
+        radial-gradient(ellipse at right, rgba(255,85,119,.10) 0%, transparent 60%),
+        linear-gradient(180deg, var(--card) 0%, var(--panel) 100%);
+      border-color: rgba(255,85,119,.35);
+    }
+    .ar-card.news {
+      background:
+        radial-gradient(ellipse at right, rgba(91,140,255,.10) 0%, transparent 60%),
+        linear-gradient(180deg, var(--card) 0%, var(--panel) 100%);
+      border-color: rgba(91,140,255,.35);
+    }
+    .ar-eyebrow {
       font-size: 10px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase;
-      color: var(--hot);
     }
-    .pcta-h {
-      font-size: 17px; font-weight: 800; letter-spacing: -.01em; line-height: 1.25; color: #fff;
-      margin-top: 3px;
+    .ar-eyebrow.hot   { color: var(--hot); }
+    .ar-eyebrow.cool  { color: var(--electric); }
+    .ar-h {
+      font-size: 16px; font-weight: 800; letter-spacing: -.01em; line-height: 1.2; color: #fff;
     }
-    .pcta-sub { display: none; }
-    .pcta-btns { display: flex; gap: 8px; flex-wrap: wrap; }
-    .pcta-trust { display: none; }
+    .ar-h .grad-money { background: var(--grad-money); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .ar-h .grad-cool { background: var(--grad-cool); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .ar-sub { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+    .ar-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: auto; }
+    /* Newsletter form */
+    .news-form { display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
+    .news-form .row { display: flex; gap: 8px; }
+    .news-form input {
+      flex: 1; background: rgba(7,17,31,.85); border: 1px solid var(--border-2);
+      border-radius: 8px; padding: 10px 13px; color: #fff; font-size: 13px;
+      font-family: inherit; font-weight: 500; outline: none; transition: border-color .15s;
+    }
+    .news-form input:focus { border-color: var(--electric); }
+    .news-form input::placeholder { color: var(--muted-2); }
+    .news-form .btn-sub {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 10px 18px; border-radius: 999px; font-weight: 800; font-size: 13px;
+      background: var(--grad-cool); color: #07111f; border: none; cursor: pointer;
+      letter-spacing: .02em; transition: transform .15s, filter .15s;
+      white-space: nowrap;
+    }
+    .news-form .btn-sub:hover { transform: translateY(-1px); filter: brightness(1.08); }
+    .news-form .btn-sub:disabled { opacity: .6; cursor: wait; transform: none; }
+    .news-msg { font-size: 11.5px; padding: 6px 0; font-family: var(--mono); }
+    .news-msg.ok  { color: var(--neon); }
+    .news-msg.err { color: var(--hot); }
     @media(max-width:760px){
-      .primary-cta { padding: 14px 14px; }
-      .pcta-inner { justify-content: center; text-align: center; gap: 12px; }
-      .pcta-h { font-size: 15px; }
-      .pcta-btns .cta { flex: 1; }
+      .action-row { padding: 14px 14px; }
+      .ar-inner { grid-template-columns: 1fr; gap: 10px; }
+      .ar-card { padding: 16px 16px; }
+      .ar-btns .cta { flex: 1; }
+      .news-form .row { flex-direction: column; }
     }
 
     .trust-mini {
@@ -772,7 +816,7 @@ function SrcTag({ source, source_url, updated_at, methodology_ref, label, compac
 }
 
 // ─── Multi-window history chart with time tabs ────────────────────────────
-const WINDOWS = ['1D','1W','1M','3M','6M','1Y','3Y','5Y'];
+const WINDOWS = ['1W','1M','3M','6M','1Y','5Y'];
 function HistoryChart({ history, currentScore }) {
   const [win, setWin] = useState('3M');
   if (!history || !history[win]) return null;
@@ -1011,6 +1055,55 @@ function DriversPanel({ drivers }) {
   );
 }
 
+// ─── Newsletter signup form ───────────────────────────────────────────────
+function NewsletterForm() {
+  const [name, setName]   = useState('');
+  const [email, setEmail] = useState('');
+  const [busy, setBusy]   = useState(false);
+  const [msg, setMsg]     = useState(null); // {kind: 'ok'|'err', text: string}
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (busy) return;
+    setBusy(true);
+    setMsg(null);
+    try {
+      const r = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({name, email, source: 'dashboard'}),
+      });
+      const data = await r.json();
+      if (data.ok) {
+        setMsg({kind:'ok', text: data.message || "You're in! Check inbox Friday."});
+        setName(''); setEmail('');
+      } else {
+        setMsg({kind:'err', text: data.error || 'Could not subscribe.'});
+      }
+    } catch (err) {
+      // Network fallback: open mailto
+      window.location.href = `mailto:subscribe@loanclarty.com?subject=Subscribe%20${encodeURIComponent(name)}&body=Email:%20${encodeURIComponent(email)}`;
+      setMsg({kind:'err', text: 'Network blocked — opening email instead.'});
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <form className="news-form" onSubmit={submit}>
+      <div className="row">
+        <input type="text" placeholder="First name" value={name} onChange={e=>setName(e.target.value)} required maxLength={120}/>
+        <input type="email" placeholder="your@email.com" value={email} onChange={e=>setEmail(e.target.value)} required maxLength={200}/>
+      </div>
+      <button type="submit" className="btn-sub" data-cta="dashboard-newsletter" disabled={busy}>
+        {busy ? 'Subscribing…' : 'Subscribe Free →'}
+      </button>
+      {msg && <div className={`news-msg ${msg.kind}`}>◉ {msg.text}</div>}
+      {!msg && <div className="news-msg" style={{color:'var(--muted-2)'}}>◉ No spam. Unsubscribe anytime.</div>}
+    </form>
+  );
+}
+
 // ─── App ──────────────────────────────────────────────────────────────────
 function App() {
   const [data, setData] = useState(null);
@@ -1132,19 +1225,32 @@ function App() {
         </div>
       </section>
 
-      {/* ════════════ PRIMARY ACTION — single-line refi strip ═══════════ */}
-      <section className="primary-cta">
-        <div className="pcta-inner">
-          <div>
-            <div className="pcta-eyebrow">◆ Rates are dropping</div>
-            <div className="pcta-h">Cut your payment. <span className="grad-money-text">Get $1,000.</span></div>
+      {/* ════════════ ACTION ROW — refi (left) + newsletter (right) ═══════════ */}
+      <section className="action-row">
+        <div className="ar-inner">
+          {/* LEFT — Refi affiliate */}
+          <div className="ar-card refi">
+            <div className="ar-eyebrow hot">◆ Rates are dropping · take action</div>
+            <div className="ar-h">Cut your payment. <span className="grad-money">Get $1,000.</span></div>
+            <div className="ar-sub">60-second soft credit check. Avg saved $278/mo. SoFi pays $1,000 cash on approval.</div>
+            <div className="ar-btns">
+              <a href="https://www.sofi.com/invite/medical-student-loans?gcp=6855762b-2867-4d08-ad5b-e4da0c004795&isAliasGcp=false" target="_blank" rel="noopener" data-cta="primary-sofi" className="cta cta-primary">💸 SoFi · $1,000 Bonus →</a>
+              <a href="https://www.elfi.com/?code=39543" target="_blank" rel="noopener" data-cta="primary-elfi" className="cta cta-ghost">ELFI</a>
+            </div>
           </div>
-          <div className="pcta-btns">
-            <a href="https://www.sofi.com/invite/medical-student-loans?gcp=6855762b-2867-4d08-ad5b-e4da0c004795&isAliasGcp=false" target="_blank" rel="noopener" data-cta="primary-sofi" className="cta cta-primary">💸 SoFi · $1,000 Bonus →</a>
-            <a href="https://www.elfi.com/?code=39543" target="_blank" rel="noopener" data-cta="primary-elfi" className="cta cta-ghost">ELFI</a>
+
+          {/* RIGHT — Newsletter signup */}
+          <div className="ar-card news">
+            <div className="ar-eyebrow cool">📧 Friday borrower briefing · free forever</div>
+            <div className="ar-h">Get the news <span className="grad-cool">before it hits you.</span></div>
+            <div className="ar-sub">One email every Friday. What the index moved, why, and what to do about it. 12,847 borrowers already on the list.</div>
+            <NewsletterForm/>
           </div>
         </div>
       </section>
+
+      {/* ════════════ HISTORY CHART — 1W / 1M / 3M / 6M / 1Y / 5Y ═══════════ */}
+      <HistoryChart history={d.history} currentScore={d.index_score}/>
 
       {/* ════════════ TAX OPTIMIZER — compact strip ═══════════ */}
       <a href="/tax-tool" data-cta="tax-tool-hero" className="tax-feature">

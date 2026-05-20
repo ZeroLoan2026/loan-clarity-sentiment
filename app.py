@@ -930,6 +930,37 @@ async def serve_tax_tool():
     return FileResponse(Path(__file__).parent / "tax-tool.html")
 
 
+# ─── Newsletter Subscription ──────────────────────────────────────────────────
+from fastapi import Body
+import json as _json
+
+_SUBSCRIBERS_FILE = Path(__file__).parent / "subscribers.jsonl"
+
+@app.post("/api/subscribe")
+async def subscribe(payload: dict = Body(...)):
+    """Append a newsletter signup to subscribers.jsonl (one JSON object per line)."""
+    name  = (payload.get("name")  or "").strip()[:120]
+    email = (payload.get("email") or "").strip().lower()[:200]
+    # Minimal email sanity check
+    if "@" not in email or "." not in email.split("@")[-1]:
+        return {"ok": False, "error": "Please provide a valid email."}
+    if not name:
+        return {"ok": False, "error": "Please provide your name."}
+    entry = {
+        "name": name,
+        "email": email,
+        "source": payload.get("source", "dashboard"),
+        "ts": datetime.now().isoformat(timespec="seconds"),
+    }
+    try:
+        with open(_SUBSCRIBERS_FILE, "a") as f:
+            f.write(_json.dumps(entry) + "\n")
+        return {"ok": True, "message": "You're in! Look out for Friday's edition."}
+    except Exception as e:
+        print(f"[subscribe] write error: {e}")
+        return {"ok": False, "error": "Could not save your signup. Try emailing subscribe@loanclarty.com."}
+
+
 @app.get("/social-signals")
 async def serve_social_signals():
     return FileResponse(Path(__file__).parent / "social-signals.html")

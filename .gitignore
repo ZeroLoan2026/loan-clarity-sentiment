@@ -1,0 +1,5 @@
+# Subscriber data — never commit
+subscribers.jsonl
+*.pyc
+__pycache__/
+.env
