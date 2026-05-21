@@ -316,15 +316,15 @@
        ══════════════════════════════════════════════════════════════════════ */
     .grad-money-text { background: var(--grad-money); -webkit-background-clip: text; background-clip: text; color: transparent; }
 
-    /* ── Action row: refi CTA + newsletter signup side-by-side ───────── */
+    /* ── Action row: newsletter signup (full width) ───────────────────── */
     .action-row {
       padding: 20px 32px;
       background: var(--panel);
       border-bottom: 1px solid var(--border);
     }
     .ar-inner {
-      max-width: 1100px; margin: 0 auto;
-      display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: stretch;
+      max-width: 680px; margin: 0 auto;
+      display: grid; grid-template-columns: 1fr; gap: 14px; align-items: stretch;
     }
     .ar-card {
       background: linear-gradient(180deg, var(--card) 0%, var(--panel) 100%);
@@ -397,6 +397,35 @@
     .trust-mini span { white-space: nowrap; }
     @media(max-width:760px){
       .trust-mini { font-size: 11px; padding: 12px 14px; gap: 10px; }
+    }
+
+    /* ── Bottom affiliate banner (SoFi) ──────────────────────────────── */
+    .affiliate-bar {
+      padding: 20px 32px;
+      background:
+        radial-gradient(ellipse at right, rgba(0,229,168,.10) 0%, transparent 55%),
+        linear-gradient(180deg, #0b1a2e 0%, var(--panel) 100%);
+      border-top: 1px solid rgba(0,229,168,.18);
+      border-bottom: 1px solid var(--border);
+    }
+    .affiliate-bar-inner {
+      max-width: 1100px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;
+    }
+    .affiliate-bar-left { display: flex; flex-direction: column; gap: 4px; }
+    .affiliate-bar-eyebrow {
+      font-size: 10px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase;
+      color: var(--neon);
+    }
+    .affiliate-bar-h {
+      font-size: 16px; font-weight: 800; color: #fff; letter-spacing: -.01em; line-height: 1.2;
+    }
+    .affiliate-bar-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .affiliate-bar-disc { font-size: 10px; color: var(--muted-2); margin-top: 8px; }
+    @media(max-width:760px){
+      .affiliate-bar { padding: 16px 14px; }
+      .affiliate-bar-inner { flex-direction: column; align-items: flex-start; gap: 14px; }
+      .affiliate-bar .cta { width: 100%; text-align: center; }
     }
 
     .mini-footer {
@@ -1225,21 +1254,9 @@ function App() {
         </div>
       </section>
 
-      {/* ════════════ ACTION ROW — refi (left) + newsletter (right) ═══════════ */}
+      {/* ════════════ ACTION ROW — newsletter signup (full width) ════════════ */}
       <section className="action-row">
         <div className="ar-inner">
-          {/* LEFT — Refi affiliate */}
-          <div className="ar-card refi">
-            <div className="ar-eyebrow hot">◆ Rates are dropping · take action</div>
-            <div className="ar-h">Cut your payment. <span className="grad-money">Get $1,000.</span></div>
-            <div className="ar-sub">60-second soft credit check. Avg saved $278/mo. SoFi pays $1,000 cash on approval.</div>
-            <div className="ar-btns">
-              <a href="https://www.sofi.com/invite/medical-student-loans?gcp=6855762b-2867-4d08-ad5b-e4da0c004795&isAliasGcp=false" target="_blank" rel="noopener" data-cta="primary-sofi" className="cta cta-primary">💸 SoFi · $1,000 Bonus →</a>
-              <a href="https://www.elfi.com/?code=39543" target="_blank" rel="noopener" data-cta="primary-elfi" className="cta cta-ghost">ELFI</a>
-            </div>
-          </div>
-
-          {/* RIGHT — Newsletter signup */}
           <div className="ar-card news">
             <div className="ar-eyebrow cool">📧 Friday borrower briefing · free forever</div>
             <div className="ar-h">Get the news <span className="grad-cool">before it hits you.</span></div>
@@ -1271,6 +1288,19 @@ function App() {
         <span>🔒 No login required</span>
         <span>•</span>
         <span>📊 Updated every 5 min</span>
+      </div>
+
+      {/* ════════════ SOFI AFFILIATE BANNER ═══════════ */}
+      <div className="affiliate-bar">
+        <div className="affiliate-bar-inner">
+          <div className="affiliate-bar-left">
+            <div className="affiliate-bar-eyebrow">◆ Partner offer · no cost to you</div>
+            <div className="affiliate-bar-h">Refinance with SoFi — <span style={{background:'var(--grad-money)',WebkitBackgroundClip:'text',backgroundClip:'text',color:'transparent'}}>earn $1,000 cash back</span></div>
+            <div className="affiliate-bar-sub">Avg borrower saves $278/mo · 60-second soft credit check · no fees</div>
+            <div className="affiliate-bar-disc">Affiliate disclosure: we earn a referral fee if you refinance. Rates depend on creditworthiness. Not financial advice.</div>
+          </div>
+          <a href="https://www.sofi.com/invite/medical-student-loans?gcp=6855762b-2867-4d08-ad5b-e4da0c004795&isAliasGcp=false" target="_blank" rel="noopener" data-cta="bottom-sofi" className="cta cta-primary" style={{fontSize:'14px',padding:'13px 24px'}}>💸 Check My Rate — $1,000 Bonus →</a>
+        </div>
       </div>
 
       {/* ════════════ MINI FOOTER ═══════════ */}
