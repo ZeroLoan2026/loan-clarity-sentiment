@@ -10,6 +10,7 @@ import asyncio
 import json
 import os
 import random
+import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
@@ -230,67 +231,218 @@ SOURCES = {
 
 # ─── Data Fetchers ────────────────────────────────────────────────────────────
 
+REDDIT_KEYWORDS = {
+    "student loan", "loans", "debt", "payment", "save plan",
+    "refinanc", "idr", "forgiveness", "repay", "delinquent",
+    "default", "servicer", "navient", "mohela", "pslf", "income-driven",
+    "tuition", "fafsa", "interest", "garnish", "collections",
+}
+REDDIT_SUBS = ["StudentLoans", "personalfinance", "povertyfinance"]
+
+
 async def fetch_reddit_posts() -> list[dict]:
     """Pull posts from past 30 days across student loan subreddits.
-    Combines /hot, /new, and /top?t=month for breadth + recency."""
-    keywords = {
-        "student loan", "loans", "debt", "payment", "save plan",
-        "refinanc", "idr", "forgiveness", "repay", "delinquent",
-        "default", "servicer", "navient", "mohela", "pslf", "income-driven",
-        "tuition", "fafsa", "interest", "garnish", "collections",
-    }
-    posts = []
-    seen_urls = set()
-    cutoff_ts = (datetime.now() - timedelta(days=30)).timestamp()
 
-    # For each sub, pull /top.json?t=month (top 100 of past month — gives us 30 days of signal)
-    # Plus /new.json for recency. r/StudentLoans is the primary signal source.
-    endpoints = [
-        ("StudentLoans",     "top",  100, "month"),
-        ("StudentLoans",     "new",  50,  None),
-        ("personalfinance",  "top",  100, "month"),
-        ("povertyfinance",   "top",  100, "month"),
-    ]
+    Tries three methods in order — stops at first success:
+      1. Reddit OAuth API  (best quality; needs REDDIT_CLIENT_ID + REDDIT_CLIENT_SECRET env vars)
+      2. Pullpush.io       (free Pushshift clone; no auth; works from cloud IPs)
+      3. Reddit RSS feeds  (always accessible; less metadata)
+    """
+    # ── Method 1: Reddit OAuth ────────────────────────────────────────
+    client_id     = os.environ.get("REDDIT_CLIENT_ID", "")
+    client_secret = os.environ.get("REDDIT_CLIENT_SECRET", "")
+    if client_id and client_secret:
+        posts = await _fetch_reddit_oauth(client_id, client_secret)
+        if posts:
+            print(f"[Reddit] OAuth — {len(posts)} posts")
+            return posts
 
-    async with httpx.AsyncClient(timeout=15.0) as client:
-        for sub, sort, limit, t in endpoints:
-            try:
-                url = f"https://www.reddit.com/r/{sub}/{sort}.json?limit={limit}"
+    # ── Method 2: Pullpush.io (Pushshift replacement, no auth) ───────
+    posts = await _fetch_pullpush()
+    if posts:
+        print(f"[Reddit] Pullpush.io — {len(posts)} posts")
+        return posts
+
+    # ── Method 3: Reddit RSS feeds ────────────────────────────────────
+    posts = await _fetch_reddit_rss()
+    print(f"[Reddit] RSS fallback — {len(posts)} posts")
+    return posts
+
+
+async def _fetch_reddit_oauth(client_id: str, client_secret: str) -> list[dict]:
+    """Fetch via Reddit's OAuth2 app-only flow."""
+    try:
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            # Get bearer token
+            token_resp = await client.post(
+                "https://www.reddit.com/api/v1/access_token",
+                data={"grant_type": "client_credentials"},
+                auth=(client_id, client_secret),
+                headers={"User-Agent": REDDIT_HEADERS["User-Agent"]},
+            )
+            if token_resp.status_code != 200:
+                return []
+            token = token_resp.json().get("access_token", "")
+            if not token:
+                return []
+
+            auth_headers = {
+                "Authorization": f"Bearer {token}",
+                "User-Agent": REDDIT_HEADERS["User-Agent"],
+            }
+            posts = []
+            seen = set()
+            cutoff_ts = (datetime.now() - timedelta(days=30)).timestamp()
+
+            endpoints = [
+                ("StudentLoans",    "top",  100, "month"),
+                ("StudentLoans",    "new",  50,  None),
+                ("personalfinance", "top",  100, "month"),
+                ("povertyfinance",  "top",  100, "month"),
+            ]
+            for sub, sort, limit, t in endpoints:
+                url = f"https://oauth.reddit.com/r/{sub}/{sort}?limit={limit}"
                 if t:
                     url += f"&t={t}"
-                resp = await client.get(url, headers=REDDIT_HEADERS)
+                resp = await client.get(url, headers=auth_headers)
                 if resp.status_code != 200:
                     continue
-                children = resp.json().get("data", {}).get("children", [])
-                for item in children:
+                for item in resp.json().get("data", {}).get("children", []):
                     d = item.get("data", {})
+                    permalink = d.get("permalink", "")
+                    if permalink in seen:
+                        continue
                     created = d.get("created_utc", 0)
-                    # Only keep posts from past 30 days
                     if created < cutoff_ts:
                         continue
                     title = d.get("title", "").lower()
-                    permalink = d.get("permalink", "")
-                    if permalink in seen_urls:
-                        continue
-                    # Filter to student-loan-relevant content
-                    if sub == "StudentLoans" or any(kw in title for kw in keywords):
-                        seen_urls.add(permalink)
+                    if sub == "StudentLoans" or any(kw in title for kw in REDDIT_KEYWORDS):
+                        seen.add(permalink)
                         posts.append({
-                            "title": d.get("title", ""),
-                            "text":  d.get("selftext", "")[:400],
-                            "score": d.get("score", 0),
-                            "comments": d.get("num_comments", 0),
+                            "title":     d.get("title", ""),
+                            "text":      d.get("selftext", "")[:400],
+                            "score":     d.get("score", 0),
+                            "comments":  d.get("num_comments", 0),
                             "subreddit": sub,
-                            "created": created,
-                            "url": "https://www.reddit.com" + permalink,
+                            "created":   created,
+                            "url":       "https://www.reddit.com" + permalink,
                         })
-            except Exception as e:
-                print(f"[Reddit] r/{sub} {sort} error: {e}")
+            posts.sort(key=lambda p: p["score"] + p["comments"] * 2, reverse=True)
+            return posts
+    except Exception as e:
+        print(f"[Reddit OAuth] error: {e}")
+        return []
 
-    # Rank by engagement (score + 2× comments) for "top discussions"
-    posts.sort(key=lambda p: p["score"] + p["comments"] * 2, reverse=True)
-    print(f"[Reddit] Pulled {len(posts)} posts spanning past 30 days")
-    return posts
+
+async def _fetch_pullpush() -> list[dict]:
+    """Fetch via Pullpush.io — free Pushshift alternative, no auth needed.
+    Works reliably from cloud server IPs where Reddit blocks direct access."""
+    try:
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            posts = []
+            seen = set()
+            after_ts = int((datetime.now() - timedelta(days=30)).timestamp())
+
+            for sub in REDDIT_SUBS:
+                try:
+                    resp = await client.get(
+                        "https://api.pullpush.io/reddit/search/submission/",
+                        params={
+                            "subreddit": sub,
+                            "sort":      "score",
+                            "after":     str(after_ts),
+                            "size":      100,
+                        },
+                        headers={"User-Agent": REDDIT_HEADERS["User-Agent"]},
+                    )
+                    if resp.status_code != 200:
+                        continue
+                    for item in resp.json().get("data", []):
+                        uid = item.get("id", "")
+                        if uid in seen:
+                            continue
+                        title = (item.get("title") or "").strip()
+                        if not title:
+                            continue
+                        if sub == "StudentLoans" or any(kw in title.lower() for kw in REDDIT_KEYWORDS):
+                            seen.add(uid)
+                            permalink = item.get("permalink", f"/r/{sub}/comments/{uid}/")
+                            posts.append({
+                                "title":     title,
+                                "text":      (item.get("selftext") or "")[:400],
+                                "score":     item.get("score", 0),
+                                "comments":  item.get("num_comments", 0),
+                                "subreddit": sub,
+                                "created":   item.get("created_utc", 0),
+                                "url":       "https://www.reddit.com" + permalink,
+                            })
+                except Exception as e:
+                    print(f"[Pullpush] r/{sub} error: {e}")
+
+            posts.sort(key=lambda p: p["score"] + p["comments"] * 2, reverse=True)
+            return posts
+    except Exception as e:
+        print(f"[Pullpush] error: {e}")
+        return []
+
+
+async def _fetch_reddit_rss() -> list[dict]:
+    """Fetch via Reddit RSS feeds — always publicly accessible, no auth needed.
+    Returns post titles and links; score/comments not available in RSS."""
+    try:
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            posts = []
+            seen = set()
+            ns = {"atom": "http://www.w3.org/2005/Atom"}
+
+            rss_feeds = [
+                ("StudentLoans",    f"https://www.reddit.com/r/StudentLoans/top.rss?t=month&limit=100"),
+                ("StudentLoans",    f"https://www.reddit.com/r/StudentLoans/new.rss?limit=50"),
+                ("personalfinance", f"https://www.reddit.com/r/personalfinance/search.rss?q=student+loan&sort=top&t=month&limit=50"),
+                ("povertyfinance",  f"https://www.reddit.com/r/povertyfinance/search.rss?q=student+loan&sort=top&t=month&limit=50"),
+            ]
+
+            for sub, url in rss_feeds:
+                try:
+                    resp = await client.get(
+                        url,
+                        headers={
+                            "User-Agent": REDDIT_HEADERS["User-Agent"],
+                            "Accept": "application/rss+xml, application/xml, text/xml",
+                        },
+                        follow_redirects=True,
+                    )
+                    if resp.status_code != 200:
+                        continue
+                    root = ET.fromstring(resp.text)
+                    entries = root.findall("atom:entry", ns)
+                    for entry in entries:
+                        title_el = entry.find("atom:title", ns)
+                        link_el  = entry.find("atom:link",  ns)
+                        if title_el is None:
+                            continue
+                        title = (title_el.text or "").strip()
+                        if not title or title in seen:
+                            continue
+                        link = link_el.get("href", "") if link_el is not None else ""
+                        if sub == "StudentLoans" or any(kw in title.lower() for kw in REDDIT_KEYWORDS):
+                            seen.add(title)
+                            posts.append({
+                                "title":     title,
+                                "text":      "",
+                                "score":     0,
+                                "comments":  0,
+                                "subreddit": sub,
+                                "created":   datetime.now().timestamp(),
+                                "url":       link,
+                            })
+                except Exception as e:
+                    print(f"[Reddit RSS] r/{sub} error: {e}")
+
+            return posts
+    except Exception as e:
+        print(f"[Reddit RSS] error: {e}")
+        return []
 
 
 async def fetch_cfpb_complaints() -> dict:
