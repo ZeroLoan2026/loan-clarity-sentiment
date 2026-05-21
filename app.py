@@ -344,64 +344,69 @@ async def fetch_reddit_posts() -> list[dict]:
 
 
 async def _fetch_arctic_shift() -> list[dict]:
-    """Fetch via Arctic Shift API — a reliable, open Pushshift successor.
+    """Fetch via Arctic Shift API — reliable Pushshift successor, works from cloud IPs.
 
-    Returns real posts with real Reddit permalinks. Works from cloud IPs.
-    Docs: https://arctic-shift.photon-reddit.com
+    Fetches the past 30 days sorted by recency, then ranks client-side by
+    engagement (score + 2×comments).  Posts from the last 7 days often have
+    fuzzed scores on Reddit, so the wider 30-day window ensures real vote counts.
+
+    API reference: https://arctic-shift.photon-reddit.com
+    Correct sort values: 'asc' | 'desc'  (by created_utc — no 'order' param)
     """
     try:
-        after_ts = int((datetime.now() - timedelta(days=7)).timestamp())
-        posts = []
-        seen: set[str] = set()
+        after_ts  = int((datetime.now() - timedelta(days=30)).timestamp())
+        posts: list[dict] = []
+        seen: set[str]    = set()
 
-        async with httpx.AsyncClient(timeout=20.0) as client:
+        async with httpx.AsyncClient(timeout=25.0) as client:
             for sub in REDDIT_SUBS:
-                for sort in ("score", "num_comments"):
-                    try:
-                        resp = await client.get(
-                            "https://arctic-shift.photon-reddit.com/api/posts/search",
-                            params={
-                                "subreddit": sub,
-                                "after":     str(after_ts),
-                                "limit":     "100",
-                                "sort":      sort,
-                                "order":     "desc",
-                            },
-                            headers={"User-Agent": REDDIT_HEADERS["User-Agent"]},
-                            follow_redirects=True,
-                        )
-                        if resp.status_code != 200:
-                            print(f"[ArcticShift] r/{sub} sort={sort} HTTP {resp.status_code}")
+                try:
+                    resp = await client.get(
+                        "https://arctic-shift.photon-reddit.com/api/posts/search",
+                        params={
+                            "subreddit": sub,
+                            "after":     str(after_ts),
+                            "limit":     "100",
+                            "sort":      "desc",   # most-recent first; we re-rank by score below
+                        },
+                        headers={"User-Agent": REDDIT_HEADERS["User-Agent"]},
+                        follow_redirects=True,
+                    )
+                    if resp.status_code != 200:
+                        print(f"[ArcticShift] r/{sub} HTTP {resp.status_code}: {resp.text[:120]}")
+                        continue
+
+                    items = resp.json().get("data") or []
+                    for item in items:
+                        uid = item.get("id", "")
+                        if not uid or uid in seen:
                             continue
+                        title = (item.get("title") or "").strip()
+                        if not title:
+                            continue
+                        if sub == "StudentLoans" or any(kw in title.lower() for kw in REDDIT_KEYWORDS):
+                            seen.add(uid)
+                            permalink = (item.get("permalink") or f"/r/{sub}/comments/{uid}/").strip()
+                            if permalink.startswith("/"):
+                                permalink = "https://www.reddit.com" + permalink
+                            posts.append({
+                                "title":     title,
+                                "text":      (item.get("selftext") or "")[:400],
+                                "score":     int(item.get("score")        or 0),
+                                "comments":  int(item.get("num_comments") or 0),
+                                "subreddit": sub,
+                                "created":   float(item.get("created_utc") or datetime.now().timestamp()),
+                                "url":       permalink,
+                            })
+                except Exception as e:
+                    print(f"[ArcticShift] r/{sub} error: {e}")
 
-                        data = resp.json()
-                        items = data.get("data", [])
-                        for item in items:
-                            uid = item.get("id", "")
-                            if not uid or uid in seen:
-                                continue
-                            title = (item.get("title") or "").strip()
-                            if not title:
-                                continue
-                            if sub == "StudentLoans" or any(kw in title.lower() for kw in REDDIT_KEYWORDS):
-                                seen.add(uid)
-                                permalink = item.get("permalink") or f"/r/{sub}/comments/{uid}/"
-                                # Ensure full URL
-                                if permalink.startswith("/"):
-                                    permalink = "https://www.reddit.com" + permalink
-                                posts.append({
-                                    "title":     title,
-                                    "text":      (item.get("selftext") or "")[:400],
-                                    "score":     int(item.get("score") or 0),
-                                    "comments":  int(item.get("num_comments") or 0),
-                                    "subreddit": sub,
-                                    "created":   float(item.get("created_utc") or datetime.now().timestamp()),
-                                    "url":       permalink,
-                                })
-                    except Exception as e:
-                        print(f"[ArcticShift] r/{sub} sort={sort} error: {e}")
+        if not posts:
+            return []
 
+        # Re-rank by engagement: upvotes + 2× comment count
         posts.sort(key=lambda p: p["score"] + p["comments"] * 2, reverse=True)
+        print(f"[ArcticShift] {len(posts)} posts — top score: {posts[0]['score']}")
         return posts
     except Exception as e:
         print(f"[ArcticShift] error: {e}")
