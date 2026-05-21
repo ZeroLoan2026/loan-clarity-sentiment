@@ -1258,14 +1258,36 @@ async def subscribe(request: Request, payload: dict = Body(...)):
         "notes":             "",
     }
 
+    # ── Write locally (ephemeral — wiped on deploy) ─────────────────
     try:
         with open(_SUBSCRIBERS_FILE, "a") as f:
             f.write(json.dumps(entry) + "\n")
-        print(f"[subscribe] {email} | {device} | {browser}/{os_name} | idx={idx_score}")
-        return {"ok": True, "message": "You're in! Look out for Friday's edition."}
     except Exception as e:
-        print(f"[subscribe] write error: {e}")
-        return {"ok": False, "error": "Could not save your signup. Try emailing subscribe@loanclarty.com."}
+        print(f"[subscribe] local write error: {e}")
+
+    # ── Fire webhook (persistent — survives deploys) ──────────────
+    asyncio.create_task(_fire_lead_webhook(entry))
+
+    print(f"[subscribe] ✓ {email} | {device} | {browser}/{os_name} | idx={idx_score}")
+    return {"ok": True, "message": "You're in! Look out for Friday's edition."}
+
+
+async def _fire_lead_webhook(entry: dict):
+    """POST the lead to LEAD_WEBHOOK_URL (Make.com / Zapier / n8n).
+
+    Set LEAD_WEBHOOK_URL as a Railway environment variable.
+    The webhook receives a flat JSON object — map each field to a
+    Google Sheets column in your Make.com / Zapier scenario.
+    """
+    url = os.environ.get("LEAD_WEBHOOK_URL", "")
+    if not url:
+        return
+    try:
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            resp = await client.post(url, json=entry)
+            print(f"[webhook] fired → HTTP {resp.status_code}")
+    except Exception as e:
+        print(f"[webhook] error: {e}")
 
 
 # ─── Lead Export (Excel / CSV) ────────────────────────────────────────────────
