@@ -485,7 +485,7 @@ async def fetch_cfpb_complaints() -> dict:
     """Fetch real student-loan complaint counts from CFPB's public API."""
     try:
         cutoff = (datetime.now() - timedelta(days=90)).strftime("%Y-%m-%d")
-        async with httpx.AsyncClient(timeout=15.0) as client:
+        async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
             resp = await client.get(
                 "https://www.consumerfinance.gov/data-research/consumer-complaints/search/api/v1/",
                 params={
@@ -494,11 +494,16 @@ async def fetch_cfpb_complaints() -> dict:
                     "format": "json",
                     "size": 1,
                 },
+                headers={"Accept": "application/json", "User-Agent": "LoanClarity/1.0"},
             )
+            if resp.status_code != 200 or not resp.content:
+                print(f"[CFPB] HTTP {resp.status_code} empty={not resp.content} — using fallback")
+                raise ValueError(f"bad response: {resp.status_code}")
             data = resp.json()
             total = data.get("hits", {}).get("total", {})
             count = total.get("value", 0) if isinstance(total, dict) else int(total or 0)
             score = max(0, min(100, int(count / 500)))
+            print(f"[CFPB] {count:,} complaints in 90d → score {score}")
             return {
                 "count_90d": count,
                 "score": score,
