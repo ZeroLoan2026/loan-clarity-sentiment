@@ -48,10 +48,9 @@ _prior_timestamp: Optional[datetime] = None
 CACHE_TTL_SECONDS = 300
 PRIOR_REFRESH_SECONDS = 7 * 24 * 3600     # rotate "prior" weekly
 
-# 24-hour post cache — Reddit posts refresh once per day
+# Post cache — refreshes at midnight UTC every day
 _posts_cache: list[dict] = []
-_posts_cache_timestamp: Optional[datetime] = None
-POSTS_CACHE_TTL_SECONDS = 24 * 3600       # 24 hours
+_posts_cache_date: Optional[str] = None   # "YYYY-MM-DD" of last successful fetch
 
 # Signal weights
 WEIGHTS = {
@@ -280,26 +279,45 @@ REDDIT_CURATED_FALLBACK = [
 ]
 
 
+def _next_midnight_utc() -> datetime:
+    """Return the next midnight UTC as a datetime."""
+    from datetime import timezone
+    now_utc = datetime.now(timezone.utc)
+    midnight = (now_utc + timedelta(days=1)).replace(
+        hour=0, minute=0, second=0, microsecond=0
+    )
+    return midnight.replace(tzinfo=None)   # strip tz for comparison with naive datetimes
+
+
 async def fetch_reddit_posts() -> list[dict]:
-    """Pull trending posts from the past 7 days across student loan subreddits.
+    """Pull the top-engagement posts from r/StudentLoans, r/personalfinance, r/povertyfinance.
 
-    Results are cached for 24 hours so the displayed posts change daily.
-    Tries five methods in order — stops at first success:
-      1. Reddit OAuth API   (best; needs REDDIT_CLIENT_ID + REDDIT_CLIENT_SECRET)
-      2. Arctic Shift API   (reliable Pushshift successor; works from cloud IPs)
-      3. Pullpush.io        (Pushshift clone; no auth)
-      4. Reddit RSS feeds   (public; less metadata but real URLs)
-      5. Curated fallback   (last resort; static posts)
+    Cache resets at midnight UTC every day so the list refreshes with a new
+    day's worth of data each morning.
+
+    Fetch strategy:
+      • Window: 7–21 days ago  — posts older than 7 days have real vote counts
+        (Reddit fuzzes scores on brand-new posts); 21-day cap keeps content fresh.
+      • Ranking: upvotes + 2 × comments (comments signal active debate).
+      • Top 10 shown on the platform.
+
+    Source cascade (stops at first success):
+      1. Reddit OAuth API   — real-time; needs REDDIT_CLIENT_ID + REDDIT_CLIENT_SECRET env vars
+      2. Arctic Shift API   — reliable open archive; works from cloud IPs; real permalinks
+      3. Pullpush.io        — Pushshift clone; no auth needed
+      4. Reddit RSS         — always accessible; real URLs, no scores
+      5. Curated fallback   — static; never cached so live sources are retried next request
     """
-    global _posts_cache, _posts_cache_timestamp
+    global _posts_cache, _posts_cache_date
 
-    # ── Serve from 24-hour cache if fresh ────────────────────────────
-    now = datetime.now()
-    if (_posts_cache_timestamp
-            and (now - _posts_cache_timestamp).total_seconds() < POSTS_CACHE_TTL_SECONDS
-            and _posts_cache):
-        print(f"[Reddit] 24h cache hit — {len(_posts_cache)} posts")
+    today_utc = datetime.utcnow().strftime("%Y-%m-%d")
+
+    # ── Serve from cache if still same UTC day ────────────────────────
+    if _posts_cache_date == today_utc and _posts_cache:
+        print(f"[Reddit] midnight-cache hit ({today_utc}) — {len(_posts_cache)} posts")
         return _posts_cache
+
+    now = datetime.now()
 
     # ── Method 1: Reddit OAuth ────────────────────────────────────────
     client_id     = os.environ.get("REDDIT_CLIENT_ID", "")
@@ -308,53 +326,55 @@ async def fetch_reddit_posts() -> list[dict]:
         posts = await _fetch_reddit_oauth(client_id, client_secret)
         if posts:
             print(f"[Reddit] OAuth — {len(posts)} posts")
-            _posts_cache, _posts_cache_timestamp = posts, now
+            _posts_cache, _posts_cache_date = posts, today_utc
             return posts
 
-    # ── Method 2: Arctic Shift (reliable cloud-friendly source) ──────
+    # ── Method 2: Arctic Shift ────────────────────────────────────────
     posts = await _fetch_arctic_shift()
     if posts:
-        print(f"[Reddit] Arctic Shift — {len(posts)} posts")
-        _posts_cache, _posts_cache_timestamp = posts, now
+        print(f"[Reddit] Arctic Shift — {len(posts)} posts, top score: {posts[0]['score']}")
+        _posts_cache, _posts_cache_date = posts, today_utc
         return posts
 
     # ── Method 3: Pullpush.io ─────────────────────────────────────────
     posts = await _fetch_pullpush()
     if posts:
         print(f"[Reddit] Pullpush.io — {len(posts)} posts")
-        _posts_cache, _posts_cache_timestamp = posts, now
+        _posts_cache, _posts_cache_date = posts, today_utc
         return posts
 
-    # ── Method 4: Reddit RSS feeds ────────────────────────────────────
+    # ── Method 4: Reddit RSS ──────────────────────────────────────────
     posts = await _fetch_reddit_rss()
     if posts:
         print(f"[Reddit] RSS — {len(posts)} posts")
-        _posts_cache, _posts_cache_timestamp = posts, now
+        _posts_cache, _posts_cache_date = posts, today_utc
         return posts
 
-    # ── Method 5: Curated fallback ────────────────────────────────────
+    # ── Method 5: Curated fallback (not cached — retry live tomorrow) ─
     print("[Reddit] All live sources failed — using curated fallback")
     fallback = [
-        {**p, "text": "", "created": datetime.now().timestamp()}
+        {**p, "text": "", "created": now.timestamp()}
         for p in REDDIT_CURATED_FALLBACK
     ]
     fallback.sort(key=lambda p: p["score"] + p["comments"] * 2, reverse=True)
-    # Don't cache fallback — retry live sources on next request
     return fallback
 
 
 async def _fetch_arctic_shift() -> list[dict]:
-    """Fetch via Arctic Shift API — reliable Pushshift successor, works from cloud IPs.
+    """Fetch top-engagement posts via Arctic Shift (open Reddit archive, cloud-IP friendly).
 
-    Fetches the past 30 days sorted by recency, then ranks client-side by
-    engagement (score + 2×comments).  Posts from the last 7 days often have
-    fuzzed scores on Reddit, so the wider 30-day window ensures real vote counts.
+    Window: 7–21 days ago.
+      - Excludes last 7 days: Reddit fuzzes vote counts on brand-new posts,
+        so recent posts always appear as score=1 in the archive.
+      - Caps at 21 days: keeps discussions recent and relevant.
+    Fetches 100 posts per subreddit, ranks client-side by upvotes + 2×comments.
 
-    API reference: https://arctic-shift.photon-reddit.com
-    Correct sort values: 'asc' | 'desc'  (by created_utc — no 'order' param)
+    API: https://arctic-shift.photon-reddit.com
+    Valid sort values: 'asc' | 'desc'  (by created_utc only — no score sort param)
     """
     try:
-        after_ts  = int((datetime.now() - timedelta(days=30)).timestamp())
+        after_ts  = int((datetime.now() - timedelta(days=21)).timestamp())  # 21 days ago
+        before_ts = int((datetime.now() - timedelta(days=7)).timestamp())   # 7 days ago
         posts: list[dict] = []
         seen: set[str]    = set()
 
@@ -366,8 +386,9 @@ async def _fetch_arctic_shift() -> list[dict]:
                         params={
                             "subreddit": sub,
                             "after":     str(after_ts),
+                            "before":    str(before_ts),
                             "limit":     "100",
-                            "sort":      "desc",   # most-recent first; we re-rank by score below
+                            "sort":      "desc",
                         },
                         headers={"User-Agent": REDDIT_HEADERS["User-Agent"]},
                         follow_redirects=True,
@@ -377,6 +398,7 @@ async def _fetch_arctic_shift() -> list[dict]:
                         continue
 
                     items = resp.json().get("data") or []
+                    matched = 0
                     for item in items:
                         uid = item.get("id", "")
                         if not uid or uid in seen:
@@ -386,6 +408,7 @@ async def _fetch_arctic_shift() -> list[dict]:
                             continue
                         if sub == "StudentLoans" or any(kw in title.lower() for kw in REDDIT_KEYWORDS):
                             seen.add(uid)
+                            matched += 1
                             permalink = (item.get("permalink") or f"/r/{sub}/comments/{uid}/").strip()
                             if permalink.startswith("/"):
                                 permalink = "https://www.reddit.com" + permalink
@@ -398,15 +421,17 @@ async def _fetch_arctic_shift() -> list[dict]:
                                 "created":   float(item.get("created_utc") or datetime.now().timestamp()),
                                 "url":       permalink,
                             })
+                    print(f"[ArcticShift] r/{sub}: {len(items)} fetched, {matched} matched")
                 except Exception as e:
                     print(f"[ArcticShift] r/{sub} error: {e}")
 
         if not posts:
             return []
 
-        # Re-rank by engagement: upvotes + 2× comment count
+        # Rank by engagement: upvotes + 2× comments (comments = active debate)
         posts.sort(key=lambda p: p["score"] + p["comments"] * 2, reverse=True)
-        print(f"[ArcticShift] {len(posts)} posts — top score: {posts[0]['score']}")
+        top = posts[0]
+        print(f"[ArcticShift] {len(posts)} total — #1: '{top['title'][:60]}' ▲{top['score']} 💬{top['comments']}")
         return posts
     except Exception as e:
         print(f"[ArcticShift] error: {e}")
@@ -1112,15 +1137,11 @@ async def get_live_sentiment():
          "methodology_ref": "/methodology#reddit"},
     ]
 
-    # Posts last refreshed timestamp (from 24h cache)
+    # Posts reset at midnight UTC — show when they were last fetched and next reset
     posts_refreshed_at = (
-        _posts_cache_timestamp.strftime("%b %d, %Y %H:%M UTC")
-        if _posts_cache_timestamp else iso_now
+        f"{_posts_cache_date} 00:00 UTC" if _posts_cache_date else iso_now
     )
-    next_refresh_at = (
-        (_posts_cache_timestamp + timedelta(seconds=POSTS_CACHE_TTL_SECONDS)).strftime("%b %d %H:%M UTC")
-        if _posts_cache_timestamp else "soon"
-    )
+    next_refresh_at = _next_midnight_utc().strftime("%b %d 00:00 UTC")
 
     # Latest posts (most recent first) — for the live feed
     posts_by_recency = sorted(posts, key=lambda p: p.get("created", 0), reverse=True)
@@ -1129,7 +1150,7 @@ async def get_live_sentiment():
         for p in posts_by_recency[:12]
     ]
 
-    # Top discussions (ranked by engagement score + 2×comments)
+    # Top 10 discussions ranked by engagement (upvotes + 2×comments)
     top_discussions = [
         {
             "title":     p["title"],
@@ -1138,7 +1159,7 @@ async def get_live_sentiment():
             "score":     p.get("score", 0),
             "comments":  p.get("comments", 0),
         }
-        for p in posts[:10]
+        for p in posts[:10]   # always exactly 10
     ]
 
     result = {
