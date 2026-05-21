@@ -50,12 +50,12 @@ PRIOR_REFRESH_SECONDS = 7 * 24 * 3600     # rotate "prior" weekly
 
 # Signal weights
 WEIGHTS = {
-    "google_trends":   0.20,
-    "reddit":          0.20,
-    "cfpb":            0.15,
+    "google_trends":   0.24,
+    "reddit":          0.23,
+    "cfpb":            0.13,
     "delinquency":     0.15,
-    "refinance":       0.10,
-    "survey":          0.20,
+    "refinance":       0.08,
+    "survey":          0.17,
 }
 
 # ─── Source Registry ──────────────────────────────────────────────────────────
@@ -888,7 +888,7 @@ async def get_live_sentiment():
                 raw=f"{trends['raw_index']}/100",
                 methodology_anchor="google-trends",
             ),
-            "weight": "20%", "score": trends["score"],
+            "weight": "24%", "score": trends["score"],
         },
         "reddit": {
             **signal_payload(
@@ -898,7 +898,7 @@ async def get_live_sentiment():
                 raw=f"{len(posts)} posts",
                 methodology_anchor="reddit",
             ),
-            "weight": "20%", "score": sentiment["sentiment_score"], "posts": len(posts),
+            "weight": "23%", "score": sentiment["sentiment_score"], "posts": len(posts),
         },
         "cfpb": {
             **signal_payload(
@@ -908,7 +908,7 @@ async def get_live_sentiment():
                 raw=f"{cfpb['count_90d']:,} / 90d",
                 methodology_anchor="cfpb",
             ),
-            "weight": "15%", "score": cfpb["score"], "complaints_90d": cfpb["count_90d"],
+            "weight": "13%", "score": cfpb["score"], "complaints_90d": cfpb["count_90d"],
         },
         "delinquency": {
             **signal_payload(
@@ -928,7 +928,7 @@ async def get_live_sentiment():
                 raw="+68% YoY",
                 methodology_anchor="refinance",
             ),
-            "weight": "10%", "score": 62,
+            "weight": "8%", "score": 62,
         },
         "survey": {
             **signal_payload(
@@ -938,7 +938,7 @@ async def get_live_sentiment():
                 raw="80% worried",
                 methodology_anchor="survey",
             ),
-            "weight": "20%", "score": 80,
+            "weight": "17%", "score": 80,
         },
     }
 
