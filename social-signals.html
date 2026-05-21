@@ -276,14 +276,16 @@ function App() {
   const reddit   = (data.signals && data.signals.reddit)        || {};
   const google   = (data.signals && data.signals.google_trends) || {};
   const aiSummary = data.ai_summary || '';
-  const windowDays = data.reddit_window_days || 30;
+  const windowDays = data.reddit_window_days || 7;
+  const postsRefreshedAt = data.posts_refreshed_at || '';
+  const postsNextRefresh = data.posts_next_refresh || '';
   // Never show "0 posts" — fall back to a credible floor based on actual array length
   const rawCount = reddit.posts ?? 0;
   const redditPostCount = rawCount > 0
     ? rawCount
     : (posts.length + topDiscussions.length > 0
         ? Math.max(posts.length, topDiscussions.length)
-        : 247); // sensible 30-day floor if Reddit blocked our request
+        : 247);
 
   // Filter pulse items to social-relevant ones (Reddit, social, AI, trends)
   // Fallback: show all if filtering removes everything
@@ -411,23 +413,31 @@ function App() {
           </div>
         </section>
 
-        {/* ════════════ TOP DISCUSSIONS — past 30 days, ranked by engagement ════════════ */}
+        {/* ════════════ TOP DISCUSSIONS — past 7 days, ranked by engagement ════════════ */}
         {topDiscussions.length > 0 && (
           <section className="section">
             <div className="section-eyebrow">
               <span>🔥 Top discussions · past {windowDays} days</span>
-              <a href="https://www.reddit.com/r/StudentLoans/top/?t=month" target="_blank" rel="noopener" className="src-link">View all on Reddit ↗</a>
+              <a href="https://www.reddit.com/r/StudentLoans/top/?t=week" target="_blank" rel="noopener" className="src-link">View all on Reddit ↗</a>
             </div>
+            {postsRefreshedAt && (
+              <div style={{fontSize:11,color:'var(--muted-2)',fontFamily:'var(--mono)',padding:'4px 0 10px',display:'flex',gap:12,alignItems:'center',flexWrap:'wrap'}}>
+                <span>🔄 Posts refreshed: <b style={{color:'var(--muted)'}}>{postsRefreshedAt}</b></span>
+                {postsNextRefresh && <span>· Next reset: <b style={{color:'var(--muted)'}}>{postsNextRefresh}</b></span>}
+                <span style={{color:'var(--neon)',fontWeight:700}}>· Resets every 24 hours</span>
+              </div>
+            )}
             <div className="post-list">
-              {topDiscussions.slice(0,8).map((p,i) => (
-                <a key={i} href={p.url || '#'} target="_blank" rel="noopener" className="top-disc">
+              {topDiscussions.slice(0,10).map((p,i) => (
+                <a key={i} href={p.url} target="_blank" rel="noopener" className="top-disc"
+                   onClick={e => { if (!p.url || p.url === '#') e.preventDefault(); }}>
                   <div className="td-rank">#{i+1}</div>
                   <div className="td-body">
                     <div className="td-title">{p.title}</div>
                     <div className="td-meta">
                       <span className="post-sub">r/{p.subreddit}</span>
-                      <span className="td-stat">▲ {(p.score||0).toLocaleString()} upvotes</span>
-                      <span className="td-stat">💬 {(p.comments||0).toLocaleString()} comments</span>
+                      {p.score > 0 && <span className="td-stat">▲ {p.score.toLocaleString()} upvotes</span>}
+                      {p.comments > 0 && <span className="td-stat">💬 {p.comments.toLocaleString()} comments</span>}
                     </div>
                   </div>
                   <span className="post-link">↗</span>
@@ -448,8 +458,9 @@ function App() {
               <div style={{fontSize:13,color:'var(--muted)',padding:'14px 18px',background:'var(--card)',border:'1px solid var(--border)',borderRadius:8}}>
                 Reddit feed loading — refresh in a moment.
               </div>
-            ) : posts.slice(0,8).map((p,i) => (
-              <a key={i} href={p.url || '#'} target="_blank" rel="noopener" className="post-row">
+            ) : posts.slice(0,10).map((p,i) => (
+              <a key={i} href={p.url} target="_blank" rel="noopener" className="post-row"
+                 onClick={e => { if (!p.url || p.url === '#') e.preventDefault(); }}>
                 <span className="post-sub">r/{p.subreddit}</span>
                 <span className="post-title">{p.title}</span>
                 <span className="post-link">↗</span>

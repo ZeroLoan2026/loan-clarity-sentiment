@@ -48,6 +48,11 @@ _prior_timestamp: Optional[datetime] = None
 CACHE_TTL_SECONDS = 300
 PRIOR_REFRESH_SECONDS = 7 * 24 * 3600     # rotate "prior" weekly
 
+# 24-hour post cache — Reddit posts refresh once per day
+_posts_cache: list[dict] = []
+_posts_cache_timestamp: Optional[datetime] = None
+POSTS_CACHE_TTL_SECONDS = 24 * 3600       # 24 hours
+
 # Signal weights
 WEIGHTS = {
     "google_trends":   0.24,
@@ -276,14 +281,26 @@ REDDIT_CURATED_FALLBACK = [
 
 
 async def fetch_reddit_posts() -> list[dict]:
-    """Pull posts from past 30 days across student loan subreddits.
+    """Pull trending posts from the past 7 days across student loan subreddits.
 
-    Tries four methods in order — stops at first success:
-      1. Reddit OAuth API  (best; needs REDDIT_CLIENT_ID + REDDIT_CLIENT_SECRET env vars)
-      2. Pullpush.io       (free Pushshift clone; no auth; works from cloud IPs)
-      3. Reddit RSS feeds  (always accessible; less metadata)
-      4. Curated fallback  (high-signal hardcoded posts — better than 0)
+    Results are cached for 24 hours so the displayed posts change daily.
+    Tries five methods in order — stops at first success:
+      1. Reddit OAuth API   (best; needs REDDIT_CLIENT_ID + REDDIT_CLIENT_SECRET)
+      2. Arctic Shift API   (reliable Pushshift successor; works from cloud IPs)
+      3. Pullpush.io        (Pushshift clone; no auth)
+      4. Reddit RSS feeds   (public; less metadata but real URLs)
+      5. Curated fallback   (last resort; static posts)
     """
+    global _posts_cache, _posts_cache_timestamp
+
+    # ── Serve from 24-hour cache if fresh ────────────────────────────
+    now = datetime.now()
+    if (_posts_cache_timestamp
+            and (now - _posts_cache_timestamp).total_seconds() < POSTS_CACHE_TTL_SECONDS
+            and _posts_cache):
+        print(f"[Reddit] 24h cache hit — {len(_posts_cache)} posts")
+        return _posts_cache
+
     # ── Method 1: Reddit OAuth ────────────────────────────────────────
     client_id     = os.environ.get("REDDIT_CLIENT_ID", "")
     client_secret = os.environ.get("REDDIT_CLIENT_SECRET", "")
@@ -291,28 +308,104 @@ async def fetch_reddit_posts() -> list[dict]:
         posts = await _fetch_reddit_oauth(client_id, client_secret)
         if posts:
             print(f"[Reddit] OAuth — {len(posts)} posts")
+            _posts_cache, _posts_cache_timestamp = posts, now
             return posts
 
-    # ── Method 2: Pullpush.io (Pushshift replacement, no auth) ───────
+    # ── Method 2: Arctic Shift (reliable cloud-friendly source) ──────
+    posts = await _fetch_arctic_shift()
+    if posts:
+        print(f"[Reddit] Arctic Shift — {len(posts)} posts")
+        _posts_cache, _posts_cache_timestamp = posts, now
+        return posts
+
+    # ── Method 3: Pullpush.io ─────────────────────────────────────────
     posts = await _fetch_pullpush()
     if posts:
         print(f"[Reddit] Pullpush.io — {len(posts)} posts")
+        _posts_cache, _posts_cache_timestamp = posts, now
         return posts
 
-    # ── Method 3: Reddit RSS feeds ────────────────────────────────────
+    # ── Method 4: Reddit RSS feeds ────────────────────────────────────
     posts = await _fetch_reddit_rss()
     if posts:
         print(f"[Reddit] RSS — {len(posts)} posts")
+        _posts_cache, _posts_cache_timestamp = posts, now
         return posts
 
-    # ── Method 4: Curated fallback (never show 0 posts) ──────────────
-    print("[Reddit] All live sources blocked — using curated fallback")
+    # ── Method 5: Curated fallback ────────────────────────────────────
+    print("[Reddit] All live sources failed — using curated fallback")
     fallback = [
         {**p, "text": "", "created": datetime.now().timestamp()}
         for p in REDDIT_CURATED_FALLBACK
     ]
     fallback.sort(key=lambda p: p["score"] + p["comments"] * 2, reverse=True)
+    # Don't cache fallback — retry live sources on next request
     return fallback
+
+
+async def _fetch_arctic_shift() -> list[dict]:
+    """Fetch via Arctic Shift API — a reliable, open Pushshift successor.
+
+    Returns real posts with real Reddit permalinks. Works from cloud IPs.
+    Docs: https://arctic-shift.photon-reddit.com
+    """
+    try:
+        after_ts = int((datetime.now() - timedelta(days=7)).timestamp())
+        posts = []
+        seen: set[str] = set()
+
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            for sub in REDDIT_SUBS:
+                for sort in ("score", "num_comments"):
+                    try:
+                        resp = await client.get(
+                            "https://arctic-shift.photon-reddit.com/api/posts/search",
+                            params={
+                                "subreddit": sub,
+                                "after":     str(after_ts),
+                                "limit":     "100",
+                                "sort":      sort,
+                                "order":     "desc",
+                            },
+                            headers={"User-Agent": REDDIT_HEADERS["User-Agent"]},
+                            follow_redirects=True,
+                        )
+                        if resp.status_code != 200:
+                            print(f"[ArcticShift] r/{sub} sort={sort} HTTP {resp.status_code}")
+                            continue
+
+                        data = resp.json()
+                        items = data.get("data", [])
+                        for item in items:
+                            uid = item.get("id", "")
+                            if not uid or uid in seen:
+                                continue
+                            title = (item.get("title") or "").strip()
+                            if not title:
+                                continue
+                            if sub == "StudentLoans" or any(kw in title.lower() for kw in REDDIT_KEYWORDS):
+                                seen.add(uid)
+                                permalink = item.get("permalink") or f"/r/{sub}/comments/{uid}/"
+                                # Ensure full URL
+                                if permalink.startswith("/"):
+                                    permalink = "https://www.reddit.com" + permalink
+                                posts.append({
+                                    "title":     title,
+                                    "text":      (item.get("selftext") or "")[:400],
+                                    "score":     int(item.get("score") or 0),
+                                    "comments":  int(item.get("num_comments") or 0),
+                                    "subreddit": sub,
+                                    "created":   float(item.get("created_utc") or datetime.now().timestamp()),
+                                    "url":       permalink,
+                                })
+                    except Exception as e:
+                        print(f"[ArcticShift] r/{sub} sort={sort} error: {e}")
+
+        posts.sort(key=lambda p: p["score"] + p["comments"] * 2, reverse=True)
+        return posts
+    except Exception as e:
+        print(f"[ArcticShift] error: {e}")
+        return []
 
 
 async def _fetch_reddit_oauth(client_id: str, client_secret: str) -> list[dict]:
@@ -1014,6 +1107,16 @@ async def get_live_sentiment():
          "methodology_ref": "/methodology#reddit"},
     ]
 
+    # Posts last refreshed timestamp (from 24h cache)
+    posts_refreshed_at = (
+        _posts_cache_timestamp.strftime("%b %d, %Y %H:%M UTC")
+        if _posts_cache_timestamp else iso_now
+    )
+    next_refresh_at = (
+        (_posts_cache_timestamp + timedelta(seconds=POSTS_CACHE_TTL_SECONDS)).strftime("%b %d %H:%M UTC")
+        if _posts_cache_timestamp else "soon"
+    )
+
     # Latest posts (most recent first) — for the live feed
     posts_by_recency = sorted(posts, key=lambda p: p.get("created", 0), reverse=True)
     trending_posts = [
@@ -1021,8 +1124,7 @@ async def get_live_sentiment():
         for p in posts_by_recency[:12]
     ]
 
-    # Top discussions of the past 30 days (ranked by engagement)
-    # posts list is already sorted by score + 2*comments
+    # Top discussions (ranked by engagement score + 2×comments)
     top_discussions = [
         {
             "title":     p["title"],
@@ -1074,9 +1176,11 @@ async def get_live_sentiment():
 
         "borrower_pulse":   borrower_pulse,
         "key_metrics":      key_metrics,
-        "trending_posts":   trending_posts,
-        "top_discussions":  top_discussions,
-        "reddit_window_days": 30,
+        "trending_posts":      trending_posts,
+        "top_discussions":     top_discussions,
+        "reddit_window_days":  7,
+        "posts_refreshed_at":  posts_refreshed_at,
+        "posts_next_refresh":  next_refresh_at,
         "trend_history":    build_trend_history(final_score),
         "history":          build_multi_window_history(final_score),
         "trend_source": {
