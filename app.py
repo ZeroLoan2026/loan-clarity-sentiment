@@ -23,9 +23,9 @@ try:
 except Exception as _e:
     anthropic = None
     print(f"[startup] anthropic import skipped: {_e}")
-from fastapi import FastAPI, Body
+from fastapi import FastAPI, Body, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 
 # ─── Setup ───────────────────────────────────────────────────────────────────
 
@@ -1126,28 +1126,405 @@ async def serve_tax_tool():
 # ─── Newsletter Subscription ──────────────────────────────────────────────────
 _SUBSCRIBERS_FILE = Path(__file__).parent / "subscribers.jsonl"
 
+
+def _parse_device(ua: str) -> tuple[str, str, str]:
+    """Return (device_type, browser, os) from a User-Agent string."""
+    ua_lower = ua.lower()
+
+    # Device type
+    if any(x in ua_lower for x in ("iphone", "android", "mobile")):
+        device = "Mobile"
+    elif any(x in ua_lower for x in ("ipad", "tablet")):
+        device = "Tablet"
+    else:
+        device = "Desktop"
+
+    # Browser
+    if "edg/" in ua_lower or "edge/" in ua_lower:
+        browser = "Edge"
+    elif "opr/" in ua_lower or "opera" in ua_lower:
+        browser = "Opera"
+    elif "chrome/" in ua_lower and "chromium" not in ua_lower:
+        browser = "Chrome"
+    elif "firefox/" in ua_lower:
+        browser = "Firefox"
+    elif "safari/" in ua_lower and "chrome" not in ua_lower:
+        browser = "Safari"
+    else:
+        browser = "Other"
+
+    # OS
+    if "windows" in ua_lower:
+        os_name = "Windows"
+    elif "mac os x" in ua_lower or "macintosh" in ua_lower:
+        os_name = "macOS" if "mobile" not in ua_lower else "iOS"
+    elif "iphone" in ua_lower or "ipad" in ua_lower:
+        os_name = "iOS"
+    elif "android" in ua_lower:
+        os_name = "Android"
+    elif "linux" in ua_lower:
+        os_name = "Linux"
+    else:
+        os_name = "Other"
+
+    return device, browser, os_name
+
+
+def _domain_type(domain: str) -> str:
+    free = {"gmail.com","yahoo.com","hotmail.com","outlook.com","icloud.com",
+            "aol.com","protonmail.com","me.com","live.com","msn.com"}
+    if domain in free:
+        return "Personal"
+    if domain.endswith(".edu"):
+        return "Education"
+    if domain.endswith(".gov"):
+        return "Government"
+    if domain.endswith(".org"):
+        return "Non-Profit"
+    return "Corporate"
+
+
+def _anonymize_ip(ip: str) -> str:
+    """Keep first 3 octets only: 12.34.56.78 → 12.34.56.xxx"""
+    parts = ip.split(".")
+    if len(parts) == 4:
+        return ".".join(parts[:3]) + ".xxx"
+    return ip[:20]  # IPv6 — just truncate
+
+
 @app.post("/api/subscribe")
-async def subscribe(payload: dict = Body(...)):
-    """Append a newsletter signup to subscribers.jsonl (one JSON object per line)."""
+async def subscribe(request: Request, payload: dict = Body(...)):
+    """Append a newsletter signup to subscribers.jsonl — rich lead record."""
     name  = (payload.get("name")  or "").strip()[:120]
     email = (payload.get("email") or "").strip().lower()[:200]
     if "@" not in email or "." not in email.split("@")[-1]:
         return {"ok": False, "error": "Please provide a valid email."}
     if not name:
         return {"ok": False, "error": "Please provide your name."}
+
+    now = datetime.now()
+    headers = request.headers
+
+    # ── Device / browser fingerprint ────────────────────────────────
+    ua = headers.get("user-agent", "")
+    device, browser, os_name = _parse_device(ua)
+
+    # ── IP (anonymized) ─────────────────────────────────────────────
+    ip_raw = (
+        headers.get("x-forwarded-for", "").split(",")[0].strip()
+        or headers.get("x-real-ip", "")
+        or (request.client.host if request.client else "")
+    )
+    ip_anon = _anonymize_ip(ip_raw) if ip_raw else ""
+
+    # ── Email domain analysis ────────────────────────────────────────
+    domain = email.split("@")[-1]
+
+    # ── Current index score (from cache — no extra API call) ─────────
+    idx_score  = int(_cache.get("index_score", 0)) if _cache else 0
+    idx_status = _cache.get("status", "") if _cache else ""
+
     entry = {
-        "name": name,
-        "email": email,
-        "source": payload.get("source", "dashboard"),
-        "ts": datetime.now().isoformat(timespec="seconds"),
+        # Core
+        "name":              name,
+        "email":             email,
+        "ts":                now.isoformat(timespec="seconds"),
+        "signup_date":       now.strftime("%Y-%m-%d"),
+        "signup_time":       now.strftime("%H:%M:%S"),
+        "day_of_week":       now.strftime("%A"),
+        # Source & campaign
+        "source":            payload.get("source", "dashboard"),
+        "page_url":          (payload.get("page_url") or "")[:300],
+        "referrer":          (payload.get("referrer")  or "")[:300],
+        "utm_source":        (payload.get("utm_source")   or "")[:100],
+        "utm_medium":        (payload.get("utm_medium")   or "")[:100],
+        "utm_campaign":      (payload.get("utm_campaign") or "")[:100],
+        "utm_content":       (payload.get("utm_content")  or "")[:100],
+        # Device
+        "device_type":       device,
+        "browser":           browser,
+        "os":                os_name,
+        "user_agent":        ua[:400],
+        # Network (anonymized)
+        "ip_anon":           ip_anon,
+        # Email intel
+        "email_domain":      domain,
+        "domain_type":       _domain_type(domain),
+        # Index context at time of signup
+        "index_score":       idx_score,
+        "index_status":      idx_status,
+        # CRM fields (editable in the Excel export)
+        "lead_status":       "New",
+        "notes":             "",
     }
+
     try:
         with open(_SUBSCRIBERS_FILE, "a") as f:
             f.write(json.dumps(entry) + "\n")
+        print(f"[subscribe] {email} | {device} | {browser}/{os_name} | idx={idx_score}")
         return {"ok": True, "message": "You're in! Look out for Friday's edition."}
     except Exception as e:
         print(f"[subscribe] write error: {e}")
         return {"ok": False, "error": "Could not save your signup. Try emailing subscribe@loanclarty.com."}
+
+
+# ─── Lead Export (Excel / CSV) ────────────────────────────────────────────────
+
+COLUMNS = [
+    ("Row #",             "row_num",       12),
+    ("First Name",        "name",          18),
+    ("Email",             "email",         32),
+    ("Email Domain",      "email_domain",  24),
+    ("Domain Type",       "domain_type",   14),
+    ("Signup Date",       "signup_date",   14),
+    ("Signup Time",       "signup_time",   12),
+    ("Day of Week",       "day_of_week",   13),
+    ("Days Since Signup", "days_since",    18),
+    ("Source",            "source",        16),
+    ("Page URL",          "page_url",      30),
+    ("Referrer",          "referrer",      30),
+    ("UTM Source",        "utm_source",    16),
+    ("UTM Medium",        "utm_medium",    16),
+    ("UTM Campaign",      "utm_campaign",  20),
+    ("UTM Content",       "utm_content",   20),
+    ("Device Type",       "device_type",   13),
+    ("Browser",           "browser",       12),
+    ("OS",                "os",            12),
+    ("IP (Anonymized)",   "ip_anon",       18),
+    ("Index Score",       "index_score",   13),
+    ("Market Status",     "index_status",  18),
+    ("Lead Status",       "lead_status",   14),
+    ("Notes",             "notes",         30),
+]
+
+STATUS_COLORS = {
+    "New":         ("1a3a5c", "5bc8f5"),
+    "Contacted":   ("1a3a2a", "4ade80"),
+    "Qualified":   ("3a2a00", "fbbf24"),
+    "Unsubscribed":("3a1a1a", "f87171"),
+}
+
+DOMAIN_COLORS = {
+    "Corporate":   "2d7dd2",
+    "Education":   "a855f7",
+    "Government":  "22c55e",
+    "Non-Profit":  "f97316",
+    "Personal":    "6b7280",
+}
+
+
+def _build_xlsx(rows: list[dict]) -> bytes:
+    try:
+        import openpyxl
+        from openpyxl.styles import (
+            PatternFill, Font, Alignment, Border, Side, GradientFill
+        )
+        from openpyxl.utils import get_column_letter
+        import io
+
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Loan Clarity Leads"
+
+        # ── Freeze header row ────────────────────────────────────────
+        ws.freeze_panes = "A2"
+
+        # ── Header row styling ───────────────────────────────────────
+        hdr_fill   = PatternFill("solid", fgColor="07111f")
+        hdr_font   = Font(name="Calibri", bold=True, color="FFFFFF", size=11)
+        hdr_align  = Alignment(horizontal="center", vertical="center", wrap_text=False)
+        thin_side  = Side(style="thin", color="1a2f48")
+        thin_border = Border(bottom=Side(style="medium", color="2d7dd2"))
+
+        for col_idx, (header, _, width) in enumerate(COLUMNS, start=1):
+            cell = ws.cell(row=1, column=col_idx, value=header)
+            cell.fill   = hdr_fill
+            cell.font   = hdr_font
+            cell.alignment = hdr_align
+            cell.border = thin_border
+            ws.column_dimensions[get_column_letter(col_idx)].width = width
+
+        ws.row_dimensions[1].height = 28
+
+        # ── Data rows ────────────────────────────────────────────────
+        today = datetime.now().date()
+        alt_fill = PatternFill("solid", fgColor="0b1929")
+        wht_fill = PatternFill("solid", fgColor="0d1e33")
+
+        for r_idx, row in enumerate(rows, start=1):
+            excel_row = r_idx + 1  # offset for header
+            fill = alt_fill if r_idx % 2 == 0 else wht_fill
+
+            # Compute days since signup
+            try:
+                sig_date = datetime.fromisoformat(row.get("ts", "")).date()
+                days_since = (today - sig_date).days
+            except Exception:
+                days_since = ""
+
+            values = {
+                "row_num":      r_idx,
+                "days_since":   days_since,
+                **{k: row.get(k, "") for _, k, _ in COLUMNS
+                   if k not in ("row_num", "days_since")},
+            }
+
+            for col_idx, (_, key, _) in enumerate(COLUMNS, start=1):
+                val  = values.get(key, "")
+                cell = ws.cell(row=excel_row, column=col_idx, value=val)
+                cell.fill = fill
+                cell.font = Font(name="Calibri", color="C8DCF0", size=10)
+                cell.alignment = Alignment(vertical="center", wrap_text=False)
+
+                # ── Special formatting ─────────────────────────────
+                if key == "email":
+                    cell.font = Font(name="Calibri", color="5bc8f5", size=10, underline="single")
+
+                elif key == "lead_status":
+                    bg, fg = STATUS_COLORS.get(str(val), ("1a3a5c", "5bc8f5"))
+                    cell.fill = PatternFill("solid", fgColor=bg)
+                    cell.font = Font(name="Calibri", color=fg, size=10, bold=True)
+                    cell.alignment = Alignment(horizontal="center", vertical="center")
+
+                elif key == "domain_type":
+                    color = DOMAIN_COLORS.get(str(val), "6b7280")
+                    cell.font = Font(name="Calibri", color=color, size=10, bold=True)
+
+                elif key == "index_score" and isinstance(val, int):
+                    if val >= 70:
+                        cell.font = Font(name="Calibri", color="f87171", size=10, bold=True)
+                    elif val >= 40:
+                        cell.font = Font(name="Calibri", color="fbbf24", size=10)
+                    else:
+                        cell.font = Font(name="Calibri", color="4ade80", size=10)
+
+                elif key == "days_since" and isinstance(val, int) and val <= 1:
+                    cell.font = Font(name="Calibri", color="00e5a8", size=10, bold=True)
+
+            ws.row_dimensions[excel_row].height = 18
+
+        # ── Auto-filter ──────────────────────────────────────────────
+        ws.auto_filter.ref = ws.dimensions
+
+        # ── Summary sheet ────────────────────────────────────────────
+        ws2 = wb.create_sheet("Summary")
+        ws2.sheet_properties.tabColor = "2d7dd2"
+        ws2.freeze_panes = "A1"
+        s_fill = PatternFill("solid", fgColor="07111f")
+        s_font = Font(name="Calibri", color="FFFFFF", bold=True, size=12)
+
+        summary_rows = [
+            ("Loan Clarity — Lead Tracker", ""),
+            ("Generated", datetime.now().strftime("%Y-%m-%d %H:%M UTC")),
+            ("", ""),
+            ("OVERVIEW", ""),
+            ("Total Signups", len(rows)),
+            ("New Leads", sum(1 for r in rows if r.get("lead_status") == "New")),
+            ("Contacted", sum(1 for r in rows if r.get("lead_status") == "Contacted")),
+            ("Qualified", sum(1 for r in rows if r.get("lead_status") == "Qualified")),
+            ("", ""),
+            ("DEVICE BREAKDOWN", ""),
+            ("Mobile", sum(1 for r in rows if r.get("device_type") == "Mobile")),
+            ("Desktop", sum(1 for r in rows if r.get("device_type") == "Desktop")),
+            ("Tablet", sum(1 for r in rows if r.get("device_type") == "Tablet")),
+            ("", ""),
+            ("DOMAIN TYPE", ""),
+            ("Corporate", sum(1 for r in rows if r.get("domain_type") == "Corporate")),
+            ("Education (.edu)", sum(1 for r in rows if r.get("domain_type") == "Education")),
+            ("Personal (Gmail/Yahoo/etc)", sum(1 for r in rows if r.get("domain_type") == "Personal")),
+            ("Government (.gov)", sum(1 for r in rows if r.get("domain_type") == "Government")),
+            ("Non-Profit (.org)", sum(1 for r in rows if r.get("domain_type") == "Non-Profit")),
+            ("", ""),
+            ("SOURCE BREAKDOWN", ""),
+        ]
+        # Source counts
+        from collections import Counter
+        src_counts = Counter(r.get("source", "unknown") for r in rows)
+        for src, cnt in src_counts.most_common():
+            summary_rows.append((f"  {src}", cnt))
+
+        for sr_idx, (label, value) in enumerate(summary_rows, start=1):
+            c1 = ws2.cell(row=sr_idx, column=1, value=label)
+            c2 = ws2.cell(row=sr_idx, column=2, value=value)
+            if label in ("OVERVIEW", "DEVICE BREAKDOWN", "DOMAIN TYPE", "SOURCE BREAKDOWN", "Loan Clarity — Lead Tracker"):
+                c1.fill = PatternFill("solid", fgColor="0d1e33")
+                c1.font = Font(name="Calibri", color="2d7dd2", bold=True, size=11)
+            else:
+                c1.font = Font(name="Calibri", color="8ab4cc", size=10)
+                c2.font = Font(name="Calibri", color="FFFFFF", bold=True, size=10)
+            for c in (c1, c2):
+                c.alignment = Alignment(vertical="center")
+
+        ws2.column_dimensions["A"].width = 32
+        ws2.column_dimensions["B"].width = 18
+
+        buf = io.BytesIO()
+        wb.save(buf)
+        buf.seek(0)
+        return buf.read()
+
+    except ImportError:
+        raise RuntimeError("openpyxl not installed")
+
+
+@app.get("/api/admin/leads.xlsx")
+async def export_leads_xlsx(key: str = ""):
+    """Download all leads as a formatted Excel file.
+    Protected by ADMIN_KEY env var (default: 'loanclarty-admin').
+    """
+    expected = os.environ.get("ADMIN_KEY", "loanclarty-admin")
+    if key != expected:
+        return Response(status_code=401, content="Unauthorized")
+
+    rows: list[dict] = []
+    if _SUBSCRIBERS_FILE.exists():
+        for line in _SUBSCRIBERS_FILE.read_text().splitlines():
+            line = line.strip()
+            if line:
+                try:
+                    rows.append(json.loads(line))
+                except Exception:
+                    pass
+
+    xlsx_bytes = _build_xlsx(rows)
+    filename = f"LoanClarity_Leads_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx"
+    return StreamingResponse(
+        iter([xlsx_bytes]),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@app.get("/api/admin/leads.csv")
+async def export_leads_csv(key: str = ""):
+    """Download all leads as CSV (fallback if Excel not available)."""
+    expected = os.environ.get("ADMIN_KEY", "loanclarty-admin")
+    if key != expected:
+        return Response(status_code=401, content="Unauthorized")
+
+    rows: list[dict] = []
+    if _SUBSCRIBERS_FILE.exists():
+        for line in _SUBSCRIBERS_FILE.read_text().splitlines():
+            line = line.strip()
+            if line:
+                try:
+                    rows.append(json.loads(line))
+                except Exception:
+                    pass
+
+    import csv, io
+    buf = io.StringIO()
+    headers = [col for _, col, _ in COLUMNS if col not in ("row_num", "days_since")]
+    writer = csv.DictWriter(buf, fieldnames=headers, extrasaction="ignore")
+    writer.writeheader()
+    writer.writerows(rows)
+
+    filename = f"LoanClarity_Leads_{datetime.now().strftime('%Y%m%d_%H%M')}.csv"
+    return StreamingResponse(
+        iter([buf.getvalue().encode()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @app.get("/social-signals")
