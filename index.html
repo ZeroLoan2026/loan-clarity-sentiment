@@ -316,15 +316,15 @@
        ══════════════════════════════════════════════════════════════════════ */
     .grad-money-text { background: var(--grad-money); -webkit-background-clip: text; background-clip: text; color: transparent; }
 
-    /* ── Action row: newsletter signup (full width) ───────────────────── */
+    /* ── Action row: newsletter + collab side-by-side ────────────────── */
     .action-row {
       padding: 20px 32px;
       background: var(--panel);
       border-bottom: 1px solid var(--border);
     }
     .ar-inner {
-      max-width: 680px; margin: 0 auto;
-      display: grid; grid-template-columns: 1fr; gap: 14px; align-items: stretch;
+      max-width: 1100px; margin: 0 auto;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: stretch;
     }
     .ar-card {
       background: linear-gradient(180deg, var(--card) 0%, var(--panel) 100%);
@@ -333,30 +333,72 @@
       padding: 18px 20px;
       display: flex; flex-direction: column; gap: 10px;
     }
-    .ar-card.refi {
-      background:
-        radial-gradient(ellipse at right, rgba(255,85,119,.10) 0%, transparent 60%),
-        linear-gradient(180deg, var(--card) 0%, var(--panel) 100%);
-      border-color: rgba(255,85,119,.35);
-    }
     .ar-card.news {
       background:
         radial-gradient(ellipse at right, rgba(91,140,255,.10) 0%, transparent 60%),
         linear-gradient(180deg, var(--card) 0%, var(--panel) 100%);
       border-color: rgba(91,140,255,.35);
     }
+    /* ── Collab card ─────────────────────────────────────────────────── */
+    .ar-card.collab {
+      position: relative; overflow: hidden;
+      background:
+        radial-gradient(ellipse at top left,  rgba(255,30,60,.18) 0%, transparent 55%),
+        radial-gradient(ellipse at bottom right, rgba(255,80,30,.12) 0%, transparent 55%),
+        linear-gradient(160deg, #1a0a0f 0%, #0f0508 100%);
+      border-color: rgba(255,45,70,.45);
+      box-shadow: 0 0 0 1px rgba(255,45,70,.12) inset, 0 8px 32px rgba(255,30,60,.08);
+    }
+    .ar-card.collab::before {
+      content: ''; position: absolute; inset: 0; pointer-events: none;
+      background: repeating-linear-gradient(
+        135deg,
+        transparent 0px, transparent 18px,
+        rgba(255,45,70,.025) 18px, rgba(255,45,70,.025) 19px
+      );
+    }
     .ar-eyebrow {
       font-size: 10px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase;
+      position: relative;
     }
-    .ar-eyebrow.hot   { color: var(--hot); }
     .ar-eyebrow.cool  { color: var(--electric); }
+    .ar-eyebrow.fire  { color: #ff3d57; }
     .ar-h {
       font-size: 16px; font-weight: 800; letter-spacing: -.01em; line-height: 1.2; color: #fff;
+      position: relative;
     }
-    .ar-h .grad-money { background: var(--grad-money); -webkit-background-clip: text; background-clip: text; color: transparent; }
     .ar-h .grad-cool { background: var(--grad-cool); -webkit-background-clip: text; background-clip: text; color: transparent; }
-    .ar-sub { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
-    .ar-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: auto; }
+    .ar-h .grad-fire { background: linear-gradient(90deg,#ff3d57,#ff8c42); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .ar-sub { font-size: 12.5px; color: var(--muted); line-height: 1.5; position: relative; }
+    .ar-tags { display: flex; gap: 6px; flex-wrap: wrap; position: relative; }
+    .ar-tag {
+      font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+      padding: 3px 9px; border-radius: 999px;
+      background: rgba(255,45,70,.15); color: #ff7088; border: 1px solid rgba(255,45,70,.3);
+    }
+    /* Red collab button */
+    .btn-collab {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      margin-top: auto; padding: 13px 20px; border-radius: 12px;
+      background: linear-gradient(135deg, #ff1f3d 0%, #e0102e 60%, #c00020 100%);
+      color: #fff; font-weight: 900; font-size: 14px; letter-spacing: .02em;
+      text-decoration: none; border: none; cursor: pointer;
+      box-shadow: 0 4px 20px rgba(255,30,60,.45), 0 0 0 1px rgba(255,80,80,.2) inset;
+      transition: transform .15s, box-shadow .15s, filter .15s;
+      position: relative; overflow: hidden;
+    }
+    .btn-collab::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(180deg, rgba(255,255,255,.10) 0%, transparent 50%);
+      pointer-events: none;
+    }
+    .btn-collab:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(255,30,60,.6), 0 0 0 1px rgba(255,100,100,.25) inset;
+      filter: brightness(1.06);
+    }
+    .btn-collab:active { transform: translateY(0); }
+    .btn-collab-icon { font-size: 17px; line-height: 1; }
     /* Newsletter form */
     .news-form { display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
     .news-form .row { display: flex; gap: 8px; }
@@ -383,7 +425,6 @@
       .action-row { padding: 14px 14px; }
       .ar-inner { grid-template-columns: 1fr; gap: 10px; }
       .ar-card { padding: 16px 16px; }
-      .ar-btns .cta { flex: 1; }
       .news-form .row { flex-direction: column; }
     }
 
@@ -1264,15 +1305,42 @@ function App() {
         </div>
       </section>
 
-      {/* ════════════ ACTION ROW — newsletter signup (full width) ════════════ */}
+      {/* ════════════ ACTION ROW — newsletter + collab ════════════ */}
       <section className="action-row">
         <div className="ar-inner">
+
+          {/* Newsletter signup */}
           <div className="ar-card news">
             <div className="ar-eyebrow cool">📧 Friday borrower briefing · free forever</div>
             <div className="ar-h">Get the news <span className="grad-cool">before it hits you.</span></div>
             <div className="ar-sub">One email every Friday. What the index moved, why, and what to do about it. 12,847 borrowers already on the list.</div>
             <NewsletterForm/>
           </div>
+
+          {/* Collab / JV card */}
+          <div className="ar-card collab">
+            <div className="ar-eyebrow fire">🤝 Collabs &amp; JV · open to the right ones</div>
+            <div className="ar-h">Build something <span className="grad-fire">that actually matters.</span></div>
+            <div className="ar-sub">
+              We sit on the most real-time student debt intelligence in the market.
+              If you're a lender, fintech, media brand, or creator with an audience that cares — let's talk.
+            </div>
+            <div className="ar-tags">
+              <span className="ar-tag">Co-marketing</span>
+              <span className="ar-tag">Data licensing</span>
+              <span className="ar-tag">API access</span>
+              <span className="ar-tag">Creator deals</span>
+            </div>
+            <a
+              href="mailto:zeroloan000@gmail.com?subject=Collab%20%2F%20JV%20Inquiry%20—%20Loan%20Clarity&body=Hey%2C%0A%0AI%27m%20interested%20in%20collaborating%20with%20Loan%20Clarity.%20Here%27s%20what%20I%27m%20thinking%3A%0A%0A"
+              className="btn-collab"
+              data-cta="collab-jv"
+            >
+              <span className="btn-collab-icon">🔥</span>
+              Let's Build Together →
+            </a>
+          </div>
+
         </div>
       </section>
 
