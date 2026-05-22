@@ -1278,6 +1278,9 @@ function App() {
         <div className="hero-head">
           <div>
             <div className="hero-label">Borrower Stress Index<span className="hero-tm">™</span> · Live</div>
+            <div style={{fontSize:10,color:'var(--muted-2)',fontFamily:'var(--mono)',marginTop:4,letterSpacing:'.06em'}}>
+              EDUCATIONAL DATA TOOL · NOT FINANCIAL ADVICE · <a href="/methodology" style={{color:'var(--muted-2)'}}>HOW IT WORKS</a>
+            </div>
           </div>
           <SrcTag source={d.index_source.name} source_url={d.index_source.url} updated_at={d.index_source.updated_at} methodology_ref={d.index_source.methodology_ref}/>
         </div>
@@ -1313,7 +1316,7 @@ function App() {
           <div className="ar-card news">
             <div className="ar-eyebrow cool">📧 Friday borrower briefing · free forever</div>
             <div className="ar-h">Get the news <span className="grad-cool">before it hits you.</span></div>
-            <div className="ar-sub">One email every Friday. What the index moved, why, and what to do about it. 12,847 borrowers already on the list.</div>
+            <div className="ar-sub">One email every Friday. What the index moved, why, and what to do about it. No spam, ever — unsubscribe in one click anytime. <a href="/privacy" style={{color:'var(--electric)',fontSize:11}}>Privacy policy →</a></div>
             <NewsletterForm/>
           </div>
 
@@ -1361,24 +1364,11 @@ function App() {
 
       {/* ════════════ MINIMAL TRUST STRIP ═══════════ */}
       <div className="trust-mini">
-        <span><b style={{color:'var(--neon)'}}>47,283</b> borrowers checked in this week</span>
+        <span>🔒 No login required · no tracking cookies</span>
         <span>•</span>
-        <span>🔒 No login required</span>
+        <span>📊 Index updated every 5 min</span>
         <span>•</span>
-        <span>📊 Updated every 5 min</span>
-      </div>
-
-      {/* ════════════ SOFI AFFILIATE BANNER ═══════════ */}
-      <div className="affiliate-bar">
-        <div className="affiliate-bar-inner">
-          <div className="affiliate-bar-left">
-            <div className="affiliate-bar-eyebrow">◆ Partner offer · no cost to you</div>
-            <div className="affiliate-bar-h">Refinance with SoFi — <span style={{background:'var(--grad-money)',WebkitBackgroundClip:'text',backgroundClip:'text',color:'transparent'}}>earn $1,000 cash back</span></div>
-            <div className="affiliate-bar-sub">Avg borrower saves $278/mo · 60-second soft credit check · no fees</div>
-            <div className="affiliate-bar-disc">Affiliate disclosure: we earn a referral fee if you refinance. Rates depend on creditworthiness. Not financial advice.</div>
-          </div>
-          <a href="https://www.sofi.com/invite/medical-student-loans?gcp=6855762b-2867-4d08-ad5b-e4da0c004795&isAliasGcp=false" target="_blank" rel="noopener" data-cta="bottom-sofi" className="cta cta-primary" style={{fontSize:'14px',padding:'13px 24px'}}>💸 Check My Rate — $1,000 Bonus →</a>
-        </div>
+        <span>🤖 AI sentiment via <a href="https://www.anthropic.com" target="_blank" rel="noopener" style={{color:'var(--muted)'}}>Anthropic Claude</a></span>
       </div>
 
       {/* ════════════ MINI FOOTER ═══════════ */}
@@ -1389,18 +1379,15 @@ function App() {
             <a href="/methodology">Methodology</a>
             <a href="/sources">Sources</a>
             <a href="/tax-tool">Tax Tool</a>
+            <a href="/privacy">Privacy</a>
           </div>
         </div>
         <div className="mf-disc">
-          Not financial advice. We earn affiliate revenue when you refinance through our links — costs you nothing.
+          <b>Not financial advice.</b> The Borrower Sentiment Index™ is an educational data tool — not investment, legal, or financial guidance. Index scores reflect aggregated public data and AI-classified sentiment; they are not predictions and should not be used as the sole basis for financial decisions. Consult a qualified professional before making any loan, refinancing, or tax decisions.
+          {' '}AI analysis powered by <a href="https://www.anthropic.com" target="_blank" rel="noopener" style={{color:'var(--muted)'}}>Anthropic Claude</a>.
+          {' '}<a href="/privacy" style={{color:'var(--muted)'}}>Privacy Policy</a> · <a href="mailto:zeroloan000@gmail.com" style={{color:'var(--muted)'}}>Contact</a>
         </div>
       </footer>
-
-
-      {/* ════════════ MOBILE STICKY BOTTOM CTA ═══════════ */}
-      <div className="mobile-sticky">
-        <a href="https://www.sofi.com/invite/medical-student-loans?gcp=6855762b-2867-4d08-ad5b-e4da0c004795&isAliasGcp=false" target="_blank" rel="noopener" data-cta="sticky-sofi" className="cta cta-primary">💸 Get $1,000 + Lower Rate (SoFi) →</a>
-      </div>
     </div>
   );
 }

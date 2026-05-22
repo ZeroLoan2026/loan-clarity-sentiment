@@ -1699,6 +1699,11 @@ async def serve_social_signals():
     return FileResponse(Path(__file__).parent / "social-signals.html")
 
 
+@app.get("/privacy")
+async def serve_privacy():
+    return FileResponse(Path(__file__).parent / "privacy.html")
+
+
 # ─── Entry point ──────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     import uvicorn
