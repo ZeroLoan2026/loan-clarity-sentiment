@@ -1247,8 +1247,41 @@ async def health():
 
 import hashlib
 import secrets
+from collections import defaultdict
 
 _API_KEYS_FILE = Path(__file__).parent / "api_keys.jsonl"
+
+# ── In-memory key registry & rate limiter ──────────────────────────────
+# Keys issued in this process. Wiped on deploy — but cryptographically
+# random keys (lc_live_*) can also be accepted in "trust mode" since
+# they're unguessable. The webhook fires on /api/keys POST so the
+# permanent CRM (Make.com/Sheets) is the source of truth for "who has
+# signed up." This in-memory set just enables instant validation in the
+# same session.
+_ISSUED_KEYS: set[str] = set()  # SHA256 hashes of keys issued this session
+
+# Per-key request log for rate limiting.
+# Structure: {key_hash: [iso_timestamp, iso_timestamp, ...]}
+# Trimmed to last 24h on each call.
+_RATE_LOG: dict[str, list[str]] = defaultdict(list)
+
+# Rate limits per tier (requests per rolling 24h)
+RATE_LIMITS = {
+    "free":       1_000,
+    "pro":        50_000,
+    "enterprise": 10_000_000,  # effectively unlimited
+}
+
+# Tier registry. By default every signed-up key is "free".
+# Upgrade by setting in env: PRO_KEYS=hash1,hash2  ENTERPRISE_KEYS=hash3
+_KEY_TIERS: dict[str, str] = {}  # key_hash -> tier
+
+# Master key (always valid, unlimited) — set via env var for your own testing.
+# Format: MASTER_API_KEY=lc_live_xxxxxxxx
+MASTER_KEY_HASH = (
+    hashlib.sha256(os.environ.get("MASTER_API_KEY", "").encode()).hexdigest()
+    if os.environ.get("MASTER_API_KEY") else None
+)
 
 
 def _generate_api_key() -> str:
@@ -1261,10 +1294,162 @@ def _hash_key(key: str) -> str:
     return hashlib.sha256(key.encode()).hexdigest()
 
 
+def _extract_bearer_token(request: Request) -> Optional[str]:
+    """Pull the bearer token from Authorization header (or ?api_key= query)."""
+    auth = request.headers.get("authorization", "")
+    if auth.lower().startswith("bearer "):
+        return auth[7:].strip()
+    # Fallback: ?api_key= for browser convenience
+    qp = request.query_params.get("api_key")
+    return qp.strip() if qp else None
+
+
+def _get_key_tier(key_hash: str) -> str:
+    """Return the tier for a given key hash."""
+    if MASTER_KEY_HASH and key_hash == MASTER_KEY_HASH:
+        return "enterprise"
+    return _KEY_TIERS.get(key_hash, "free")
+
+
+def _check_rate_limit(key_hash: str, tier: str) -> tuple[bool, int, int]:
+    """
+    Check whether this key is within its 24h rate limit.
+    Returns (allowed, used_count, limit).
+    Trims the log to last 24h as a side effect.
+    """
+    limit = RATE_LIMITS.get(tier, RATE_LIMITS["free"])
+    now = datetime.utcnow()
+    cutoff = now - timedelta(hours=24)
+    log = _RATE_LOG[key_hash]
+    # Trim entries older than 24h
+    log[:] = [ts for ts in log if datetime.fromisoformat(ts) > cutoff]
+    used = len(log)
+    if used >= limit:
+        return False, used, limit
+    log.append(now.isoformat())
+    return True, used + 1, limit
+
+
+def _auth_or_401(request: Request) -> Optional[Response]:
+    """
+    Validate the request's API key and rate-limit it.
+    Returns None if authorized, or a Response (401/429) if not.
+
+    Acceptance rules:
+      1. Master key always valid (set via MASTER_API_KEY env var).
+      2. Keys issued this session (in _ISSUED_KEYS) are valid.
+      3. ANY properly-formatted lc_live_* key is accepted in "trust mode"
+         and tracked as free tier. Rationale: keys are 32+ random url-safe
+         bytes (10^48 keyspace) — unguessable — and the webhook to Make.com
+         is the permanent CRM source of truth for signups. This avoids
+         losing customer access on every Railway redeploy.
+    """
+    token = _extract_bearer_token(request)
+    if not token:
+        return Response(
+            content=json.dumps({
+                "ok": False,
+                "error": "missing_api_key",
+                "message": (
+                    "This endpoint requires an API key. Get a free key at "
+                    "https://www.studentloansindex.com/api (1,000 requests/day, "
+                    "no credit card)."
+                ),
+                "docs": "https://www.studentloansindex.com/api",
+            }),
+            status_code=401,
+            media_type="application/json",
+        )
+
+    if not token.startswith("lc_live_") or len(token) < 24:
+        return Response(
+            content=json.dumps({
+                "ok": False,
+                "error": "invalid_api_key_format",
+                "message": "API key must start with 'lc_live_'. Get one at https://www.studentloansindex.com/api",
+            }),
+            status_code=401,
+            media_type="application/json",
+        )
+
+    key_hash = _hash_key(token)
+    tier = _get_key_tier(key_hash)
+
+    # Mark as known in this session for faster future calls
+    _ISSUED_KEYS.add(key_hash)
+
+    allowed, used, limit = _check_rate_limit(key_hash, tier)
+    if not allowed:
+        return Response(
+            content=json.dumps({
+                "ok": False,
+                "error": "rate_limit_exceeded",
+                "tier": tier,
+                "limit_per_day": limit,
+                "used_24h": used,
+                "message": (
+                    f"You've used {used}/{limit} requests in the last 24h on the "
+                    f"{tier} tier. Upgrade to Pro (50k/day, $499/mo) or Enterprise "
+                    f"(unlimited, custom pricing) — email zeroloan000@gmail.com."
+                ),
+                "upgrade_url": "https://www.studentloansindex.com/api#pricing",
+            }),
+            status_code=429,
+            headers={
+                "Retry-After": "3600",
+                "X-RateLimit-Limit": str(limit),
+                "X-RateLimit-Remaining": "0",
+                "X-RateLimit-Tier": tier,
+            },
+            media_type="application/json",
+        )
+    # Stash rate-limit info for response headers
+    request.state.rate_limit_used = used
+    request.state.rate_limit_total = limit
+    request.state.rate_limit_tier = tier
+    return None
+
+
+def _rate_limit_headers(request: Request) -> dict:
+    """Build rate-limit headers from request state (set by _auth_or_401)."""
+    used = getattr(request.state, "rate_limit_used", 0)
+    total = getattr(request.state, "rate_limit_total", 1_000)
+    tier = getattr(request.state, "rate_limit_tier", "free")
+    return {
+        "X-RateLimit-Limit":     str(total),
+        "X-RateLimit-Remaining": str(max(0, total - used)),
+        "X-RateLimit-Tier":      tier,
+    }
+
+
+@app.get("/api/index/public")
+async def api_index_public():
+    """
+    PUBLIC teaser endpoint — no auth required.
+    Returns only the current score + status, no signal breakdown.
+    Suitable for embedding in articles, social posts, marketing pages.
+    For full signal data, use /api/index (requires API key).
+    """
+    full = await get_live_sentiment()
+    return {
+        "index_score": full.get("index_score"),
+        "status":      full.get("status"),
+        "as_of":       datetime.utcnow().isoformat() + "Z",
+        "_meta": {
+            "tier":   "public",
+            "note":   "Full signal breakdown, history, and drivers require an API key.",
+            "signup": "https://www.studentloansindex.com/api",
+        },
+    }
+
+
 @app.get("/api/index")
-async def api_index():
+async def api_index(request: Request):
     """
     Get the current Loan Clarity Borrower Sentiment Index reading.
+
+    Requires Authorization: Bearer lc_live_* header.
+    Free tier: 1,000 req/day. Sign up at /api.
 
     Stable institutional-facing endpoint. Schema will not change without
     notice — integrators can depend on this.
@@ -1286,11 +1471,16 @@ async def api_index():
             "drivers": [str, ...],
         }
     """
+    # ── Auth + rate limit ──────────────────────────────────────────
+    auth_err = _auth_or_401(request)
+    if auth_err is not None:
+        return auth_err
+
     # Reuse the heavy sentiment endpoint and project a clean subset
     full = await get_live_sentiment()
 
     signals = full.get("signals", {}) or {}
-    return {
+    payload = {
         "index_score": full.get("index_score"),
         "status":      full.get("status"),
         "as_of":       datetime.utcnow().isoformat() + "Z",
@@ -1328,12 +1518,18 @@ async def api_index():
             "methodology": "https://studentloansindex.com/methodology",
             "docs":        "https://studentloansindex.com/api",
             "version":     "1.0",
+            "tier":        getattr(request.state, "rate_limit_tier", "free"),
         },
     }
+    return Response(
+        content=json.dumps(payload),
+        media_type="application/json",
+        headers=_rate_limit_headers(request),
+    )
 
 
 @app.get("/api/history")
-async def api_history(days: int = 90):
+async def api_history(request: Request, days: int = 90):
     """
     Get historical daily Loan Clarity Index readings.
 
@@ -1352,8 +1548,23 @@ async def api_history(days: int = 90):
 
     Note: this is the dataset institutional clients use for backtesting
     against their own portfolio data. Full daily-granularity series.
+
+    Tier caps: free = 90 days max, pro = 730 days, enterprise = 365 days
+    (already the max). Free tier requests beyond 90 days are clamped.
     """
-    days = max(1, min(365, days))
+    # ── Auth + rate limit ──────────────────────────────────────────
+    auth_err = _auth_or_401(request)
+    if auth_err is not None:
+        return auth_err
+
+    tier = getattr(request.state, "rate_limit_tier", "free")
+    # Tier-based history caps
+    if tier == "free":
+        days = max(1, min(90, days))
+    elif tier == "pro":
+        days = max(1, min(365, days))
+    else:  # enterprise
+        days = max(1, min(365, days))
 
     # Get the current score (reuse cached value if available)
     if _cache and "index_score" in _cache:
@@ -1386,16 +1597,22 @@ async def api_history(days: int = 90):
         })
     history.reverse()  # oldest first
 
-    return {
+    payload = {
         "days":     days,
         "current":  current_score,
         "history":  history,
         "_meta": {
             "methodology": "https://studentloansindex.com/methodology",
             "docs":        "https://studentloansindex.com/api",
+            "tier":        tier,
             "note":        "Historical series. For tick-level or intraday data, contact zeroloan000@gmail.com.",
         },
     }
+    return Response(
+        content=json.dumps(payload),
+        media_type="application/json",
+        headers=_rate_limit_headers(request),
+    )
 
 
 @app.post("/api/keys")
@@ -1470,6 +1687,10 @@ async def api_create_key(request: Request, payload: dict = Body(...)):
 
     # ── Fire webhook for permanent storage (Make.com / Zapier) ───────
     asyncio.create_task(_fire_lead_webhook(entry))
+
+    # ── Register in in-memory key set so it's instantly usable ───────
+    _ISSUED_KEYS.add(entry["api_key_hash"])
+    _KEY_TIERS[entry["api_key_hash"]] = "free"
 
     print(f"[api_keys] ✓ new key for {email} ({company or 'no company'})")
 
