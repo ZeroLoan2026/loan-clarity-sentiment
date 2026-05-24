@@ -1969,3 +1969,5 @@ if __name__ == "__main__":
     print("📚  Sources:     http://localhost:8000/sources")
     uvicorn.run(app, host="0.0.0.0", port=8000, log_level="warning")
 
+
+# Force fresh deploy check — 2026-05-24 21:10
