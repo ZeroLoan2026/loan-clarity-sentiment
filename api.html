@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Loan Clarity API — Real-Time Student Loan Borrower Sentiment Data</title>
+  <meta name="description" content="Institutional API for real-time student loan borrower sentiment data. Used by lenders, servicers, hedge funds, and rating agencies." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:           #07111f;
+      --bg-soft:      #0d1a2d;
+      --bg-card:      #0f1f36;
+      --border:       #1e3a5f;
+      --text:         #e8eef7;
+      --text-soft:    #9fb2cc;
+      --text-dim:     #6b7e98;
+      --accent:       #2d7dd2;
+      --accent-soft:  #5ba3ec;
+      --green:        #22c55e;
+      --orange:       #f97316;
+      --red:          #ef4444;
+      --code-bg:      #050a14;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    code, pre { font-family: 'JetBrains Mono', Menlo, monospace; }
+    a { color: var(--accent-soft); text-decoration: none; }
+    a:hover { color: var(--text); }
+
+    /* Top nav */
+    .nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(7,17,31,0.9);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 0;
+    }
+    .nav-inner {
+      max-width: 1280px; margin: 0 auto; padding: 0 32px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; }
+    .brand .dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; box-shadow: 0 0 12px var(--green); }
+    .nav-links { display: flex; gap: 28px; }
+    .nav-links a { color: var(--text-soft); font-size: 14px; font-weight: 500; }
+    .nav-links a:hover { color: var(--text); }
+
+    /* Hero */
+    .hero {
+      max-width: 1280px; margin: 0 auto; padding: 80px 32px 60px;
+      display: grid; grid-template-columns: 1.1fr 1fr; gap: 60px; align-items: center;
+    }
+    .hero-tag {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 14px; border: 1px solid var(--border);
+      border-radius: 999px; background: var(--bg-card);
+      color: var(--accent-soft); font-size: 12px; font-weight: 600;
+      letter-spacing: 0.5px; text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+    .hero-tag .ping { width: 6px; height: 6px; background: var(--green); border-radius: 50%; box-shadow: 0 0 8px var(--green); }
+    h1 { font-size: 52px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.05; margin-bottom: 20px; }
+    h1 .grad { background: linear-gradient(90deg, var(--accent-soft) 0%, #a78bfa 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero p.lede { font-size: 19px; color: var(--text-soft); margin-bottom: 28px; max-width: 540px; }
+    .hero-cta { display: flex; gap: 14px; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 14px 22px; border-radius: 10px; font-weight: 600; font-size: 15px; cursor: pointer; transition: all 0.15s; border: 0; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-soft); transform: translateY(-1px); }
+    .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn-ghost:hover { border-color: var(--accent-soft); color: var(--accent-soft); }
+
+    /* Hero code block */
+    .hero-code {
+      background: var(--code-bg); border: 1px solid var(--border);
+      border-radius: 14px; overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+    .code-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 18px; background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+    }
+    .code-dots { display: flex; gap: 6px; }
+    .code-dots span { width: 11px; height: 11px; border-radius: 50%; }
+    .code-dots span:nth-child(1) { background: #ff5f57; }
+    .code-dots span:nth-child(2) { background: #ffbd2e; }
+    .code-dots span:nth-child(3) { background: #28c840; }
+    .code-title { color: var(--text-dim); font-size: 12px; font-family: 'JetBrains Mono', monospace; }
+    .copy-btn { background: transparent; border: 1px solid var(--border); color: var(--text-soft); font-size: 11px; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-family: 'JetBrains Mono', monospace; }
+    .copy-btn:hover { color: var(--text); border-color: var(--accent-soft); }
+    pre { padding: 20px 22px; overflow-x: auto; font-size: 13px; line-height: 1.7; color: var(--text); }
+    .tok-cmt { color: var(--text-dim); }
+    .tok-str { color: #a5d6a7; }
+    .tok-key { color: #82aaff; }
+    .tok-num { color: #f78c6c; }
+    .tok-fn  { color: #c792ea; }
+
+    /* Stats strip */
+    .stats {
+      max-width: 1280px; margin: 0 auto; padding: 40px 32px;
+      border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 40px;
+    }
+    .stat-num { font-size: 30px; font-weight: 800; color: var(--text); letter-spacing: -0.02em; }
+    .stat-num .unit { color: var(--accent-soft); }
+    .stat-lbl { font-size: 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.8px; margin-top: 6px; font-weight: 600; }
+
+    /* Sections */
+    section { max-width: 1280px; margin: 0 auto; padding: 80px 32px; }
+    .section-head { margin-bottom: 48px; }
+    .section-tag { color: var(--accent-soft); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 12px; }
+    h2 { font-size: 38px; font-weight: 800; letter-spacing: -0.015em; margin-bottom: 14px; }
+    .section-head p { color: var(--text-soft); font-size: 17px; max-width: 720px; }
+    h3 { font-size: 22px; font-weight: 700; margin-bottom: 12px; letter-spacing: -0.01em; }
+    h4 { font-size: 13px; font-weight: 700; color: var(--accent-soft); text-transform: uppercase; letter-spacing: 0.8px; margin: 24px 0 10px; }
+
+    /* Endpoint cards */
+    .endpoints { display: flex; flex-direction: column; gap: 24px; }
+    .endpoint {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 14px; overflow: hidden;
+    }
+    .endpoint-head {
+      padding: 20px 24px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 14px;
+    }
+    .method {
+      font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700;
+      padding: 5px 10px; border-radius: 6px;
+    }
+    .method-get { background: rgba(34,197,94,0.15); color: var(--green); }
+    .method-post { background: rgba(45,125,210,0.18); color: var(--accent-soft); }
+    .endpoint-path { font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 600; color: var(--text); }
+    .endpoint-desc { color: var(--text-soft); font-size: 14px; margin-left: auto; }
+    .endpoint-body { padding: 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+    .endpoint-body p { color: var(--text-soft); font-size: 14px; margin-bottom: 14px; }
+    .param-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .param-table th { text-align: left; color: var(--text-dim); font-weight: 600; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .param-table td { padding: 10px 0; border-bottom: 1px solid var(--border); color: var(--text-soft); }
+    .param-table code { background: var(--code-bg); padding: 2px 6px; border-radius: 4px; font-size: 12px; color: var(--accent-soft); }
+
+    /* Signup card */
+    .signup-section {
+      background: linear-gradient(135deg, rgba(45,125,210,0.08) 0%, rgba(167,139,250,0.05) 100%);
+      border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+      padding: 80px 0;
+    }
+    .signup-wrap { max-width: 720px; margin: 0 auto; padding: 0 32px; text-align: center; }
+    .signup-form {
+      margin-top: 32px; padding: 32px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 14px; text-align: left;
+    }
+    .form-row { margin-bottom: 16px; }
+    .form-row label { display: block; font-size: 12px; font-weight: 600; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .form-row input, .form-row select, .form-row textarea {
+      width: 100%; padding: 12px 14px; background: var(--bg);
+      border: 1px solid var(--border); border-radius: 8px;
+      color: var(--text); font-family: inherit; font-size: 14px;
+    }
+    .form-row input:focus, .form-row select:focus, .form-row textarea:focus { outline: none; border-color: var(--accent-soft); }
+    .form-row textarea { resize: vertical; min-height: 70px; }
+    .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-success {
+      display: none; padding: 22px; background: rgba(34,197,94,0.08);
+      border: 1px solid var(--green); border-radius: 10px; margin-top: 16px;
+    }
+    .form-success.show { display: block; }
+    .form-success h4 { color: var(--green); margin-bottom: 8px; }
+    .key-box {
+      margin-top: 14px; padding: 14px; background: var(--code-bg);
+      border: 1px solid var(--border); border-radius: 8px;
+      font-family: 'JetBrains Mono', monospace; font-size: 13px;
+      color: var(--accent-soft); word-break: break-all;
+      display: flex; gap: 10px; align-items: center; justify-content: space-between;
+    }
+
+    /* Use-case grid */
+    .use-cases { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .use-case {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 24px;
+    }
+    .use-case .icon { width: 36px; height: 36px; border-radius: 8px; background: rgba(45,125,210,0.15); display: flex; align-items: center; justify-content: center; margin-bottom: 14px; }
+    .use-case h4 { color: var(--text); font-size: 15px; text-transform: none; letter-spacing: 0; margin: 0 0 8px; }
+    .use-case p { color: var(--text-soft); font-size: 14px; }
+
+    /* Footer */
+    footer { border-top: 1px solid var(--border); padding: 40px 32px; text-align: center; color: var(--text-dim); font-size: 13px; }
+    footer a { margin: 0 14px; }
+
+    @media (max-width: 900px) {
+      .hero { grid-template-columns: 1fr; gap: 40px; padding-top: 50px; }
+      h1 { font-size: 36px; }
+      .stats { grid-template-columns: repeat(2, 1fr); gap: 24px; }
+      .endpoint-body { grid-template-columns: 1fr; }
+      .use-cases { grid-template-columns: 1fr; }
+      .form-grid-2 { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="brand"><span class="dot"></span> Loan Clarity</a>
+    <div class="nav-links">
+      <a href="#endpoints">Endpoints</a>
+      <a href="#auth">Authentication</a>
+      <a href="#use-cases">Use Cases</a>
+      <a href="#signup">Get API Key</a>
+      <a href="/methodology">Methodology</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div>
+    <span class="hero-tag"><span class="ping"></span> v1.0 · LIVE · Free during beta</span>
+    <h1>The <span class="grad">Borrower Sentiment</span><br/>API for institutions.</h1>
+    <p class="lede">
+      Real-time student loan borrower sentiment data — 6 weighted signals, AI-classified emotions,
+      historical daily readings. Built for lenders, servicers, hedge funds, and rating agencies.
+    </p>
+    <div class="hero-cta">
+      <a href="#signup" class="btn btn-primary">Get a free API key →</a>
+      <a href="#endpoints" class="btn btn-ghost">Browse endpoints</a>
+    </div>
+  </div>
+
+  <!-- Hero code preview -->
+  <div class="hero-code">
+    <div class="code-header">
+      <div style="display:flex;gap:14px;align-items:center;">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-title">GET /api/index</span>
+      </div>
+      <button class="copy-btn" onclick="copyCode(this, 'hero-snippet')">copy</button>
+    </div>
+<pre id="hero-snippet"><span class="tok-cmt"># Get the live Borrower Sentiment Index</span>
+<span class="tok-fn">curl</span> https://studentloansindex.com/api/index \
+  -H <span class="tok-str">"Authorization: Bearer lc_live_..."</span>
+
+<span class="tok-cmt"># Response (JSON)</span>
+{
+  <span class="tok-key">"index_score"</span>: <span class="tok-num">70</span>,
+  <span class="tok-key">"status"</span>: <span class="tok-str">"High Anxiety"</span>,
+  <span class="tok-key">"as_of"</span>: <span class="tok-str">"2026-05-24T15:30:00Z"</span>,
+  <span class="tok-key">"signals"</span>: {
+    <span class="tok-key">"google_panic"</span>: { <span class="tok-key">"score"</span>: <span class="tok-num">68</span>, <span class="tok-key">"weight"</span>: <span class="tok-num">0.24</span> },
+    <span class="tok-key">"reddit"</span>:       { <span class="tok-key">"score"</span>: <span class="tok-num">72</span>, <span class="tok-key">"weight"</span>: <span class="tok-num">0.23</span> },
+    <span class="tok-key">"cfpb"</span>:         { <span class="tok-key">"score"</span>: <span class="tok-num">70</span>, <span class="tok-key">"weight"</span>: <span class="tok-num">0.13</span> },
+    <span class="tok-key">"delinquency"</span>:  { <span class="tok-key">"score"</span>: <span class="tok-num">76</span>, <span class="tok-key">"weight"</span>: <span class="tok-num">0.15</span> }
+  },
+  <span class="tok-key">"top_theme"</span>: <span class="tok-str">"SAVE plan uncertainty"</span>
+}</pre>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats">
+  <div>
+    <div class="stat-num">6<span class="unit"> signals</span></div>
+    <div class="stat-lbl">Composite Inputs</div>
+  </div>
+  <div>
+    <div class="stat-num">365<span class="unit"> days</span></div>
+    <div class="stat-lbl">Historical Coverage</div>
+  </div>
+  <div>
+    <div class="stat-num">&lt;200<span class="unit">ms</span></div>
+    <div class="stat-lbl">Median Response</div>
+  </div>
+  <div>
+    <div class="stat-num">$1.77<span class="unit">T</span></div>
+    <div class="stat-lbl">Market Covered</div>
+  </div>
+</div>
+
+<!-- ENDPOINTS -->
+<section id="endpoints">
+  <div class="section-head">
+    <div class="section-tag">Endpoints</div>
+    <h2>Three endpoints. Everything you need.</h2>
+    <p>Stable schema, JSON responses, REST-compliant. Integrate in under an hour.</p>
+  </div>
+
+  <div class="endpoints">
+
+    <!-- GET /api/index -->
+    <div class="endpoint">
+      <div class="endpoint-head">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">/api/index</span>
+        <span class="endpoint-desc">Live borrower sentiment reading</span>
+      </div>
+      <div class="endpoint-body">
+        <div>
+          <p>Returns the current Loan Clarity Borrower Sentiment Index — composite score (0–100),
+          full signal breakdown, top driving themes, and timestamp.</p>
+          <h4>Parameters</h4>
+          <table class="param-table">
+            <tr><td colspan="3" style="color:var(--text-dim);font-style:italic;">No parameters required</td></tr>
+          </table>
+          <h4>Authentication</h4>
+          <p style="margin-bottom:0;">Bearer token in <code>Authorization</code> header. Free tier: 1,000 requests/day.</p>
+        </div>
+        <div class="hero-code">
+          <div class="code-header">
+            <span class="code-title">Example response</span>
+            <button class="copy-btn" onclick="copyCode(this, 'ex-index')">copy</button>
+          </div>
+<pre id="ex-index">{
+  <span class="tok-key">"index_score"</span>: <span class="tok-num">70</span>,
+  <span class="tok-key">"status"</span>: <span class="tok-str">"High Anxiety"</span>,
+  <span class="tok-key">"as_of"</span>: <span class="tok-str">"2026-05-24T15:30:00Z"</span>,
+  <span class="tok-key">"signals"</span>: {
+    <span class="tok-key">"google_panic"</span>: {
+      <span class="tok-key">"score"</span>: <span class="tok-num">68</span>,
+      <span class="tok-key">"weight"</span>: <span class="tok-num">0.24</span>
+    },
+    <span class="tok-key">"reddit"</span>: {
+      <span class="tok-key">"score"</span>: <span class="tok-num">72</span>,
+      <span class="tok-key">"weight"</span>: <span class="tok-num">0.23</span>,
+      <span class="tok-key">"posts_analyzed"</span>: <span class="tok-num">25</span>
+    },
+    <span class="tok-key">"cfpb"</span>: {
+      <span class="tok-key">"score"</span>: <span class="tok-num">70</span>,
+      <span class="tok-key">"weight"</span>: <span class="tok-num">0.13</span>,
+      <span class="tok-key">"complaints_90d"</span>: <span class="tok-num">8500</span>
+    },
+    <span class="tok-key">"delinquency"</span>: {
+      <span class="tok-key">"score"</span>: <span class="tok-num">76</span>,
+      <span class="tok-key">"weight"</span>: <span class="tok-num">0.15</span>
+    },
+    <span class="tok-key">"refinance"</span>: {
+      <span class="tok-key">"score"</span>: <span class="tok-num">66</span>,
+      <span class="tok-key">"weight"</span>: <span class="tok-num">0.08</span>
+    },
+    <span class="tok-key">"survey"</span>: {
+      <span class="tok-key">"score"</span>: <span class="tok-num">80</span>,
+      <span class="tok-key">"weight"</span>: <span class="tok-num">0.17</span>
+    }
+  },
+  <span class="tok-key">"top_theme"</span>: <span class="tok-str">"SAVE plan uncertainty"</span>,
+  <span class="tok-key">"drivers"</span>: [
+    <span class="tok-str">"SAVE plan injunction"</span>,
+    <span class="tok-str">"servicer errors"</span>,
+    <span class="tok-str">"delinquency spike"</span>
+  ]
+}</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- GET /api/history -->
+    <div class="endpoint">
+      <div class="endpoint-head">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">/api/history</span>
+        <span class="endpoint-desc">Daily historical index series</span>
+      </div>
+      <div class="endpoint-body">
+        <div>
+          <p>Daily Loan Clarity Index readings. Use this for backtesting against your portfolio data,
+          correlation studies, or building dashboards.</p>
+          <h4>Parameters</h4>
+          <table class="param-table">
+            <thead><tr><th>Name</th><th>Type</th><th>Default</th></tr></thead>
+            <tbody>
+              <tr><td><code>days</code></td><td>int (1–365)</td><td>90</td></tr>
+            </tbody>
+          </table>
+          <h4>Example call</h4>
+          <p style="margin-bottom:0;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent-soft);">
+            GET /api/history?days=180
+          </p>
+        </div>
+        <div class="hero-code">
+          <div class="code-header">
+            <span class="code-title">Example response (truncated)</span>
+            <button class="copy-btn" onclick="copyCode(this, 'ex-hist')">copy</button>
+          </div>
+<pre id="ex-hist">{
+  <span class="tok-key">"days"</span>: <span class="tok-num">90</span>,
+  <span class="tok-key">"current"</span>: <span class="tok-num">70</span>,
+  <span class="tok-key">"history"</span>: [
+    { <span class="tok-key">"date"</span>: <span class="tok-str">"2026-02-23"</span>,
+      <span class="tok-key">"score"</span>: <span class="tok-num">64</span>,
+      <span class="tok-key">"status"</span>: <span class="tok-str">"High Anxiety"</span> },
+    { <span class="tok-key">"date"</span>: <span class="tok-str">"2026-02-24"</span>,
+      <span class="tok-key">"score"</span>: <span class="tok-num">66</span>,
+      <span class="tok-key">"status"</span>: <span class="tok-str">"High Anxiety"</span> },
+    { <span class="tok-key">"date"</span>: <span class="tok-str">"2026-02-25"</span>,
+      <span class="tok-key">"score"</span>: <span class="tok-num">68</span>,
+      <span class="tok-key">"status"</span>: <span class="tok-str">"High Anxiety"</span> },
+    <span class="tok-cmt">// ... 87 more daily readings</span>
+    { <span class="tok-key">"date"</span>: <span class="tok-str">"2026-05-24"</span>,
+      <span class="tok-key">"score"</span>: <span class="tok-num">70</span>,
+      <span class="tok-key">"status"</span>: <span class="tok-str">"High Anxiety"</span> }
+  ]
+}</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- POST /api/keys -->
+    <div class="endpoint">
+      <div class="endpoint-head">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">/api/keys</span>
+        <span class="endpoint-desc">Request a free API key</span>
+      </div>
+      <div class="endpoint-body">
+        <div>
+          <p>Request a free API key. Returns a key formatted as <code>lc_live_*</code>.
+          Use the form below — or POST directly with email, company, and use case.</p>
+          <h4>Request body</h4>
+          <table class="param-table">
+            <thead><tr><th>Field</th><th>Type</th><th>Req</th></tr></thead>
+            <tbody>
+              <tr><td><code>email</code></td><td>string</td><td>yes</td></tr>
+              <tr><td><code>company</code></td><td>string</td><td>no</td></tr>
+              <tr><td><code>use_case</code></td><td>string</td><td>no</td></tr>
+              <tr><td><code>name</code></td><td>string</td><td>no</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="hero-code">
+          <div class="code-header">
+            <span class="code-title">Example request</span>
+            <button class="copy-btn" onclick="copyCode(this, 'ex-key')">copy</button>
+          </div>
+<pre id="ex-key"><span class="tok-fn">curl</span> -X POST https://studentloansindex.com/api/keys \
+  -H <span class="tok-str">"Content-Type: application/json"</span> \
+  -d <span class="tok-str">'{
+    "email": "analyst@hedgefund.com",
+    "company": "Hedgefund LP",
+    "use_case": "SLABS portfolio risk modeling"
+  }'</span>
+
+<span class="tok-cmt"># Response</span>
+{
+  <span class="tok-key">"ok"</span>: <span class="tok-num">true</span>,
+  <span class="tok-key">"api_key"</span>: <span class="tok-str">"lc_live_xK8aN4..."</span>,
+  <span class="tok-key">"tier"</span>: <span class="tok-str">"free"</span>,
+  <span class="tok-key">"rate_limit"</span>: <span class="tok-str">"1000 req/day"</span>
+}</pre>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- AUTHENTICATION -->
+<section id="auth" style="padding-top:0;">
+  <div class="section-head">
+    <div class="section-tag">Authentication</div>
+    <h2>Bearer tokens. Standard.</h2>
+    <p>Pass your API key as a Bearer token in the <code>Authorization</code> header on every request.</p>
+  </div>
+  <div class="hero-code" style="max-width:760px;">
+    <div class="code-header">
+      <div style="display:flex;gap:14px;align-items:center;">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-title">Three languages, same call</span>
+      </div>
+      <button class="copy-btn" onclick="copyCode(this, 'auth-snip')">copy</button>
+    </div>
+<pre id="auth-snip"><span class="tok-cmt"># cURL</span>
+<span class="tok-fn">curl</span> https://studentloansindex.com/api/index \
+  -H <span class="tok-str">"Authorization: Bearer lc_live_..."</span>
+
+<span class="tok-cmt"># Python</span>
+<span class="tok-key">import</span> requests
+r = requests.get(
+    <span class="tok-str">"https://studentloansindex.com/api/index"</span>,
+    headers={<span class="tok-str">"Authorization"</span>: <span class="tok-str">f"Bearer {API_KEY}"</span>}
+)
+print(r.json()[<span class="tok-str">"index_score"</span>])  <span class="tok-cmt"># → 70</span>
+
+<span class="tok-cmt">// JavaScript / Node</span>
+<span class="tok-key">const</span> r = <span class="tok-key">await</span> fetch(<span class="tok-str">"https://studentloansindex.com/api/index"</span>, {
+  headers: { Authorization: <span class="tok-str">`Bearer ${API_KEY}`</span> }
+});
+<span class="tok-key">const</span> data = <span class="tok-key">await</span> r.json();
+console.log(data.index_score);  <span class="tok-cmt">// → 70</span></pre>
+  </div>
+</section>
+
+<!-- USE CASES -->
+<section id="use-cases">
+  <div class="section-head">
+    <div class="section-tag">Built for institutions</div>
+    <h2>Used by lenders, servicers, & funds.</h2>
+    <p>Real-time borrower sentiment, embedded into the systems that already run your business.</p>
+  </div>
+  <div class="use-cases">
+    <div class="use-case">
+      <div class="icon">📊</div>
+      <h4>Refi campaign timing</h4>
+      <p>Lenders trigger refinance campaigns at high-intent windows — when anxiety peaks and refi demand rises simultaneously.</p>
+    </div>
+    <div class="use-case">
+      <div class="icon">⚠️</div>
+      <h4>Servicer risk early warning</h4>
+      <p>Servicers detect CFPB complaint trajectory before regulators escalate. Pre-empt with proactive borrower outreach.</p>
+    </div>
+    <div class="use-case">
+      <div class="icon">📈</div>
+      <h4>SLABS prepayment modeling</h4>
+      <p>Hedge fund structured credit desks use borrower stress signals as leading indicators for prepayment and default clustering.</p>
+    </div>
+    <div class="use-case">
+      <div class="icon">🏛️</div>
+      <h4>Policy & research</h4>
+      <p>Think tanks and policy orgs cite real-time index data in publications, congressional testimony, and rate proposals.</p>
+    </div>
+    <div class="use-case">
+      <div class="icon">📰</div>
+      <h4>Newsroom data feeds</h4>
+      <p>Embed the live index in articles. Journalists get a real-time data hook the moment the market moves.</p>
+    </div>
+    <div class="use-case">
+      <div class="icon">💳</div>
+      <h4>Credit risk modeling</h4>
+      <p>Rating agencies and credit bureaus blend sentiment data into traditional credit factors for better default prediction.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SIGNUP -->
+<div class="signup-section" id="signup">
+  <div class="signup-wrap">
+    <div class="section-tag">Get started</div>
+    <h2 style="margin-bottom:14px;">Free API key in 30 seconds.</h2>
+    <p style="color:var(--text-soft);font-size:17px;">
+      1,000 requests/day during beta. No credit card. Cancel anytime.
+    </p>
+
+    <form class="signup-form" id="api-form" onsubmit="return signup(event)">
+      <div class="form-row">
+        <label for="f-email">Work email *</label>
+        <input type="email" id="f-email" placeholder="analyst@yourfirm.com" required />
+      </div>
+      <div class="form-grid-2">
+        <div class="form-row">
+          <label for="f-name">Your name</label>
+          <input type="text" id="f-name" placeholder="Alex Chen" />
+        </div>
+        <div class="form-row">
+          <label for="f-company">Company</label>
+          <input type="text" id="f-company" placeholder="Hedgefund LP" />
+        </div>
+      </div>
+      <div class="form-row">
+        <label for="f-usecase">What will you use it for? (helps us prioritize features)</label>
+        <textarea id="f-usecase" placeholder="e.g. SLABS portfolio risk modeling, refi campaign timing, weekly research briefing..."></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;font-size:16px;padding:16px;">
+        Generate my free API key →
+      </button>
+
+      <div class="form-success" id="form-success">
+        <h4>✅ Your API key is ready</h4>
+        <p style="color:var(--text-soft);font-size:14px;">Save this somewhere safe — for security we don't store it in plaintext.</p>
+        <div class="key-box">
+          <code id="key-output"></code>
+          <button class="copy-btn" onclick="copyKey()">copy</button>
+        </div>
+        <p style="margin-top:14px;font-size:13px;color:var(--text-dim);">
+          Test it now: <code style="color:var(--accent-soft);">curl -H "Authorization: Bearer YOUR_KEY" https://studentloansindex.com/api/index</code>
+        </p>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <p>
+    <a href="/">Home</a>·
+    <a href="/methodology">Methodology</a>·
+    <a href="/sources">Sources</a>·
+    <a href="/privacy">Privacy</a>·
+    <a href="mailto:zeroloan000@gmail.com">Support</a>·
+    <a href="mailto:zeroloan000@gmail.com?subject=Enterprise%20API%20Inquiry">Enterprise sales</a>
+  </p>
+  <p style="margin-top:16px;color:var(--text-dim);font-size:12px;">
+    © 2026 Loan Clarity · The Student Loan Borrower Sentiment Index™ · Educational data tool · Not financial advice
+  </p>
+</footer>
+
+<script>
+function copyCode(btn, id) {
+  const el = document.getElementById(id);
+  const text = el.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.innerText;
+    btn.innerText = '✓ copied';
+    setTimeout(() => btn.innerText = orig, 1500);
+  });
+}
+
+function copyKey() {
+  const key = document.getElementById('key-output').innerText;
+  navigator.clipboard.writeText(key);
+}
+
+async function signup(e) {
+  e.preventDefault();
+  const btn = e.target.querySelector('button[type="submit"]');
+  btn.innerText = 'Generating...';
+  btn.disabled = true;
+
+  try {
+    const r = await fetch('/api/keys', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email:    document.getElementById('f-email').value,
+        name:     document.getElementById('f-name').value,
+        company:  document.getElementById('f-company').value,
+        use_case: document.getElementById('f-usecase').value,
+      }),
+    });
+    const data = await r.json();
+    if (data.ok && data.api_key) {
+      document.getElementById('key-output').innerText = data.api_key;
+      document.getElementById('form-success').classList.add('show');
+      btn.innerText = '✓ Key generated';
+    } else {
+      btn.innerText = 'Try again';
+      btn.disabled = false;
+      alert('Error: ' + (data.error || 'unknown'));
+    }
+  } catch (err) {
+    btn.innerText = 'Try again';
+    btn.disabled = false;
+    alert('Network error: ' + err.message);
+  }
+  return false;
+}
+</script>
+
+</body>
+</html>

@@ -1,5 +1,6 @@
-# Subscriber data — never commit
+# Subscriber/lead data — never commit
 subscribers.jsonl
+api_keys.jsonl
 *.pyc
 __pycache__/
 .env

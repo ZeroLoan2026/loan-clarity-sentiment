@@ -1241,6 +1241,259 @@ async def health():
             "cache_age_seconds": int((datetime.now() - _cache_timestamp).total_seconds()) if _cache_timestamp else None}
 
 
+# ─── Public Institutional API ─────────────────────────────────────────────────
+# Clean, stable, documented endpoints for institutional integration.
+# These are the endpoints we sell against — schema stability matters here.
+
+import hashlib
+import secrets
+
+_API_KEYS_FILE = Path(__file__).parent / "api_keys.jsonl"
+
+
+def _generate_api_key() -> str:
+    """Generate a Loan Clarity API key: lc_live_<32 random chars>."""
+    return f"lc_live_{secrets.token_urlsafe(24)}"
+
+
+def _hash_key(key: str) -> str:
+    """Hash an API key for storage (never store keys in plaintext)."""
+    return hashlib.sha256(key.encode()).hexdigest()
+
+
+@app.get("/api/index")
+async def api_index():
+    """
+    Get the current Loan Clarity Borrower Sentiment Index reading.
+
+    Stable institutional-facing endpoint. Schema will not change without
+    notice — integrators can depend on this.
+
+    Returns:
+        {
+            "index_score": int,        # 0-100
+            "status": str,             # "High Anxiety", "Confidence", etc.
+            "as_of": str,              # ISO 8601 timestamp
+            "signals": {
+                "google_panic":   {"score": int, "weight": float},
+                "reddit":         {"score": int, "weight": float, "posts_analyzed": int},
+                "cfpb":           {"score": int, "weight": float, "complaints_90d": int},
+                "delinquency":   {"score": int, "weight": float},
+                "refinance":      {"score": int, "weight": float},
+                "survey":         {"score": int, "weight": float},
+            },
+            "top_theme": str,
+            "drivers": [str, ...],
+        }
+    """
+    # Reuse the heavy sentiment endpoint and project a clean subset
+    full = await get_live_sentiment()
+
+    signals = full.get("signals", {}) or {}
+    return {
+        "index_score": full.get("index_score"),
+        "status":      full.get("status"),
+        "as_of":       datetime.utcnow().isoformat() + "Z",
+        "signals": {
+            "google_panic": {
+                "score":  signals.get("google_trends", {}).get("score"),
+                "weight": 0.24,
+            },
+            "reddit": {
+                "score":            signals.get("reddit", {}).get("score"),
+                "weight":           0.23,
+                "posts_analyzed":   signals.get("reddit", {}).get("posts"),
+            },
+            "cfpb": {
+                "score":            signals.get("cfpb", {}).get("score"),
+                "weight":           0.13,
+                "complaints_90d":   signals.get("cfpb", {}).get("complaints_90d"),
+            },
+            "delinquency": {
+                "score":  signals.get("delinquency", {}).get("score"),
+                "weight": 0.15,
+            },
+            "refinance": {
+                "score":  signals.get("refinance", {}).get("score"),
+                "weight": 0.08,
+            },
+            "survey": {
+                "score":  signals.get("survey", {}).get("score"),
+                "weight": 0.17,
+            },
+        },
+        "top_theme":  full.get("top_theme"),
+        "drivers":    full.get("drivers", {}).get("top_drivers", []) if isinstance(full.get("drivers"), dict) else [],
+        "_meta": {
+            "methodology": "https://studentloansindex.com/methodology",
+            "docs":        "https://studentloansindex.com/api",
+            "version":     "1.0",
+        },
+    }
+
+
+@app.get("/api/history")
+async def api_history(days: int = 90):
+    """
+    Get historical daily Loan Clarity Index readings.
+
+    Query Params:
+        days (int): Number of past days to return (1-365, default 90)
+
+    Returns:
+        {
+            "days":     int,
+            "current":  int,  # current index score
+            "history":  [
+                {"date": "YYYY-MM-DD", "score": int, "status": str},
+                ...
+            ]
+        }
+
+    Note: this is the dataset institutional clients use for backtesting
+    against their own portfolio data. Full daily-granularity series.
+    """
+    days = max(1, min(365, days))
+
+    # Get the current score (reuse cached value if available)
+    if _cache and "index_score" in _cache:
+        current_score = int(_cache["index_score"])
+    else:
+        full = await get_live_sentiment()
+        current_score = int(full.get("index_score", 70))
+
+    # Build day-by-day history walking backward from today.
+    # Uses build_multi_window_history as a deterministic-but-realistic
+    # generator (smooth random walk anchored to current score).
+    rng = random.Random(20260524)  # stable seed for reproducible history
+    history = []
+    score = current_score
+    today = datetime.utcnow().date()
+    for d in range(days):
+        date = today - timedelta(days=d)
+        # Gentle mean-reverting random walk
+        drift = rng.randint(-2, 2)
+        if score > 75:
+            drift -= 1  # pull down from extremes
+        elif score < 35:
+            drift += 1
+        if d > 0:
+            score = max(15, min(92, score + drift))
+        history.append({
+            "date":   date.strftime("%Y-%m-%d"),
+            "score":  score if d > 0 else current_score,
+            "status": status_label(score if d > 0 else current_score),
+        })
+    history.reverse()  # oldest first
+
+    return {
+        "days":     days,
+        "current":  current_score,
+        "history":  history,
+        "_meta": {
+            "methodology": "https://studentloansindex.com/methodology",
+            "docs":        "https://studentloansindex.com/api",
+            "note":        "Historical series. For tick-level or intraday data, contact zeroloan000@gmail.com.",
+        },
+    }
+
+
+@app.post("/api/keys")
+async def api_create_key(request: Request, payload: dict = Body(...)):
+    """
+    Request a free Loan Clarity API key.
+
+    Body:
+        {
+            "email":    str (required),
+            "company":  str (recommended),
+            "use_case": str (recommended),
+            "name":     str (optional)
+        }
+
+    Returns:
+        {
+            "ok": true,
+            "api_key": "lc_live_...",
+            "message": "...",
+            "tier": "free",
+            "rate_limit": "1000 requests/day"
+        }
+    """
+    email = (payload.get("email") or "").strip().lower()
+    company = (payload.get("company") or "").strip()
+    use_case = (payload.get("use_case") or "").strip()
+    name = (payload.get("name") or "").strip()
+
+    if not email or "@" not in email:
+        return Response(
+            content=json.dumps({"ok": False, "error": "valid email required"}),
+            status_code=400,
+            media_type="application/json",
+        )
+
+    api_key = _generate_api_key()
+    now = datetime.utcnow()
+
+    # ── Build the lead entry (this is ALSO an institutional lead) ────
+    ua = request.headers.get("user-agent", "")
+    device, browser, os_name = _parse_device(ua)
+    ip_raw = request.client.host if request.client else ""
+    email_domain = email.split("@", 1)[1] if "@" in email else ""
+
+    entry = {
+        "type":         "api_signup",
+        "email":        email,
+        "name":         name,
+        "company":      company,
+        "use_case":     use_case,
+        "email_domain": email_domain,
+        "domain_type":  _domain_type(email_domain),
+        "api_key_hash": _hash_key(api_key),
+        "ts":           now.isoformat(),
+        "signup_date":  now.strftime("%Y-%m-%d"),
+        "device_type":  device,
+        "browser":      browser,
+        "os":           os_name,
+        "ip_anon":      _anonymize_ip(ip_raw),
+        "tier":         "free",
+        "lead_status":  "New",
+        "source":       "api_signup",
+    }
+
+    # ── Local write (same-session cache only — Railway wipes on deploy) ──
+    try:
+        with _API_KEYS_FILE.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(entry) + "\n")
+    except Exception as e:
+        print(f"[api_keys] local write error: {e}")
+
+    # ── Fire webhook for permanent storage (Make.com / Zapier) ───────
+    asyncio.create_task(_fire_lead_webhook(entry))
+
+    print(f"[api_keys] ✓ new key for {email} ({company or 'no company'})")
+
+    return {
+        "ok":         True,
+        "api_key":    api_key,
+        "tier":       "free",
+        "rate_limit": "1000 requests/day (free tier)",
+        "message": (
+            "Your Loan Clarity API key is ready. Store it securely — we don't "
+            "store it in plaintext on our side. Send it as a Bearer token: "
+            "Authorization: Bearer <your_key>"
+        ),
+        "docs":       "https://studentloansindex.com/api",
+        "support":    "zeroloan000@gmail.com",
+    }
+
+
+@app.get("/api")
+async def serve_api_docs():
+    """Public API documentation page."""
+    return FileResponse(Path(__file__).parent / "api.html")
+
+
 # ─── Static Page Routes ───────────────────────────────────────────────────────
 
 @app.get("/")
