@@ -1712,34 +1712,53 @@ async def api_create_key(request: Request, payload: dict = Body(...)):
 @app.get("/api")
 async def serve_api_docs():
     """Public API documentation page."""
-    return FileResponse(Path(__file__).parent / "api.html")
+    return FileResponse(
+        Path(__file__).parent / "api.html",
+        headers={"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache", "Expires": "0"},
+    )
 
 
 # ─── Static Page Routes ───────────────────────────────────────────────────────
+# All HTML pages set Cache-Control: no-cache so browsers always re-fetch the
+# latest version after a deploy — never serve stale nav/copy from cache.
+
+_NO_CACHE_HEADERS = {
+    "Cache-Control": "no-cache, no-store, must-revalidate",
+    "Pragma":        "no-cache",
+    "Expires":       "0",
+}
+
+
+def _serve_html(filename: str) -> FileResponse:
+    return FileResponse(
+        Path(__file__).parent / filename,
+        headers=_NO_CACHE_HEADERS,
+    )
+
 
 @app.get("/")
 async def serve_frontend():
-    return FileResponse(Path(__file__).parent / "index.html")
+    return _serve_html("index.html")
 
 
 @app.get("/methodology")
 async def serve_methodology():
-    return FileResponse(Path(__file__).parent / "methodology.html")
+    return _serve_html("methodology.html")
 
 
 @app.get("/sources")
 async def serve_sources():
-    return FileResponse(Path(__file__).parent / "sources.html")
+    return _serve_html("sources.html")
 
 
 @app.get("/onepager")
 async def serve_onepager():
-    return FileResponse(Path(__file__).parent / "onepager.html")
+    return _serve_html("onepager.html")
 
 
 @app.get("/tax-tool")
 async def serve_tax_tool():
-    return FileResponse(Path(__file__).parent / "tax-tool.html")
+    return _serve_html("tax-tool.html")
 
 
 # ─── Embeddable Widget ────────────────────────────────────────────────────────
@@ -1957,7 +1976,10 @@ a{{text-decoration:none;color:inherit;display:block;height:100%}}
 @app.get("/api/embed")
 async def serve_embed_gallery():
     """Public gallery: pick a size + theme, copy the embed code."""
-    return FileResponse(Path(__file__).parent / "embed-gallery.html")
+    return FileResponse(
+        Path(__file__).parent / "embed-gallery.html",
+        headers={"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache", "Expires": "0"},
+    )
 
 
 # ─── Newsletter Subscription ──────────────────────────────────────────────────
@@ -2388,12 +2410,12 @@ async def export_leads_csv(key: str = ""):
 
 @app.get("/social-signals")
 async def serve_social_signals():
-    return FileResponse(Path(__file__).parent / "social-signals.html")
+    return _serve_html("social-signals.html")
 
 
 @app.get("/privacy")
 async def serve_privacy():
-    return FileResponse(Path(__file__).parent / "privacy.html")
+    return _serve_html("privacy.html")
 
 
 # ─── Entry point ──────────────────────────────────────────────────────────────
