@@ -4,3 +4,6 @@ api_keys.jsonl
 *.pyc
 __pycache__/
 .env
+
+# Application decisions — should never leave the server
+decisions.jsonl
