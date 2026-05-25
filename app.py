@@ -1311,10 +1311,14 @@ _KEY_TIERS: dict[str, str] = {}  # key_hash -> tier
 
 # Master key (always valid, unlimited) — set via env var for your own testing.
 # Format: MASTER_API_KEY=lc_live_xxxxxxxx
+# Strip whitespace defensively — Railway/copy-paste sometimes adds spaces/newlines.
+_MASTER_KEY_RAW = (os.environ.get("MASTER_API_KEY", "") or "").strip().strip('"').strip("'")
 MASTER_KEY_HASH = (
-    hashlib.sha256(os.environ.get("MASTER_API_KEY", "").encode()).hexdigest()
-    if os.environ.get("MASTER_API_KEY") else None
+    hashlib.sha256(_MASTER_KEY_RAW.encode()).hexdigest() if _MASTER_KEY_RAW else None
 )
+print(f"[startup] MASTER_API_KEY configured: {bool(MASTER_KEY_HASH)} "
+      f"(len={len(_MASTER_KEY_RAW)}, "
+      f"prefix={_MASTER_KEY_RAW[:12] + '...' if _MASTER_KEY_RAW else 'NONE'})")
 
 
 def _generate_api_key() -> str:
@@ -1969,6 +1973,26 @@ async def admin_decline_application(request: Request, payload: dict = Body(...))
     print(f"[admin] ✗ declined application for {email} ({reason or 'no reason given'})")
 
     return {"ok": True, "email": email, "status": "declined"}
+
+
+@app.get("/api/admin/status")
+async def admin_status():
+    """
+    Diagnostic — reports whether MASTER_API_KEY env var is configured.
+    Does NOT reveal the key. Safe to be public.
+    """
+    return {
+        "master_key_configured":   bool(MASTER_KEY_HASH),
+        "master_key_length":       len(_MASTER_KEY_RAW),
+        "master_key_prefix":       _MASTER_KEY_RAW[:12] + "..." if _MASTER_KEY_RAW else None,
+        "master_key_hash_prefix":  MASTER_KEY_HASH[:12] + "..." if MASTER_KEY_HASH else None,
+        "expected_key_length":     58,
+        "note": (
+            "If 'master_key_configured' is false, Railway hasn't loaded MASTER_API_KEY. "
+            "If length is not 58, the value got truncated or has extra whitespace. "
+            "If hash prefix doesn't match what you're sending, the env var value differs."
+        ),
+    }
 
 
 @app.get("/admin")
