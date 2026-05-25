@@ -30,23 +30,27 @@
     a { color: var(--accent-soft); text-decoration: none; }
     a:hover { color: var(--text); }
 
-    /* Top nav */
+    /* Top nav — UNIFIED across all pages (matches index/methodology/sources/social-signals) */
     .nav {
-      position: sticky; top: 0; z-index: 100;
-      background: rgba(7,17,31,0.9);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border);
-      padding: 14px 0;
+      background: rgba(7,17,31,.92); border-bottom: 1px solid var(--border);
+      padding: 14px 28px;
+      display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+      position: sticky; top: 0; left: 0; right: 0; z-index: 100;
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
     }
-    .nav-inner {
-      max-width: 1280px; margin: 0 auto; padding: 0 32px;
-      display: flex; align-items: center; justify-content: space-between;
-    }
-    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; }
-    .brand .dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; box-shadow: 0 0 12px var(--green); }
-    .nav-links { display: flex; gap: 28px; }
-    .nav-links a { color: var(--text-soft); font-size: 14px; font-weight: 500; }
-    .nav-links a:hover { color: var(--text); }
+    .nav-left { display: flex; align-items: center; gap: 12px; justify-self: start; }
+    .logo-mark { width: 34px; height: 34px; background: linear-gradient(135deg,#1a6eb5,#2d7dd2); border-radius: 8px;
+                 display: flex; align-items: center; justify-content: center; font-size: 16px;
+                 box-shadow: 0 0 14px rgba(45,125,210,.25); }
+    .nav-title { font-size: 17px; font-weight: 800; color: #fff; letter-spacing: -.02em; }
+    .nav-sub { font-size: 10px; color: #5a7d9d; letter-spacing: .12em; text-transform: uppercase; margin-top: 1px; }
+    .nav-right { display: flex; gap: 32px; justify-self: center; }
+    .nav-right a { color: #6f88a5; text-decoration: none; font-size: 11px; font-weight: 700;
+                   letter-spacing: .12em; text-transform: uppercase; padding: 6px 0;
+                   border-bottom: 2px solid transparent; transition: all .15s; }
+    .nav-right a:hover { color: #6fb6ff; }
+    .nav-right a.active { color: #fff; border-bottom-color: var(--accent); }
+    .nav-spacer { justify-self: end; }
 
     /* Hero */
     .hero {
@@ -206,29 +210,36 @@
 <body>
 
 <nav class="nav">
-  <div class="nav-inner">
-    <a href="/" class="brand"><span class="dot"></span> Loan Clarity</a>
-    <div class="nav-links">
-      <a href="/">Dashboard</a>
-      <a href="/social-signals" style="color:#ff8a3d">📡 Social Signals</a>
-      <a href="/api" style="color:#5ba3ec;border-bottom:2px solid #5ba3ec;padding-bottom:2px">⚡ API</a>
-      <a href="/api/embed">Embed</a>
-      <a href="/methodology">Methodology</a>
-      <a href="/sources">Sources</a>
-    </div>
+  <div class="nav-left">
+    <a href="/" style="display:flex;align-items:center;gap:12px;text-decoration:none">
+      <div class="logo-mark">📊</div>
+      <div>
+        <div class="nav-title">Loan Clarity</div>
+        <div class="nav-sub">Borrower Sentiment Index™</div>
+      </div>
+    </a>
   </div>
+  <div class="nav-right">
+    <a href="/">Dashboard</a>
+    <a href="/social-signals" style="color:#ff8a3d">📡 Social Signals</a>
+    <a href="/api" class="active" style="color:#5ba3ec">⚡ API</a>
+    <a href="/methodology">Methodology</a>
+    <a href="/sources">Sources</a>
+  </div>
+  <div class="nav-spacer"></div>
 </nav>
 
-<!-- SECONDARY NAV: in-page anchors -->
-<nav style="position:sticky;top:60px;background:rgba(7,17,31,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:10px 32px;z-index:50;font-size:13px;">
-  <div style="max-width:1100px;margin:0 auto;display:flex;gap:24px;align-items:center;justify-content:flex-end;">
+<!-- SECONDARY NAV: in-page anchors (does NOT affect main nav layout) -->
+<div style="position:sticky;top:64px;background:rgba(7,17,31,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:10px 28px;z-index:90;font-size:13px;">
+  <div style="max-width:1280px;margin:0 auto;display:flex;gap:24px;align-items:center;justify-content:flex-end;">
     <a href="#endpoints" style="color:var(--text-soft);font-weight:600;">Endpoints</a>
     <a href="#auth" style="color:var(--text-soft);font-weight:600;">Authentication</a>
     <a href="#use-cases" style="color:var(--text-soft);font-weight:600;">Use Cases</a>
     <a href="#pricing" style="color:var(--text-soft);font-weight:600;">Pricing</a>
-    <a href="#signup" style="background:var(--accent);color:#fff;padding:6px 14px;border-radius:6px;font-weight:700;">Get API Key →</a>
+    <a href="/api/embed" style="color:var(--text-soft);font-weight:600;">Embed</a>
+    <a href="#signup" style="background:var(--accent);color:#fff;padding:6px 14px;border-radius:6px;font-weight:700;text-decoration:none">Get API Key →</a>
   </div>
-</nav>
+</div>
 
 <!-- HERO -->
 <div class="hero">

@@ -28,13 +28,25 @@
     a { color: var(--accent-soft); text-decoration: none; }
     a:hover { color: var(--accent); }
 
-    /* Nav */
-    nav.topnav { position: sticky; top: 0; background: rgba(7,17,31,.92); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); padding: 14px 32px; display: flex; align-items: center; justify-content: space-between; z-index: 100; }
-    .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; }
-    .brand-mark { width: 30px; height: 30px; background: linear-gradient(135deg, #1a6eb5, var(--accent)); border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
-    .navlinks { display: flex; gap: 28px; font-size: 13px; font-weight: 600; }
-    .navlinks a { color: var(--text-soft); }
-    .navlinks a:hover { color: var(--text); }
+    /* Nav — UNIFIED across all pages (matches index/methodology/sources/social-signals/api) */
+    nav.topnav { background: rgba(7,17,31,.92); border-bottom: 1px solid var(--border);
+                 padding: 14px 28px;
+                 display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+                 position: sticky; top: 0; left: 0; right: 0; z-index: 100;
+                 backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+    .nav-left { display: flex; align-items: center; gap: 12px; justify-self: start; }
+    .logo-mark { width: 34px; height: 34px; background: linear-gradient(135deg,#1a6eb5,#2d7dd2); border-radius: 8px;
+                 display: flex; align-items: center; justify-content: center; font-size: 16px;
+                 box-shadow: 0 0 14px rgba(45,125,210,.25); }
+    .nav-title { font-size: 17px; font-weight: 800; color: #fff; letter-spacing: -.02em; }
+    .nav-sub { font-size: 10px; color: #5a7d9d; letter-spacing: .12em; text-transform: uppercase; margin-top: 1px; }
+    .nav-right { display: flex; gap: 32px; justify-self: center; }
+    .nav-right a { color: #6f88a5; text-decoration: none; font-size: 11px; font-weight: 700;
+                   letter-spacing: .12em; text-transform: uppercase; padding: 6px 0;
+                   border-bottom: 2px solid transparent; transition: all .15s; }
+    .nav-right a:hover { color: #6fb6ff; }
+    .nav-right a.active { color: #fff; border-bottom-color: var(--accent); }
+    .nav-spacer { justify-self: end; }
 
     /* Hero */
     .hero { padding: 70px 32px 40px; max-width: 1100px; margin: 0 auto; text-align: center; }
@@ -102,15 +114,24 @@
 <body>
 
 <nav class="topnav">
-  <a href="/" class="brand"><span class="brand-mark">LC</span>Loan Clarity</a>
-  <div class="navlinks">
+  <div class="nav-left">
+    <a href="/" style="display:flex;align-items:center;gap:12px;text-decoration:none">
+      <div class="logo-mark">📊</div>
+      <div>
+        <div class="nav-title">Loan Clarity</div>
+        <div class="nav-sub">Borrower Sentiment Index™</div>
+      </div>
+    </a>
+  </div>
+  <div class="nav-right">
     <a href="/">Dashboard</a>
     <a href="/social-signals" style="color:#ff8a3d">📡 Social Signals</a>
     <a href="/api" style="color:#5ba3ec">⚡ API</a>
-    <a href="/api/embed" style="color:var(--text);border-bottom:2px solid var(--accent);padding-bottom:2px">Embed</a>
+    <a href="/api/embed" class="active">Embed</a>
     <a href="/methodology">Methodology</a>
     <a href="/sources">Sources</a>
   </div>
+  <div class="nav-spacer"></div>
 </nav>
 
 <section class="hero">
