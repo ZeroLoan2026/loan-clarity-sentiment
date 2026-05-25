@@ -1742,6 +1742,224 @@ async def serve_tax_tool():
     return FileResponse(Path(__file__).parent / "tax-tool.html")
 
 
+# ─── Embeddable Widget ────────────────────────────────────────────────────────
+# Editorial-grade iframe widget. Designed for NYT/WSJ/Bloomberg/Forbes embeds.
+# No JS injection (iframe-safe), no external deps, auto-refreshes every 5 min.
+# Always links back to studentloansindex.com → backlinks + brand authority.
+
+@app.get("/embed/index")
+async def serve_embed(
+    size: str = "card",
+    theme: str = "dark",
+    ref: str = "embed",
+):
+    """
+    Render the embeddable Loan Clarity Index widget.
+
+    Query params:
+        size:  "badge" (300x120) | "card" (420x280, default) | "dashboard" (640x420)
+        theme: "dark" (default) | "light"
+        ref:   referrer string for click-through attribution (default "embed")
+
+    Usage:
+        <iframe src="https://www.studentloansindex.com/embed/index?size=card&theme=light"
+                width="420" height="280" frameborder="0" scrolling="no"
+                title="Loan Clarity Borrower Sentiment Index"></iframe>
+    """
+    # Sanitize
+    size  = size  if size  in ("badge", "card", "dashboard") else "card"
+    theme = theme if theme in ("dark", "light")              else "dark"
+    # ref can be anything — just sanitize to alphanum + dashes for safety
+    ref = "".join(c for c in ref if c.isalnum() or c in "-_")[:40] or "embed"
+
+    # Fetch current data — uses cache, fast.
+    full = await get_live_sentiment()
+    score   = int(full.get("index_score") or 70)
+    status  = full.get("status") or "High Anxiety"
+    signals = full.get("signals", {}) or {}
+    cfpb    = signals.get("cfpb", {}).get("complaints_90d")
+    reddit_posts = signals.get("reddit", {}).get("posts")
+    top_theme = full.get("top_theme", "")
+
+    # Status color
+    if   score >= 80: color, color_soft = "#ef4444", "rgba(239,68,68,.15)"
+    elif score >= 65: color, color_soft = "#f97316", "rgba(249,115,22,.15)"
+    elif score >= 45: color, color_soft = "#eab308", "rgba(234,179,8,.15)"
+    elif score >= 30: color, color_soft = "#22c55e", "rgba(34,197,94,.15)"
+    else:             color, color_soft = "#10b981", "rgba(16,185,129,.15)"
+
+    # Theme palette
+    if theme == "dark":
+        bg, fg, fg_dim, border = "#07111f", "#e8eef7", "#9fb2cc", "#1e3a5f"
+    else:
+        bg, fg, fg_dim, border = "#ffffff", "#0a1628", "#5a708a", "#e4eaf2"
+
+    link = f"https://www.studentloansindex.com/?utm_source=embed&utm_medium=widget&utm_campaign={ref}"
+
+    # ── BADGE (compact, sidebar-friendly) ──────────────────────────────
+    if size == "badge":
+        html = f"""<!DOCTYPE html><html><head><meta charset="utf-8">
+<title>Loan Clarity Index</title>
+<meta http-equiv="refresh" content="300">
+<style>
+*,*::before,*::after{{box-sizing:border-box;margin:0;padding:0}}
+html,body{{height:100%}}
+body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif;background:{bg};color:{fg};-webkit-font-smoothing:antialiased;overflow:hidden}}
+a{{text-decoration:none;color:inherit;display:block;height:100%}}
+.w{{padding:14px 16px;height:100%;display:flex;flex-direction:column;justify-content:space-between;border:1px solid {border};border-radius:10px;background:linear-gradient(180deg,{color_soft} 0%,transparent 60%)}}
+.head{{display:flex;align-items:center;justify-content:space-between;font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:{fg_dim};font-weight:700}}
+.dot{{width:6px;height:6px;border-radius:50%;background:{color};box-shadow:0 0 6px {color};display:inline-block;margin-right:5px;vertical-align:middle}}
+.mid{{display:flex;align-items:baseline;gap:8px}}
+.score{{font-size:42px;font-weight:800;letter-spacing:-.03em;color:{color};line-height:1}}
+.outof{{font-size:13px;color:{fg_dim};font-weight:600}}
+.status{{font-size:11px;font-weight:700;letter-spacing:.06em;color:{fg};text-transform:uppercase}}
+.foot{{font-size:9px;color:{fg_dim};letter-spacing:.08em}}
+.foot b{{color:{fg};font-weight:700}}
+</style></head>
+<body><a href="{link}" target="_blank" rel="noopener">
+<div class="w">
+  <div class="head"><span><span class="dot"></span>LIVE</span><span>Borrower Sentiment</span></div>
+  <div>
+    <div class="mid"><div class="score">{score}</div><div class="outof">/100</div></div>
+    <div class="status" style="color:{color}">{status}</div>
+  </div>
+  <div class="foot">Powered by <b>Loan Clarity</b> ↗</div>
+</div>
+</a></body></html>"""
+
+    # ── CARD (article inline embed) ──────────────────────────────
+    elif size == "card":
+        html = f"""<!DOCTYPE html><html><head><meta charset="utf-8">
+<title>Loan Clarity Borrower Sentiment Index</title>
+<meta http-equiv="refresh" content="300">
+<style>
+*,*::before,*::after{{box-sizing:border-box;margin:0;padding:0}}
+html,body{{height:100%}}
+body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif;background:{bg};color:{fg};-webkit-font-smoothing:antialiased;overflow:hidden}}
+a{{text-decoration:none;color:inherit;display:block;height:100%}}
+.w{{padding:22px 24px;height:100%;display:flex;flex-direction:column;border:1px solid {border};border-radius:14px;background:linear-gradient(180deg,{color_soft} 0%,transparent 50%);position:relative}}
+.head{{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}}
+.brand{{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:{fg_dim};font-weight:800}}
+.brand b{{color:{fg}}}
+.live{{display:flex;align-items:center;gap:6px;font-size:10px;color:{fg_dim};letter-spacing:.1em;text-transform:uppercase;font-weight:700}}
+.dot{{width:6px;height:6px;border-radius:50%;background:#22c55e;box-shadow:0 0 6px #22c55e;animation:pulse 1.8s ease-in-out infinite}}
+@keyframes pulse{{0%,100%{{opacity:1}}50%{{opacity:.4}}}}
+.row{{display:flex;align-items:flex-end;gap:14px;margin-bottom:6px}}
+.score{{font-size:68px;font-weight:800;letter-spacing:-.04em;color:{color};line-height:.9}}
+.outof{{font-size:18px;color:{fg_dim};font-weight:700;padding-bottom:6px}}
+.status{{font-size:14px;font-weight:800;letter-spacing:.06em;color:{color};text-transform:uppercase;margin-bottom:14px}}
+.bar{{height:6px;background:{border};border-radius:3px;overflow:hidden;margin-bottom:14px;position:relative}}
+.bar-fill{{height:100%;background:linear-gradient(90deg,#22c55e 0%,#eab308 45%,#f97316 70%,#ef4444 100%);width:100%;clip-path:inset(0 {100-score}% 0 0)}}
+.bar-tick{{position:absolute;top:-3px;height:12px;width:2px;background:{fg};left:calc({score}% - 1px);border-radius:1px}}
+.stats{{display:flex;gap:14px;font-size:11px;color:{fg_dim};margin-top:auto;padding-top:10px;border-top:1px solid {border}}}
+.stats b{{color:{fg};font-weight:800;font-size:13px;display:block}}
+.foot{{position:absolute;bottom:8px;right:14px;font-size:9px;color:{fg_dim};letter-spacing:.08em}}
+.foot b{{color:{fg};font-weight:700}}
+</style></head>
+<body><a href="{link}" target="_blank" rel="noopener">
+<div class="w">
+  <div class="head">
+    <div class="brand">Loan Clarity <b>Borrower Sentiment Index™</b></div>
+    <div class="live"><div class="dot"></div>Live</div>
+  </div>
+  <div class="row"><div class="score">{score}</div><div class="outof">/100</div></div>
+  <div class="status">{status}</div>
+  <div class="bar"><div class="bar-fill"></div><div class="bar-tick"></div></div>
+  <div class="stats">
+    <div><b>{cfpb or "—"}</b>CFPB complaints (90d)</div>
+    <div><b>{reddit_posts or "—"}</b>Reddit posts analyzed</div>
+  </div>
+  <div class="foot">studentloansindex.com ↗</div>
+</div>
+</a></body></html>"""
+
+    # ── DASHBOARD (large hero embed) ──────────────────────────────
+    else:  # dashboard
+        theme_str = top_theme if top_theme else "SAVE plan uncertainty and repayment restart struggles"
+        if len(theme_str) > 80:
+            theme_str = theme_str[:78] + "…"
+        html = f"""<!DOCTYPE html><html><head><meta charset="utf-8">
+<title>Loan Clarity Borrower Sentiment Index — Live</title>
+<meta http-equiv="refresh" content="300">
+<style>
+*,*::before,*::after{{box-sizing:border-box;margin:0;padding:0}}
+html,body{{height:100%}}
+body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif;background:{bg};color:{fg};-webkit-font-smoothing:antialiased;overflow:hidden}}
+a{{text-decoration:none;color:inherit;display:block;height:100%}}
+.w{{padding:28px 32px;height:100%;display:flex;flex-direction:column;border:1px solid {border};border-radius:16px;background:linear-gradient(180deg,{color_soft} 0%,transparent 45%);position:relative}}
+.head{{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}}
+.brand{{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:{fg_dim};font-weight:800}}
+.brand b{{color:{fg}}}
+.live{{display:flex;align-items:center;gap:7px;font-size:11px;color:{fg_dim};letter-spacing:.12em;text-transform:uppercase;font-weight:800}}
+.dot{{width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 8px #22c55e;animation:pulse 1.8s ease-in-out infinite}}
+@keyframes pulse{{0%,100%{{opacity:1}}50%{{opacity:.4}}}}
+.main{{display:grid;grid-template-columns:1fr 1fr;gap:30px;flex:1;align-items:center}}
+.col-left{{display:flex;flex-direction:column;justify-content:center}}
+.row{{display:flex;align-items:flex-end;gap:14px}}
+.score{{font-size:110px;font-weight:800;letter-spacing:-.05em;color:{color};line-height:.9}}
+.outof{{font-size:24px;color:{fg_dim};font-weight:700;padding-bottom:14px}}
+.status{{font-size:18px;font-weight:800;letter-spacing:.08em;color:{color};text-transform:uppercase;margin-top:8px}}
+.col-right{{display:flex;flex-direction:column;gap:12px}}
+.theme-card{{padding:14px 16px;border:1px solid {border};border-radius:10px;background:{bg}}}
+.theme-lbl{{font-size:9px;color:{fg_dim};letter-spacing:.13em;text-transform:uppercase;font-weight:700;margin-bottom:6px}}
+.theme-txt{{font-size:13px;color:{fg};font-weight:600;line-height:1.4}}
+.stat-grid{{display:grid;grid-template-columns:1fr 1fr;gap:10px}}
+.stat{{padding:12px 14px;border:1px solid {border};border-radius:10px;background:{bg}}}
+.stat-lbl{{font-size:9px;color:{fg_dim};letter-spacing:.12em;text-transform:uppercase;font-weight:700}}
+.stat-val{{font-size:20px;font-weight:800;color:{fg};margin-top:3px;letter-spacing:-.02em}}
+.bar{{height:8px;background:{border};border-radius:4px;overflow:hidden;margin:14px 0 6px;position:relative}}
+.bar-fill{{height:100%;background:linear-gradient(90deg,#22c55e 0%,#eab308 45%,#f97316 70%,#ef4444 100%);width:100%;clip-path:inset(0 {100-score}% 0 0)}}
+.bar-tick{{position:absolute;top:-4px;height:16px;width:2px;background:{fg};left:calc({score}% - 1px);border-radius:1px}}
+.foot{{position:absolute;bottom:10px;right:16px;font-size:10px;color:{fg_dim};letter-spacing:.08em}}
+.foot b{{color:{fg};font-weight:700}}
+</style></head>
+<body><a href="{link}" target="_blank" rel="noopener">
+<div class="w">
+  <div class="head">
+    <div class="brand">Loan Clarity <b>Borrower Sentiment Index™</b></div>
+    <div class="live"><div class="dot"></div>Live · Updated continuously</div>
+  </div>
+  <div class="main">
+    <div class="col-left">
+      <div class="row"><div class="score">{score}</div><div class="outof">/100</div></div>
+      <div class="status">{status}</div>
+      <div class="bar"><div class="bar-fill"></div><div class="bar-tick"></div></div>
+    </div>
+    <div class="col-right">
+      <div class="theme-card">
+        <div class="theme-lbl">Driving the index right now</div>
+        <div class="theme-txt">{theme_str}</div>
+      </div>
+      <div class="stat-grid">
+        <div class="stat"><div class="stat-lbl">CFPB Complaints 90d</div><div class="stat-val">{cfpb or "—"}</div></div>
+        <div class="stat"><div class="stat-lbl">Reddit Posts</div><div class="stat-val">{reddit_posts or "—"}</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">studentloansindex.com ↗</div>
+</div>
+</a></body></html>"""
+
+    return Response(
+        content=html,
+        media_type="text/html",
+        headers={
+            # Allow iframe embedding from anywhere (this is the whole point)
+            "X-Frame-Options":          "ALLOWALL",
+            "Content-Security-Policy":  "frame-ancestors *",
+            # Cache for 5 min — matches refresh meta tag
+            "Cache-Control":            "public, max-age=300",
+            "Access-Control-Allow-Origin": "*",
+        },
+    )
+
+
+@app.get("/api/embed")
+async def serve_embed_gallery():
+    """Public gallery: pick a size + theme, copy the embed code."""
+    return FileResponse(Path(__file__).parent / "embed-gallery.html")
+
+
 # ─── Newsletter Subscription ──────────────────────────────────────────────────
 _SUBSCRIBERS_FILE = Path(__file__).parent / "subscribers.jsonl"
 

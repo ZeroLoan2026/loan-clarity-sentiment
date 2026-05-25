@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Embed the Loan Clarity Borrower Sentiment Index — Free for Journalists & Sites</title>
+  <meta name="description" content="Embed the live Loan Clarity Borrower Sentiment Index in your article, blog, or site. Free, auto-updating, no attribution required (but appreciated)." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:           #07111f;
+      --bg-soft:      #0d1a2d;
+      --bg-card:      #0f1f36;
+      --border:       #1e3a5f;
+      --text:         #e8eef7;
+      --text-soft:    #9fb2cc;
+      --text-dim:     #6b7e98;
+      --accent:       #2d7dd2;
+      --accent-soft:  #5ba3ec;
+      --green:        #22c55e;
+      --code-bg:      #050a14;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    code, pre { font-family: 'JetBrains Mono', Menlo, monospace; }
+    a { color: var(--accent-soft); text-decoration: none; }
+    a:hover { color: var(--accent); }
+
+    /* Nav */
+    nav.topnav { position: sticky; top: 0; background: rgba(7,17,31,.92); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); padding: 14px 32px; display: flex; align-items: center; justify-content: space-between; z-index: 100; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; }
+    .brand-mark { width: 30px; height: 30px; background: linear-gradient(135deg, #1a6eb5, var(--accent)); border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+    .navlinks { display: flex; gap: 28px; font-size: 13px; font-weight: 600; }
+    .navlinks a { color: var(--text-soft); }
+    .navlinks a:hover { color: var(--text); }
+
+    /* Hero */
+    .hero { padding: 70px 32px 40px; max-width: 1100px; margin: 0 auto; text-align: center; }
+    .tag { display: inline-block; font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--accent-soft); font-weight: 800; background: rgba(45,125,210,.12); padding: 6px 14px; border-radius: 999px; margin-bottom: 18px; }
+    .hero h1 { font-size: clamp(36px, 5.5vw, 56px); font-weight: 800; letter-spacing: -.03em; line-height: 1.05; margin-bottom: 18px; }
+    .hero h1 .grad { background: linear-gradient(120deg, #5ba3ec 0%, #22c55e 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero p { font-size: 18px; color: var(--text-soft); max-width: 680px; margin: 0 auto; }
+
+    /* Controls */
+    .controls { max-width: 1100px; margin: 0 auto; padding: 30px 32px; }
+    .controls-row { display: flex; gap: 18px; flex-wrap: wrap; justify-content: center; align-items: center; margin-bottom: 26px; }
+    .control { display: flex; align-items: center; gap: 10px; }
+    .control-lbl { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--text-dim); font-weight: 700; }
+    .seg { display: inline-flex; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 3px; }
+    .seg button { background: none; border: none; color: var(--text-soft); font-family: inherit; font-size: 13px; font-weight: 600; padding: 6px 14px; border-radius: 6px; cursor: pointer; transition: .15s; }
+    .seg button.on { background: var(--accent); color: #fff; }
+    .seg button:not(.on):hover { color: var(--text); }
+
+    /* Preview */
+    .preview { max-width: 900px; margin: 0 auto; padding: 0 32px; }
+    .preview-frame { background: var(--bg-soft); border: 1px solid var(--border); border-radius: 14px; padding: 40px; display: flex; align-items: center; justify-content: center; min-height: 360px; }
+    .preview-frame.light-bg { background: #f4f6fa; }
+    iframe.embed-preview { border: 0; display: block; box-shadow: 0 12px 40px rgba(0,0,0,.35); border-radius: 14px; }
+
+    /* Code block */
+    .code-section { max-width: 900px; margin: 30px auto 60px; padding: 0 32px; }
+    .code-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .code-title { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--text-dim); font-weight: 700; }
+    .copy-btn { background: var(--accent); color: #fff; font-family: inherit; font-size: 12px; font-weight: 700; border: 0; padding: 8px 16px; border-radius: 6px; cursor: pointer; letter-spacing: .04em; }
+    .copy-btn.copied { background: var(--green); }
+    pre.code { background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px; padding: 20px 22px; font-size: 13px; line-height: 1.55; color: #b6cde6; white-space: pre-wrap; word-break: break-all; overflow-x: auto; }
+    .tok-tag  { color: #ff7b72; }
+    .tok-attr { color: #d2a8ff; }
+    .tok-str  { color: #a5d6ff; }
+
+    /* Use-case strip */
+    .uses { max-width: 1100px; margin: 0 auto; padding: 30px 32px 80px; }
+    .uses h2 { font-size: 28px; font-weight: 800; letter-spacing: -.02em; text-align: center; margin-bottom: 32px; }
+    .use-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .use { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 22px; }
+    .use-emoji { font-size: 22px; margin-bottom: 8px; }
+    .use h4 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+    .use p { font-size: 13px; color: var(--text-soft); }
+
+    /* FAQ */
+    .faq { max-width: 760px; margin: 0 auto; padding: 0 32px 80px; }
+    .faq h2 { font-size: 26px; font-weight: 800; text-align: center; margin-bottom: 28px; letter-spacing: -.02em; }
+    .faq details { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; margin-bottom: 10px; cursor: pointer; }
+    .faq summary { font-size: 15px; font-weight: 700; color: var(--text); list-style: none; display: flex; justify-content: space-between; align-items: center; }
+    .faq summary::after { content: "+"; color: var(--accent-soft); font-size: 18px; }
+    .faq details[open] summary::after { content: "−"; }
+    .faq details p { font-size: 14px; color: var(--text-soft); margin-top: 12px; line-height: 1.7; }
+
+    /* Footer */
+    footer { border-top: 1px solid var(--border); padding: 30px 32px; text-align: center; color: var(--text-dim); font-size: 13px; }
+    footer a { color: var(--text-soft); margin: 0 12px; }
+
+    @media (max-width: 720px) {
+      .use-grid { grid-template-columns: 1fr; }
+      .preview-frame { padding: 20px; }
+      .hero { padding: 50px 20px 30px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="topnav">
+  <a href="/" class="brand"><span class="brand-mark">LC</span>Loan Clarity</a>
+  <div class="navlinks">
+    <a href="/">Dashboard</a>
+    <a href="/api">API</a>
+    <a href="/methodology">Methodology</a>
+    <a href="/api/embed" style="color:var(--text)">Embed</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="tag">For journalists, bloggers & data sites</div>
+  <h1>Embed the <span class="grad">live Borrower Sentiment Index</span> in your article.</h1>
+  <p>One line of HTML. Auto-updates every 5 minutes. Free, forever. No API key required, no tracking, no ads.</p>
+</section>
+
+<div class="controls">
+  <div class="controls-row">
+    <div class="control">
+      <span class="control-lbl">Size</span>
+      <div class="seg" id="size-seg">
+        <button data-size="badge">Badge</button>
+        <button data-size="card" class="on">Card</button>
+        <button data-size="dashboard">Dashboard</button>
+      </div>
+    </div>
+    <div class="control">
+      <span class="control-lbl">Theme</span>
+      <div class="seg" id="theme-seg">
+        <button data-theme="dark" class="on">Dark</button>
+        <button data-theme="light">Light</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="preview">
+  <div class="preview-frame" id="preview-frame">
+    <iframe id="embed-preview" class="embed-preview" src="" width="420" height="280" frameborder="0" scrolling="no" title="Loan Clarity Borrower Sentiment Index"></iframe>
+  </div>
+</div>
+
+<div class="code-section">
+  <div class="code-head">
+    <div class="code-title">Copy this HTML into your article</div>
+    <button class="copy-btn" id="copy-btn" onclick="copyEmbed()">Copy embed code</button>
+  </div>
+  <pre class="code" id="embed-code"></pre>
+</div>
+
+<section class="uses">
+  <h2>Who's embedding the index</h2>
+  <div class="use-grid">
+    <div class="use">
+      <div class="use-emoji">📰</div>
+      <h4>News articles</h4>
+      <p>Embed the dashboard widget in your student loan coverage. Readers get a live data point every time they revisit the article.</p>
+    </div>
+    <div class="use">
+      <div class="use-emoji">🏛️</div>
+      <h4>Policy briefings</h4>
+      <p>Think tanks and research orgs cite real-time sentiment in publications, white papers, and congressional testimony.</p>
+    </div>
+    <div class="use">
+      <div class="use-emoji">💼</div>
+      <h4>Lender & advisor sites</h4>
+      <p>Financial planners and lenders show the live index on their education pages — proof the market is moving.</p>
+    </div>
+    <div class="use">
+      <div class="use-emoji">📊</div>
+      <h4>Personal finance blogs</h4>
+      <p>NerdWallet-style sites embed the badge in their student loan guides. Always-fresh content, zero maintenance.</p>
+    </div>
+    <div class="use">
+      <div class="use-emoji">📺</div>
+      <h4>Newsletter & Substack</h4>
+      <p>Drop the badge into weekly market roundups. Subscribers see a fresh score every send.</p>
+    </div>
+    <div class="use">
+      <div class="use-emoji">🎓</div>
+      <h4>University career pages</h4>
+      <p>Financial aid offices embed the index so students see real borrower stress data — not just averages.</p>
+    </div>
+  </div>
+</section>
+
+<section class="faq">
+  <h2>FAQ</h2>
+  <details>
+    <summary>Is the embed free?</summary>
+    <p>Yes. Forever. We don't charge for embeds because every embed is a backlink and a citation — that's value for us, not a cost. No license fee, no rate limit, no signup.</p>
+  </details>
+  <details>
+    <summary>Does it update automatically?</summary>
+    <p>Yes. The iframe refreshes every 5 minutes, so readers always see the current index reading whether they land on your article today or six months from now.</p>
+  </details>
+  <details>
+    <summary>Will it slow down my page?</summary>
+    <p>No. The iframe loads in under 200ms, has zero external dependencies (no jQuery, no React, no fonts loaded from CDNs), and doesn't block your page render. It's just one HTTP request to a static-cached HTML document.</p>
+  </details>
+  <details>
+    <summary>Is there a non-iframe / JavaScript option?</summary>
+    <p>For most editorial use (NYT, WSJ, Bloomberg, Forbes), iframe is preferred because their CMS blocks third-party scripts. If you need a JS-based or React-component version for tighter integration, email <a href="mailto:zeroloan000@gmail.com">zeroloan000@gmail.com</a> — we can ship it within 48 hours.</p>
+  </details>
+  <details>
+    <summary>Can I cite this in research or journalism?</summary>
+    <p>Yes — please do. Suggested citation: <em>"Loan Clarity Borrower Sentiment Index, [DATE], studentloansindex.com"</em>. Email us if you'd like a formal data partnership or attribution arrangement.</p>
+  </details>
+  <details>
+    <summary>What about a custom-branded version?</summary>
+    <p>White-label embeds (your logo, your colors, removing the Loan Clarity branding) are available on the Enterprise tier. See <a href="/api#pricing">pricing</a>.</p>
+  </details>
+</section>
+
+<footer>
+  © 2026 Loan Clarity · Borrower Sentiment Index™
+  <div style="margin-top:8px;">
+    <a href="/">Dashboard</a>
+    <a href="/api">API</a>
+    <a href="/methodology">Methodology</a>
+    <a href="/privacy">Privacy</a>
+  </div>
+</footer>
+
+<script>
+  const ORIGIN = window.location.origin;
+  let curSize = 'card';
+  let curTheme = 'dark';
+
+  const sizeDims = {
+    badge:     { w: 300, h: 120 },
+    card:      { w: 420, h: 280 },
+    dashboard: { w: 640, h: 420 },
+  };
+
+  function updatePreview() {
+    const dim = sizeDims[curSize];
+    const iframe = document.getElementById('embed-preview');
+    const url = `${ORIGIN}/embed/index?size=${curSize}&theme=${curTheme}&ref=preview`;
+    iframe.src = url;
+    iframe.width  = dim.w;
+    iframe.height = dim.h;
+    // Light theme: switch preview backdrop
+    document.getElementById('preview-frame').classList.toggle('light-bg', curTheme === 'light');
+    // Build embed code
+    const code = document.getElementById('embed-code');
+    const html =
+      `<iframe\n` +
+      `  src="${ORIGIN}/embed/index?size=${curSize}&theme=${curTheme}"\n` +
+      `  width="${dim.w}" height="${dim.h}"\n` +
+      `  frameborder="0" scrolling="no"\n` +
+      `  title="Loan Clarity Borrower Sentiment Index"\n` +
+      `  style="border:0; max-width:100%;"\n` +
+      `></iframe>`;
+    code.innerHTML = html
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/(\w+)=/g, '<span class="tok-attr">$1</span>=')
+      .replace(/"([^"]*)"/g, '"<span class="tok-str">$1</span>"')
+      .replace(/&lt;(iframe|\/iframe)&gt;/g, '<span class="tok-tag">&lt;$1&gt;</span>');
+  }
+
+  document.querySelectorAll('#size-seg button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#size-seg button').forEach(b => b.classList.remove('on'));
+      btn.classList.add('on');
+      curSize = btn.dataset.size;
+      updatePreview();
+    });
+  });
+  document.querySelectorAll('#theme-seg button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#theme-seg button').forEach(b => b.classList.remove('on'));
+      btn.classList.add('on');
+      curTheme = btn.dataset.theme;
+      updatePreview();
+    });
+  });
+
+  function copyEmbed() {
+    const dim = sizeDims[curSize];
+    const html =
+      `<iframe src="${ORIGIN}/embed/index?size=${curSize}&theme=${curTheme}" ` +
+      `width="${dim.w}" height="${dim.h}" frameborder="0" scrolling="no" ` +
+      `title="Loan Clarity Borrower Sentiment Index" style="border:0; max-width:100%;"></iframe>`;
+    navigator.clipboard.writeText(html).then(() => {
+      const btn = document.getElementById('copy-btn');
+      const orig = btn.textContent;
+      btn.textContent = '✓ Copied';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = orig; btn.classList.remove('copied'); }, 1800);
+    });
+  }
+
+  updatePreview();
+</script>
+
+</body>
+</html>
