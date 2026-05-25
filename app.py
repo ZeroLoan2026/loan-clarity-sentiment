@@ -1265,10 +1265,10 @@ _ISSUED_KEYS: set[str] = set()  # SHA256 hashes of keys issued this session
 # Trimmed to last 24h on each call.
 _RATE_LOG: dict[str, list[str]] = defaultdict(list)
 
-# Rate limits per tier (requests per rolling 24h)
+# Rate limits per tier (checks per rolling 24h)
 RATE_LIMITS = {
-    "free":       1_000,
-    "pro":        50_000,
+    "free":       1,
+    "pro":        50,
     "enterprise": 10_000_000,  # effectively unlimited
 }
 
@@ -1352,7 +1352,7 @@ def _auth_or_401(request: Request) -> Optional[Response]:
                 "error": "missing_api_key",
                 "message": (
                     "This endpoint requires an API key. Get a free key at "
-                    "https://www.studentloansindex.com/api (1,000 requests/day, "
+                    "https://www.studentloansindex.com/api (1 check/day free, "
                     "no credit card)."
                 ),
                 "docs": "https://www.studentloansindex.com/api",
@@ -1388,9 +1388,9 @@ def _auth_or_401(request: Request) -> Optional[Response]:
                 "limit_per_day": limit,
                 "used_24h": used,
                 "message": (
-                    f"You've used {used}/{limit} requests in the last 24h on the "
-                    f"{tier} tier. Upgrade to Pro (50k/day, $499/mo) or Enterprise "
-                    f"(unlimited, custom pricing) — email zeroloan000@gmail.com."
+                    f"You've used {used}/{limit} checks in the last 24h on the "
+                    f"{tier} tier. Upgrade to Pro (50 checks/day, $499/mo) or Enterprise "
+                    f"(unlimited, $5,000/mo) — email zeroloan000@gmail.com."
                 ),
                 "upgrade_url": "https://www.studentloansindex.com/api#pricing",
             }),
@@ -1449,7 +1449,7 @@ async def api_index(request: Request):
     Get the current Loan Clarity Borrower Sentiment Index reading.
 
     Requires Authorization: Bearer lc_live_* header.
-    Free tier: 1,000 req/day. Sign up at /api.
+    Free tier: 1 check/day. Sign up at /api.
 
     Stable institutional-facing endpoint. Schema will not change without
     notice — integrators can depend on this.
@@ -1634,7 +1634,7 @@ async def api_create_key(request: Request, payload: dict = Body(...)):
             "api_key": "lc_live_...",
             "message": "...",
             "tier": "free",
-            "rate_limit": "1000 requests/day"
+            "rate_limit": "1 check/day"
         }
     """
     email = (payload.get("email") or "").strip().lower()
@@ -1698,7 +1698,7 @@ async def api_create_key(request: Request, payload: dict = Body(...)):
         "ok":         True,
         "api_key":    api_key,
         "tier":       "free",
-        "rate_limit": "1000 requests/day (free tier)",
+        "rate_limit": "1 check/day (free tier)",
         "message": (
             "Your Loan Clarity API key is ready. Store it securely — we don't "
             "store it in plaintext on our side. Send it as a Bearer token: "
