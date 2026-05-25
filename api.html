@@ -229,17 +229,6 @@
   <div class="nav-spacer"></div>
 </nav>
 
-<!-- SECONDARY NAV: in-page anchors (does NOT affect main nav layout) -->
-<div style="position:sticky;top:64px;background:rgba(7,17,31,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:10px 28px;z-index:90;font-size:13px;">
-  <div style="max-width:1280px;margin:0 auto;display:flex;gap:24px;align-items:center;justify-content:flex-end;">
-    <a href="#endpoints" style="color:var(--text-soft);font-weight:600;">Endpoints</a>
-    <a href="#auth" style="color:var(--text-soft);font-weight:600;">Authentication</a>
-    <a href="#use-cases" style="color:var(--text-soft);font-weight:600;">Use Cases</a>
-    <a href="#pricing" style="color:var(--text-soft);font-weight:600;">Pricing</a>
-    <a href="/api/embed" style="color:var(--text-soft);font-weight:600;">Embed</a>
-    <a href="#signup" style="background:var(--accent);color:#fff;padding:6px 14px;border-radius:6px;font-weight:700;text-decoration:none">Get API Key →</a>
-  </div>
-</div>
 
 <!-- HERO -->
 <div class="hero">
@@ -252,7 +241,8 @@
     </p>
     <div class="hero-cta">
       <a href="#signup" class="btn btn-primary">Get a free API key →</a>
-      <a href="#endpoints" class="btn btn-ghost">Browse endpoints</a>
+      <a href="#pricing" class="btn btn-ghost">See pricing</a>
+      <a href="/api/embed" class="btn btn-ghost">Embed widget →</a>
     </div>
   </div>
 
@@ -559,61 +549,96 @@ console.log(data.index_score);  <span class="tok-cmt">// → 70</span></pre>
 </section>
 
 <!-- PRICING -->
-<section id="pricing" style="padding:80px 32px 40px;border-top:1px solid var(--border);">
+<section id="pricing" style="padding:90px 32px 60px;border-top:1px solid var(--border);background:radial-gradient(ellipse at top,rgba(45,125,210,.08) 0%,transparent 60%);">
   <div class="section-head">
-    <div class="section-tag">Pricing</div>
-    <h2>Start free. Pay when you scale.</h2>
-    <p>The index is live and free to evaluate. Production usage unlocks history, throughput, and SLA.</p>
+    <div class="section-tag" style="background:rgba(45,125,210,.15);color:var(--accent-soft);padding:6px 14px;border-radius:999px;display:inline-block;font-weight:800;">💰 Pricing</div>
+    <h2 style="font-size:46px;font-weight:800;letter-spacing:-.03em;margin-top:16px;">Start free. <span style="background:linear-gradient(120deg,#5ba3ec,#22c55e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Pay when you scale.</span></h2>
+    <p style="font-size:18px;color:var(--text-soft);max-width:640px;margin:14px auto 0;">The index is live and free to evaluate. Production usage unlocks history, throughput, white-label embeds, and SLA.</p>
   </div>
-  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1100px;margin:40px auto 0;">
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:22px;max-width:1100px;margin:50px auto 0;">
 
     <!-- FREE -->
-    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:32px;">
-      <div style="font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-dim);font-weight:700;">Free</div>
-      <div style="font-size:42px;font-weight:800;margin:6px 0 2px;">$0</div>
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:34px;display:flex;flex-direction:column;">
+      <div style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-dim);font-weight:800;">Free</div>
+      <div style="font-size:48px;font-weight:800;margin:8px 0 4px;letter-spacing:-.03em;">$0</div>
       <div style="color:var(--text-soft);font-size:13px;margin-bottom:24px;">forever, with signup</div>
-      <ul style="list-style:none;padding:0;margin:0;font-size:14px;color:var(--text-soft);line-height:2;">
+      <ul style="list-style:none;padding:0;margin:0 0 24px;font-size:14px;color:var(--text-soft);line-height:2;flex:1;">
         <li>✓ 1,000 requests / day</li>
         <li>✓ Live index + signal breakdown</li>
         <li>✓ 90-day historical</li>
-        <li>✓ Public /api/index/public (no key)</li>
+        <li>✓ Public no-auth endpoint</li>
+        <li>✓ Free embeddable widget</li>
         <li style="color:var(--text-dim);">— No SLA, no webhooks</li>
       </ul>
-      <a href="#signup" style="display:block;margin-top:24px;text-align:center;background:var(--accent);color:#fff;padding:12px;border-radius:8px;font-weight:600;">Get a free key</a>
+      <a href="#signup" style="display:block;text-align:center;background:var(--accent);color:#fff;padding:14px;border-radius:10px;font-weight:700;text-decoration:none;">Get a free key →</a>
     </div>
 
-    <!-- PRO -->
-    <div style="background:var(--bg-card);border:2px solid var(--accent);border-radius:14px;padding:32px;position:relative;">
-      <div style="position:absolute;top:-12px;right:24px;background:var(--accent);color:#fff;font-size:10px;letter-spacing:.15em;text-transform:uppercase;padding:4px 10px;border-radius:10px;font-weight:700;">Most popular</div>
-      <div style="font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--accent-soft);font-weight:700;">Pro</div>
-      <div style="font-size:42px;font-weight:800;margin:6px 0 2px;">$499<span style="font-size:18px;color:var(--text-dim);font-weight:500;">/mo</span></div>
+    <!-- PRO — emphasized -->
+    <div style="background:linear-gradient(180deg,rgba(45,125,210,.12) 0%,var(--bg-card) 60%);border:2px solid var(--accent);border-radius:16px;padding:34px;position:relative;display:flex;flex-direction:column;box-shadow:0 0 50px rgba(45,125,210,.18);transform:scale(1.03);">
+      <div style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,#22c55e,#5ba3ec);color:#fff;font-size:10px;letter-spacing:.18em;text-transform:uppercase;padding:6px 16px;border-radius:14px;font-weight:800;white-space:nowrap;">★ Most popular</div>
+      <div style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent-soft);font-weight:800;">Pro</div>
+      <div style="font-size:48px;font-weight:800;margin:8px 0 4px;letter-spacing:-.03em;">$499<span style="font-size:18px;color:var(--text-dim);font-weight:500;">/mo</span></div>
       <div style="color:var(--text-soft);font-size:13px;margin-bottom:24px;">for research & risk teams</div>
-      <ul style="list-style:none;padding:0;margin:0;font-size:14px;color:var(--text-soft);line-height:2;">
-        <li>✓ 50,000 requests / day</li>
-        <li>✓ 2-year historical series</li>
+      <ul style="list-style:none;padding:0;margin:0 0 24px;font-size:14px;color:var(--text-soft);line-height:2;flex:1;">
+        <li>✓ <b style="color:var(--text)">50,000</b> requests / day</li>
+        <li>✓ <b style="color:var(--text)">2-year</b> historical series</li>
         <li>✓ Real-time webhooks on ±5pt moves</li>
-        <li>✓ Email alerts</li>
-        <li>✓ Priority support</li>
+        <li>✓ Email alerts when index spikes</li>
+        <li>✓ Priority support (24h response)</li>
+        <li>✓ Slack channel access</li>
       </ul>
-      <a href="mailto:zeroloan000@gmail.com?subject=Loan%20Clarity%20Pro%20tier" style="display:block;margin-top:24px;text-align:center;background:var(--accent);color:#fff;padding:12px;border-radius:8px;font-weight:600;">Upgrade to Pro</a>
+      <a href="mailto:zeroloan000@gmail.com?subject=Loan%20Clarity%20Pro%20tier" style="display:block;text-align:center;background:linear-gradient(135deg,#22c55e,#5ba3ec);color:#fff;padding:14px;border-radius:10px;font-weight:700;text-decoration:none;">Upgrade to Pro →</a>
     </div>
 
     <!-- ENTERPRISE -->
-    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:32px;">
-      <div style="font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-dim);font-weight:700;">Enterprise</div>
-      <div style="font-size:42px;font-weight:800;margin:6px 0 2px;">Custom</div>
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:34px;display:flex;flex-direction:column;">
+      <div style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-dim);font-weight:800;">Enterprise</div>
+      <div style="font-size:48px;font-weight:800;margin:8px 0 4px;letter-spacing:-.03em;">Custom</div>
       <div style="color:var(--text-soft);font-size:13px;margin-bottom:24px;">starting at $2,000 / mo</div>
-      <ul style="list-style:none;padding:0;margin:0;font-size:14px;color:var(--text-soft);line-height:2;">
-        <li>✓ Unlimited requests</li>
+      <ul style="list-style:none;padding:0;margin:0 0 24px;font-size:14px;color:var(--text-soft);line-height:2;flex:1;">
+        <li>✓ <b style="color:var(--text)">Unlimited</b> requests</li>
         <li>✓ Full historical (since inception)</li>
         <li>✓ Custom segments (state, loan type, balance)</li>
-        <li>✓ White-label embeds</li>
-        <li>✓ Dedicated Slack channel + SLA</li>
+        <li>✓ <b style="color:var(--text)">White-label embeds</b></li>
+        <li>✓ Dedicated SLA + Slack channel</li>
         <li>✓ Data licensing for derivative products</li>
       </ul>
-      <a href="mailto:zeroloan000@gmail.com?subject=Loan%20Clarity%20Enterprise" style="display:block;margin-top:24px;text-align:center;background:transparent;border:1px solid var(--accent);color:var(--accent-soft);padding:12px;border-radius:8px;font-weight:600;">Talk to sales</a>
+      <a href="mailto:zeroloan000@gmail.com?subject=Loan%20Clarity%20Enterprise" style="display:block;text-align:center;background:transparent;border:2px solid var(--accent);color:var(--accent-soft);padding:12px;border-radius:10px;font-weight:700;text-decoration:none;">Talk to sales →</a>
     </div>
 
+  </div>
+  <p style="text-align:center;color:var(--text-dim);font-size:13px;margin-top:30px;">All plans include: live index, 6-signal breakdown, top driving themes, free embeddable widget. Cancel anytime.</p>
+</section>
+
+<!-- EMBED CTA — emphasize the free distribution play -->
+<section id="embed" style="padding:60px 32px;border-top:1px solid var(--border);">
+  <div style="max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1.2fr 1fr;gap:50px;align-items:center;">
+    <div>
+      <div class="section-tag">Free for journalists & sites</div>
+      <h2 style="font-size:36px;font-weight:800;letter-spacing:-.02em;margin:14px 0 16px;">
+        Embed the live Index in any article. <span style="background:linear-gradient(120deg,#5ba3ec,#22c55e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">One line of HTML.</span>
+      </h2>
+      <p style="font-size:17px;color:var(--text-soft);margin-bottom:24px;line-height:1.6;">
+        Auto-refreshes every 5 minutes. No API key required. Works on WSJ, Bloomberg, Substack, WordPress — anywhere. Pick a size (badge, card, dashboard) and a theme (light or dark), copy the iframe, paste.
+      </p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <a href="/api/embed" class="btn btn-primary" style="background:linear-gradient(135deg,#22c55e,#5ba3ec);">Open embed gallery →</a>
+        <a href="/embed/index?size=card&amp;theme=dark" target="_blank" rel="noopener" class="btn btn-ghost">Preview the widget</a>
+      </div>
+      <div style="display:flex;gap:24px;margin-top:24px;font-size:13px;color:var(--text-dim);">
+        <span>✓ Free forever</span>
+        <span>✓ No signup</span>
+        <span>✓ Iframe-safe</span>
+        <span>✓ Auto-updates</span>
+      </div>
+    </div>
+    <!-- Live mini preview -->
+    <div style="display:flex;justify-content:center;">
+      <iframe src="/embed/index?size=card&amp;theme=dark&amp;ref=docs"
+              width="380" height="260" frameborder="0" scrolling="no"
+              style="border:0;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.4);"
+              title="Loan Clarity Index — Live Preview"></iframe>
+    </div>
   </div>
 </section>
 
