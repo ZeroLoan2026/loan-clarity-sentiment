@@ -1231,8 +1231,41 @@ async def get_live_sentiment():
 
 @app.get("/api/sources")
 async def get_sources():
-    """Return the full source registry."""
-    return {"sources": list(SOURCES.values()), "updated_at": datetime.now().isoformat()}
+    """
+    Return an AGGREGATED, category-level source registry.
+
+    Full source details (publishers, URLs, API endpoints, query strings) are
+    confidential and only disclosed to licensed institutional partners under NDA.
+    """
+    # Aggregate sources by type so the public sees the categories
+    # of data we use without the actual recipe.
+    by_type: dict[str, list] = {}
+    for s in SOURCES.values():
+        t = s.get("type", "Other")
+        by_type.setdefault(t, []).append(s.get("name", ""))
+
+    aggregated = []
+    for type_name, source_names in by_type.items():
+        aggregated.append({
+            "name":        f"{type_name} sources",
+            "publisher":   "Multiple",
+            "type":        type_name,
+            "id":          type_name.lower().replace(" ", "_"),
+            "description": (
+                f"{len(source_names)} data source(s) in this category. "
+                f"Specific publishers, API endpoints, and refresh cadences are confidential "
+                f"and available to institutional licensing partners under NDA."
+            ),
+            "cadence":     "Varies",
+            "url":         "/api",  # link to access request
+        })
+
+    return {
+        "sources":     aggregated,
+        "note":        "Aggregated public view. Full source registry available to licensed partners.",
+        "request_access": "https://www.studentloansindex.com/api",
+        "updated_at":  datetime.now().isoformat(),
+    }
 
 
 @app.get("/api/health")
@@ -1425,22 +1458,24 @@ def _rate_limit_headers(request: Request) -> dict:
 @app.get("/api/index/public")
 async def api_index_public():
     """
-    PUBLIC teaser endpoint — no auth required.
-    Returns only the current score + status, no signal breakdown.
-    Suitable for embedding in articles, social posts, marketing pages.
-    For full signal data, use /api/index (requires API key).
+    DEPRECATED — endpoint closed. Index data now requires authenticated access.
+    Returns 410 Gone with instructions for requesting institutional access.
     """
-    full = await get_live_sentiment()
-    return {
-        "index_score": full.get("index_score"),
-        "status":      full.get("status"),
-        "as_of":       datetime.utcnow().isoformat() + "Z",
-        "_meta": {
-            "tier":   "public",
-            "note":   "Full signal breakdown, history, and drivers require an API key.",
-            "signup": "https://www.studentloansindex.com/api",
-        },
-    }
+    return Response(
+        content=json.dumps({
+            "ok":      False,
+            "error":   "endpoint_closed",
+            "message": (
+                "Public access to the Loan Clarity Borrower Sentiment Index has been "
+                "closed. Institutional access is granted on a case-by-case basis. "
+                "To request access, apply at https://www.studentloansindex.com/api"
+            ),
+            "request_access": "https://www.studentloansindex.com/api",
+            "contact":        "zeroloan000@gmail.com",
+        }),
+        status_code=410,
+        media_type="application/json",
+    )
 
 
 @app.get("/api/index")
@@ -1616,96 +1651,184 @@ async def api_history(request: Request, days: int = 90):
 
 
 @app.post("/api/keys")
-async def api_create_key(request: Request, payload: dict = Body(...)):
+async def api_request_access(request: Request, payload: dict = Body(...)):
     """
-    Request a free Loan Clarity API key.
+    Request institutional access to the Loan Clarity Borrower Sentiment Index API.
+
+    Access is granted on a case-by-case basis after review.
+    Applications are captured and forwarded to the access committee for approval.
 
     Body:
         {
-            "email":    str (required),
-            "company":  str (recommended),
-            "use_case": str (recommended),
-            "name":     str (optional)
+            "email":            str (required) — work email preferred
+            "name":             str (required)
+            "company":          str (required)
+            "role":             str (required) — your title
+            "use_case":         str (required) — how you'll use the data
+            "expected_volume":  str (optional) — checks/day estimate
         }
 
     Returns:
         {
             "ok": true,
-            "api_key": "lc_live_...",
-            "message": "...",
-            "tier": "free",
-            "rate_limit": "1 check/day"
+            "status": "received",
+            "message": "Application received. Typical review window: 1–2 business days."
         }
+
+    NOTE: This endpoint NO LONGER auto-issues keys. Keys are issued manually
+    after review. The previous self-service signup model has been retired.
     """
-    email = (payload.get("email") or "").strip().lower()
-    company = (payload.get("company") or "").strip()
-    use_case = (payload.get("use_case") or "").strip()
-    name = (payload.get("name") or "").strip()
+    email     = (payload.get("email") or "").strip().lower()
+    name      = (payload.get("name") or "").strip()
+    company   = (payload.get("company") or "").strip()
+    role      = (payload.get("role") or "").strip()
+    use_case  = (payload.get("use_case") or "").strip()
+    expected_volume = (payload.get("expected_volume") or "").strip()
 
     if not email or "@" not in email:
         return Response(
-            content=json.dumps({"ok": False, "error": "valid email required"}),
+            content=json.dumps({"ok": False, "error": "valid_email_required",
+                                "message": "A valid work email is required to apply."}),
+            status_code=400,
+            media_type="application/json",
+        )
+    if not name or not company:
+        return Response(
+            content=json.dumps({"ok": False, "error": "missing_fields",
+                                "message": "Name and company are required."}),
             status_code=400,
             media_type="application/json",
         )
 
-    api_key = _generate_api_key()
     now = datetime.utcnow()
 
-    # ── Build the lead entry (this is ALSO an institutional lead) ────
+    # ── Build the application entry ─────────────────────────────────
     ua = request.headers.get("user-agent", "")
     device, browser, os_name = _parse_device(ua)
     ip_raw = request.client.host if request.client else ""
     email_domain = email.split("@", 1)[1] if "@" in email else ""
 
     entry = {
-        "type":         "api_signup",
-        "email":        email,
-        "name":         name,
-        "company":      company,
-        "use_case":     use_case,
-        "email_domain": email_domain,
-        "domain_type":  _domain_type(email_domain),
-        "api_key_hash": _hash_key(api_key),
-        "ts":           now.isoformat(),
-        "signup_date":  now.strftime("%Y-%m-%d"),
-        "device_type":  device,
-        "browser":      browser,
-        "os":           os_name,
-        "ip_anon":      _anonymize_ip(ip_raw),
-        "tier":         "free",
-        "lead_status":  "New",
-        "source":       "api_signup",
+        "type":             "api_access_request",   # changed from api_signup
+        "status":           "pending_review",       # NEW — was "approved" implicitly
+        "email":            email,
+        "name":             name,
+        "company":          company,
+        "role":             role,
+        "use_case":         use_case,
+        "expected_volume":  expected_volume,
+        "email_domain":     email_domain,
+        "domain_type":      _domain_type(email_domain),
+        "ts":               now.isoformat(),
+        "submitted_date":   now.strftime("%Y-%m-%d"),
+        "device_type":      device,
+        "browser":          browser,
+        "os":               os_name,
+        "ip_anon":          _anonymize_ip(ip_raw),
+        "lead_status":      "New Application",
+        "source":           "gated_access_request",
     }
 
-    # ── Local write (same-session cache only — Railway wipes on deploy) ──
+    # ── Local write (cache — Railway wipes on deploy) ───────────────
     try:
         with _API_KEYS_FILE.open("a", encoding="utf-8") as f:
             f.write(json.dumps(entry) + "\n")
     except Exception as e:
-        print(f"[api_keys] local write error: {e}")
+        print(f"[api_access] local write error: {e}")
 
-    # ── Fire webhook for permanent storage (Make.com / Zapier) ───────
+    # ── Fire webhook for permanent capture (Make.com / Zapier) ───────
     asyncio.create_task(_fire_lead_webhook(entry))
 
-    # ── Register in in-memory key set so it's instantly usable ───────
-    _ISSUED_KEYS.add(entry["api_key_hash"])
-    _KEY_TIERS[entry["api_key_hash"]] = "free"
-
-    print(f"[api_keys] ✓ new key for {email} ({company or 'no company'})")
+    print(f"[api_access] ✓ NEW APPLICATION: {email} ({company}, {role or 'no role'})")
 
     return {
-        "ok":         True,
-        "api_key":    api_key,
-        "tier":       "free",
-        "rate_limit": "1 check/day (free tier)",
+        "ok":      True,
+        "status":  "received",
         "message": (
-            "Your Loan Clarity API key is ready. Store it securely — we don't "
-            "store it in plaintext on our side. Send it as a Bearer token: "
-            "Authorization: Bearer <your_key>"
+            f"Thank you, {name}. Your application for institutional access to the "
+            f"Loan Clarity Borrower Sentiment Index has been received. Our team "
+            f"reviews each application individually — typical review window is "
+            f"1–2 business days. We'll respond to {email} once a decision is made."
         ),
-        "docs":       "https://studentloansindex.com/api",
-        "support":    "zeroloan000@gmail.com",
+        "next_steps": (
+            "If approved, you'll receive an API key, integration documentation, "
+            "and tier assignment via email. For questions, contact zeroloan000@gmail.com."
+        ),
+        "contact": "zeroloan000@gmail.com",
+    }
+
+
+@app.post("/api/admin/issue-key")
+async def admin_issue_key(request: Request, payload: dict = Body(...)):
+    """
+    ADMIN ONLY — manually issue an API key after approving an application.
+
+    Requires Authorization: Bearer <MASTER_API_KEY>.
+    Issues a new lc_live_* key, assigns tier, fires welcome webhook.
+
+    Body:
+        {
+            "email":   str (required) — applicant email
+            "company": str (recommended)
+            "tier":    "free" | "pro" | "enterprise" (default: "free")
+            "note":    str (optional) — internal note
+        }
+
+    Returns:
+        {
+            "ok": true,
+            "api_key": "lc_live_...",
+            "tier": str,
+            "email": str
+        }
+    """
+    # Auth: only the master key can issue keys
+    token = _extract_bearer_token(request)
+    if not token or not MASTER_KEY_HASH or _hash_key(token) != MASTER_KEY_HASH:
+        return Response(
+            content=json.dumps({"ok": False, "error": "admin_only"}),
+            status_code=403,
+            media_type="application/json",
+        )
+
+    email   = (payload.get("email") or "").strip().lower()
+    company = (payload.get("company") or "").strip()
+    tier    = (payload.get("tier") or "free").strip().lower()
+    note    = (payload.get("note") or "").strip()
+
+    if not email or "@" not in email:
+        return Response(
+            content=json.dumps({"ok": False, "error": "valid_email_required"}),
+            status_code=400,
+            media_type="application/json",
+        )
+    if tier not in ("free", "pro", "enterprise"):
+        tier = "free"
+
+    api_key = _generate_api_key()
+    key_hash = _hash_key(api_key)
+    _ISSUED_KEYS.add(key_hash)
+    _KEY_TIERS[key_hash] = tier
+
+    # Fire webhook so the issuance is logged permanently
+    entry = {
+        "type":         "api_key_issued",
+        "email":        email,
+        "company":      company,
+        "tier":         tier,
+        "api_key_hash": key_hash,
+        "note":         note,
+        "ts":           datetime.utcnow().isoformat(),
+    }
+    asyncio.create_task(_fire_lead_webhook(entry))
+    print(f"[admin] ✓ issued {tier} key for {email} ({company})")
+
+    return {
+        "ok":      True,
+        "api_key": api_key,
+        "tier":    tier,
+        "email":   email,
+        "note":    "Send this key to the applicant. We do not store keys in plaintext.",
     }
 
 
@@ -2416,6 +2539,11 @@ async def serve_social_signals():
 @app.get("/privacy")
 async def serve_privacy():
     return _serve_html("privacy.html")
+
+
+@app.get("/terms")
+async def serve_terms():
+    return _serve_html("terms.html")
 
 
 # ─── Entry point ──────────────────────────────────────────────────────────────

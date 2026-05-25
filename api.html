@@ -272,7 +272,7 @@
       historical daily readings. Built for lenders, servicers, hedge funds, and rating agencies.
     </p>
     <div class="hero-cta">
-      <a href="#signup" class="btn btn-primary">Get a free API key →</a>
+      <a href="#signup" class="btn btn-primary">Apply for access →</a>
       <a href="#pricing" class="btn btn-ghost">See pricing</a>
       <a href="/api/embed" class="btn btn-ghost">Embed widget →</a>
     </div>
@@ -459,20 +459,22 @@
       <div class="endpoint-head">
         <span class="method method-post">POST</span>
         <span class="endpoint-path">/api/keys</span>
-        <span class="endpoint-desc">Request a free API key</span>
+        <span class="endpoint-desc">Submit an access application (manual review)</span>
       </div>
       <div class="endpoint-body">
         <div>
-          <p>Request a free API key. Returns a key formatted as <code>lc_live_*</code>.
-          Use the form below — or POST directly with email, company, and use case.</p>
+          <p>Submit an institutional access application. Applications are reviewed manually.
+          If approved, a key formatted as <code>lc_live_*</code> is issued via email within 1–2 business days.</p>
           <h4>Request body</h4>
           <table class="param-table">
             <thead><tr><th>Field</th><th>Type</th><th>Req</th></tr></thead>
             <tbody>
               <tr><td><code>email</code></td><td>string</td><td>yes</td></tr>
-              <tr><td><code>company</code></td><td>string</td><td>no</td></tr>
-              <tr><td><code>use_case</code></td><td>string</td><td>no</td></tr>
-              <tr><td><code>name</code></td><td>string</td><td>no</td></tr>
+              <tr><td><code>name</code></td><td>string</td><td>yes</td></tr>
+              <tr><td><code>company</code></td><td>string</td><td>yes</td></tr>
+              <tr><td><code>role</code></td><td>string</td><td>yes</td></tr>
+              <tr><td><code>use_case</code></td><td>string</td><td>yes</td></tr>
+              <tr><td><code>expected_volume</code></td><td>string</td><td>no</td></tr>
             </tbody>
           </table>
         </div>
@@ -485,16 +487,17 @@
   -H <span class="tok-str">"Content-Type: application/json"</span> \
   -d <span class="tok-str">'{
     "email": "analyst@hedgefund.com",
+    "name": "Alex Chen",
     "company": "Hedgefund LP",
+    "role": "VP, Credit Risk",
     "use_case": "SLABS portfolio risk modeling"
   }'</span>
 
 <span class="tok-cmt"># Response</span>
 {
   <span class="tok-key">"ok"</span>: <span class="tok-num">true</span>,
-  <span class="tok-key">"api_key"</span>: <span class="tok-str">"lc_live_xK8aN4..."</span>,
-  <span class="tok-key">"tier"</span>: <span class="tok-str">"free"</span>,
-  <span class="tok-key">"rate_limit"</span>: <span class="tok-str">"1 check/day"</span>
+  <span class="tok-key">"status"</span>: <span class="tok-str">"received"</span>,
+  <span class="tok-key">"message"</span>: <span class="tok-str">"Application received. Review window: 1–2 days."</span>
 }</pre>
         </div>
       </div>
@@ -589,20 +592,20 @@ console.log(data.index_score);  <span class="tok-cmt">// → 70</span></pre>
   </div>
   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:22px;max-width:1100px;margin:50px auto 0;">
 
-    <!-- FREE -->
+    <!-- TRIAL (invite only) -->
     <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:34px;display:flex;flex-direction:column;">
-      <div style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-dim);font-weight:800;">Free</div>
+      <div style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-dim);font-weight:800;">Trial</div>
       <div style="font-size:48px;font-weight:800;margin:8px 0 4px;letter-spacing:-.03em;">$0</div>
-      <div style="color:var(--text-soft);font-size:13px;margin-bottom:24px;">forever, with signup</div>
+      <div style="color:var(--text-soft);font-size:13px;margin-bottom:24px;">invite only · case-by-case review</div>
       <ul style="list-style:none;padding:0;margin:0 0 24px;font-size:14px;color:var(--text-soft);line-height:2;flex:1;">
         <li>✓ <b style="color:var(--text)">1 check / day</b></li>
         <li>✓ Live index + signal breakdown</li>
-        <li>✓ 90-day historical</li>
-        <li>✓ Public no-auth endpoint</li>
+        <li>✓ 30-day historical</li>
         <li>✓ Free embeddable widget</li>
-        <li style="color:var(--text-dim);">— No SLA, no webhooks</li>
+        <li style="color:var(--text-dim);">— No SLA, no webhooks, no support</li>
+        <li style="color:var(--text-dim);">— Trial period only</li>
       </ul>
-      <a href="#signup" style="display:block;text-align:center;background:var(--accent);color:#fff;padding:14px;border-radius:10px;font-weight:700;text-decoration:none;">Get a free key →</a>
+      <a href="#signup" style="display:block;text-align:center;background:transparent;border:1px solid var(--border);color:var(--text-soft);padding:14px;border-radius:10px;font-weight:700;text-decoration:none;">Apply for trial</a>
     </div>
 
     <!-- PRO — emphasized -->
@@ -677,44 +680,59 @@ console.log(data.index_score);  <span class="tok-cmt">// → 70</span></pre>
 <!-- SIGNUP -->
 <div class="signup-section" id="signup">
   <div class="signup-wrap">
-    <div class="section-tag">Get started</div>
-    <h2 style="margin-bottom:14px;">Free API key in 30 seconds.</h2>
-    <p style="color:var(--text-soft);font-size:17px;">
-      1 check/day on the free tier. No credit card. Cancel anytime.
+    <div class="section-tag">Invite-only access</div>
+    <h2 style="margin-bottom:14px;">Apply for institutional access.</h2>
+    <p style="color:var(--text-soft);font-size:17px;max-width:580px;margin:0 auto 8px;">
+      The Loan Clarity Borrower Sentiment Index is available to qualified institutional partners — lenders, servicers, hedge funds, rating agencies, policy organizations, and credentialed media.
+    </p>
+    <p style="color:var(--text-dim);font-size:14px;max-width:580px;margin:0 auto 28px;">
+      Applications are reviewed individually. Typical review window: 1–2 business days.
     </p>
 
-    <form class="signup-form" id="api-form" onsubmit="return signup(event)">
+    <form class="signup-form" id="api-form" onsubmit="return apply(event)">
       <div class="form-row">
         <label for="f-email">Work email *</label>
         <input type="email" id="f-email" placeholder="analyst@yourfirm.com" required />
       </div>
       <div class="form-grid-2">
         <div class="form-row">
-          <label for="f-name">Your name</label>
-          <input type="text" id="f-name" placeholder="Alex Chen" />
+          <label for="f-name">Your name *</label>
+          <input type="text" id="f-name" placeholder="Alex Chen" required />
         </div>
         <div class="form-row">
-          <label for="f-company">Company</label>
-          <input type="text" id="f-company" placeholder="Hedgefund LP" />
+          <label for="f-company">Company *</label>
+          <input type="text" id="f-company" placeholder="Hedgefund LP" required />
+        </div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-row">
+          <label for="f-role">Your role *</label>
+          <input type="text" id="f-role" placeholder="VP, Credit Risk" required />
+        </div>
+        <div class="form-row">
+          <label for="f-volume">Expected volume</label>
+          <input type="text" id="f-volume" placeholder="e.g. 10 checks/day" />
         </div>
       </div>
       <div class="form-row">
-        <label for="f-usecase">What will you use it for? (helps us prioritize features)</label>
-        <textarea id="f-usecase" placeholder="e.g. SLABS portfolio risk modeling, refi campaign timing, weekly research briefing..."></textarea>
+        <label for="f-usecase">Intended use case *</label>
+        <textarea id="f-usecase" placeholder="e.g. SLABS portfolio risk modeling, refi campaign timing, weekly research briefing for our credit committee..." required></textarea>
       </div>
       <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;font-size:16px;padding:16px;">
-        Generate my free API key →
+        Submit application →
       </button>
 
+      <p style="margin-top:14px;font-size:11px;color:var(--text-dim);text-align:center;line-height:1.6;">
+        By submitting, you agree that any API key issued is for the named individual and company only,
+        non-transferable, and that data accessed is subject to our terms of use.
+        We do not share applicant information.
+      </p>
+
       <div class="form-success" id="form-success">
-        <h4>✅ Your API key is ready</h4>
-        <p style="color:var(--text-soft);font-size:14px;">Save this somewhere safe — for security we don't store it in plaintext.</p>
-        <div class="key-box">
-          <code id="key-output"></code>
-          <button class="copy-btn" onclick="copyKey()">copy</button>
-        </div>
+        <h4>✅ Application received</h4>
+        <p id="success-msg" style="color:var(--text-soft);font-size:14px;line-height:1.6;"></p>
         <p style="margin-top:14px;font-size:13px;color:var(--text-dim);">
-          Test it now: <code style="color:var(--accent-soft);">curl -H "Authorization: Bearer YOUR_KEY" https://studentloansindex.com/api/index</code>
+          Questions? Email <a href="mailto:zeroloan000@gmail.com" style="color:var(--accent-soft);">zeroloan000@gmail.com</a>
         </p>
       </div>
     </form>
@@ -728,6 +746,7 @@ console.log(data.index_score);  <span class="tok-cmt">// → 70</span></pre>
     <a href="/methodology">Methodology</a>·
     <a href="/sources">Sources</a>·
     <a href="/privacy">Privacy</a>·
+    <a href="/terms">Terms</a>·
     <a href="mailto:zeroloan000@gmail.com">Support</a>·
     <a href="mailto:zeroloan000@gmail.com?subject=Enterprise%20API%20Inquiry">Enterprise sales</a>
   </p>
@@ -752,10 +771,10 @@ function copyKey() {
   navigator.clipboard.writeText(key);
 }
 
-async function signup(e) {
+async function apply(e) {
   e.preventDefault();
   const btn = e.target.querySelector('button[type="submit"]');
-  btn.innerText = 'Generating...';
+  btn.innerText = 'Submitting...';
   btn.disabled = true;
 
   try {
@@ -763,21 +782,23 @@ async function signup(e) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        email:    document.getElementById('f-email').value,
-        name:     document.getElementById('f-name').value,
-        company:  document.getElementById('f-company').value,
-        use_case: document.getElementById('f-usecase').value,
+        email:           document.getElementById('f-email').value,
+        name:            document.getElementById('f-name').value,
+        company:         document.getElementById('f-company').value,
+        role:            document.getElementById('f-role').value,
+        expected_volume: document.getElementById('f-volume').value,
+        use_case:        document.getElementById('f-usecase').value,
       }),
     });
     const data = await r.json();
-    if (data.ok && data.api_key) {
-      document.getElementById('key-output').innerText = data.api_key;
+    if (data.ok) {
+      document.getElementById('success-msg').innerText = data.message || 'Application received. We will be in touch.';
       document.getElementById('form-success').classList.add('show');
-      btn.innerText = '✓ Key generated';
+      btn.innerText = '✓ Application submitted';
     } else {
       btn.innerText = 'Try again';
       btn.disabled = false;
-      alert('Error: ' + (data.error || 'unknown'));
+      alert('Error: ' + (data.message || data.error || 'unknown'));
     }
   } catch (err) {
     btn.innerText = 'Try again';

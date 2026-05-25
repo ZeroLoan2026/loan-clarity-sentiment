@@ -147,9 +147,15 @@
 
   <div class="hero">
     <h1>Data Sources</h1>
-    <p>Every metric on the Loan Clarity dashboard traces back to one of the sources below.
-       Click any card to visit the original publisher. Sources are categorized by signal type
-       and refresh cadence.</p>
+    <p>The Loan Clarity Borrower Sentiment Index™ is built on a composite of federal
+       regulatory data, public sentiment signals, and proprietary AI analysis. We
+       publish source <em>categories</em> below; specific publishers, API endpoints,
+       and the proprietary normalization layer are disclosed to institutional licensing
+       partners under NDA.</p>
+    <p style="font-size:13px;color:#5a7d9d;margin-top:10px;font-style:italic;">
+       Institutional access:
+       <a href="/api" style="color:#6fb6ff;">apply for credentialed review →</a>
+    </p>
     <div class="meta"><div class="dot"></div><span id="ts">Loading registry…</span></div>
   </div>
 
@@ -212,8 +218,8 @@ fetch('/api/sources').then(r => r.json()).then(data => {
         </div>
       </div>
       <div class="card-foot">
-        <a class="btn" href="/methodology#${s.id}">View Methodology</a>
-        <a class="btn btn-ext" href="${s.url}" target="_blank" rel="noopener">Visit Source ↗</a>
+        <a class="btn" href="/methodology">Methodology overview</a>
+        <a class="btn btn-ext" href="/api">Request access ↗</a>
       </div>`;
     grid.appendChild(card);
   });
