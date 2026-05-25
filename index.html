@@ -1263,7 +1263,7 @@ function App() {
         <nav className="nav-links">
           <a href="/" className="active">Dashboard</a>
           <a href="/social-signals" style={{color:'var(--hot-2)'}}><span className="nav-emoji">📡 </span>Social Signals</a>
-          <a href="/tax-tool" style={{color:'var(--neon)'}}><span className="nav-emoji">💰 </span>Tax Tool</a>
+          <a href="/api" style={{color:'var(--accent-2)'}}><span className="nav-emoji">⚡ </span>API</a>
           <a href="/methodology">Methodology</a>
           <a href="/sources">Sources</a>
         </nav>
@@ -1350,14 +1350,14 @@ function App() {
       {/* ════════════ HISTORY CHART — 1W / 1M / 3M / 6M / 1Y / 5Y ═══════════ */}
       <HistoryChart history={d.history} currentScore={d.index_score}/>
 
-      {/* ════════════ TAX OPTIMIZER — compact strip ═══════════ */}
-      <a href="/tax-tool" data-cta="tax-tool-hero" className="tax-feature">
+      {/* ════════════ INSTITUTIONAL API STRIP ═══════════ */}
+      <a href="/api" data-cta="api-hero" className="tax-feature">
         <div className="tax-feature-content">
           <div>
-            <div className="tax-feature-badge"><span className="tax-feature-dot"/>FREE · 60 SEC</div>
-            <div className="tax-feature-h">💰 Find tax savings · <span className="tax-feature-grad">avg $4,283/yr</span></div>
+            <div className="tax-feature-badge"><span className="tax-feature-dot"/>FOR INSTITUTIONS · FREE TIER</div>
+            <div className="tax-feature-h">⚡ Real-time Borrower Sentiment API · <span className="tax-feature-grad">1,000 req/day free</span></div>
           </div>
-          <div className="tax-feature-cta">Launch Calculator →</div>
+          <div className="tax-feature-cta">View Docs →</div>
         </div>
       </a>
 
@@ -1378,7 +1378,7 @@ function App() {
           <div className="mf-links">
             <a href="/methodology">Methodology</a>
             <a href="/sources">Sources</a>
-            <a href="/tax-tool">Tax Tool</a>
+            <a href="/api">API</a>
             <a href="/privacy">Privacy</a>
           </div>
         </div>
