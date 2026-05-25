@@ -1821,6 +1821,10 @@ async def admin_issue_key(request: Request, payload: dict = Body(...)):
         "ts":           datetime.utcnow().isoformat(),
     }
     asyncio.create_task(_fire_lead_webhook(entry))
+
+    # Persist decision so the application disappears from the queue
+    _record_decision(email, "approved", tier=tier, note=note)
+
     print(f"[admin] ✓ issued {tier} key for {email} ({company})")
 
     return {
@@ -1830,6 +1834,150 @@ async def admin_issue_key(request: Request, payload: dict = Body(...)):
         "email":   email,
         "note":    "Send this key to the applicant. We do not store keys in plaintext.",
     }
+
+
+# ── Admin: applications queue + decisions ─────────────────────────────
+_DECISIONS_FILE = Path(__file__).parent / "decisions.jsonl"
+
+
+def _load_decisions() -> dict:
+    """Load all prior decisions: {email_lower: {status, tier, ts, note}}."""
+    decisions = {}
+    if not _DECISIONS_FILE.exists():
+        return decisions
+    try:
+        with _DECISIONS_FILE.open("r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    d = json.loads(line)
+                    decisions[d["email"].lower()] = d
+                except Exception:
+                    pass
+    except Exception as e:
+        print(f"[admin] decisions load error: {e}")
+    return decisions
+
+
+def _record_decision(email: str, status: str, tier: str = "", note: str = "") -> None:
+    """Append a decision record so the application disappears from the queue."""
+    try:
+        with _DECISIONS_FILE.open("a", encoding="utf-8") as f:
+            f.write(json.dumps({
+                "email":  email.lower(),
+                "status": status,   # "approved" | "declined"
+                "tier":   tier,
+                "note":   note,
+                "ts":     datetime.utcnow().isoformat(),
+            }) + "\n")
+    except Exception as e:
+        print(f"[admin] decisions write error: {e}")
+
+
+@app.get("/api/admin/applications")
+async def admin_list_applications(request: Request):
+    """
+    ADMIN ONLY — list pending access applications.
+    Returns array of applications that have NOT yet been approved or declined.
+    """
+    token = _extract_bearer_token(request)
+    if not token or not MASTER_KEY_HASH or _hash_key(token) != MASTER_KEY_HASH:
+        return Response(
+            content=json.dumps({"ok": False, "error": "admin_only"}),
+            status_code=403, media_type="application/json",
+        )
+
+    decisions = _load_decisions()
+    apps = []
+
+    if _API_KEYS_FILE.exists():
+        try:
+            with _API_KEYS_FILE.open("r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        entry = json.loads(line)
+                    except Exception:
+                        continue
+                    # Only show real access applications, not issuance records
+                    if entry.get("type") not in ("api_access_request", "api_signup"):
+                        continue
+                    email = (entry.get("email") or "").lower()
+                    if not email or email in decisions:
+                        continue
+                    apps.append({
+                        "email":           email,
+                        "name":            entry.get("name", ""),
+                        "company":         entry.get("company", ""),
+                        "role":            entry.get("role", ""),
+                        "use_case":        entry.get("use_case", ""),
+                        "expected_volume": entry.get("expected_volume", ""),
+                        "email_domain":    entry.get("email_domain", ""),
+                        "domain_type":     entry.get("domain_type", ""),
+                        "ts":              entry.get("ts", ""),
+                        "submitted_date":  entry.get("submitted_date", ""),
+                    })
+        except Exception as e:
+            print(f"[admin] applications read error: {e}")
+
+    # De-dupe by email (keep most recent)
+    seen = {}
+    for app_entry in apps:
+        seen[app_entry["email"]] = app_entry
+    pending = sorted(seen.values(), key=lambda a: a.get("ts", ""), reverse=True)
+
+    # Also return recent decisions for history
+    history = sorted(decisions.values(), key=lambda d: d.get("ts", ""), reverse=True)[:20]
+
+    return {
+        "ok":               True,
+        "pending_count":    len(pending),
+        "pending":          pending,
+        "recent_decisions": history,
+    }
+
+
+@app.post("/api/admin/decline")
+async def admin_decline_application(request: Request, payload: dict = Body(...)):
+    """ADMIN ONLY — mark an application as declined."""
+    token = _extract_bearer_token(request)
+    if not token or not MASTER_KEY_HASH or _hash_key(token) != MASTER_KEY_HASH:
+        return Response(
+            content=json.dumps({"ok": False, "error": "admin_only"}),
+            status_code=403, media_type="application/json",
+        )
+
+    email = (payload.get("email") or "").strip().lower()
+    reason = (payload.get("reason") or "").strip()
+    if not email:
+        return Response(
+            content=json.dumps({"ok": False, "error": "email_required"}),
+            status_code=400, media_type="application/json",
+        )
+
+    _record_decision(email, "declined", note=reason)
+    asyncio.create_task(_fire_lead_webhook({
+        "type":   "api_application_declined",
+        "email":  email,
+        "reason": reason,
+        "ts":     datetime.utcnow().isoformat(),
+    }))
+    print(f"[admin] ✗ declined application for {email} ({reason or 'no reason given'})")
+
+    return {"ok": True, "email": email, "status": "declined"}
+
+
+@app.get("/admin")
+async def serve_admin_dashboard():
+    """Admin approval dashboard (requires MASTER_API_KEY at runtime)."""
+    return FileResponse(
+        Path(__file__).parent / "admin.html",
+        headers={"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache", "Expires": "0"},
+    )
 
 
 @app.get("/api")

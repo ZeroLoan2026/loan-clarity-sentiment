@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Admin — Loan Clarity</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:         #07111f;
+      --bg-soft:    #0d1a2d;
+      --bg-card:    #0f1f36;
+      --border:     #1e3a5f;
+      --border-2:   #2d4870;
+      --text:       #e8eef7;
+      --text-soft:  #9fb2cc;
+      --text-dim:   #6b7e98;
+      --accent:     #2d7dd2;
+      --accent-soft:#5ba3ec;
+      --green:      #22c55e;
+      --orange:     #f97316;
+      --red:        #ef4444;
+      --yellow:     #eab308;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, sans-serif; min-height: 100vh; -webkit-font-smoothing: antialiased; line-height: 1.5; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    a { color: var(--accent-soft); text-decoration: none; }
+
+    /* Top bar */
+    .topbar { background: rgba(7,17,31,.92); border-bottom: 1px solid var(--border); padding: 14px 28px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10; backdrop-filter: blur(10px); }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-mark { width: 32px; height: 32px; background: linear-gradient(135deg,#1a6eb5,#2d7dd2); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+    .brand-title { font-size: 16px; font-weight: 800; }
+    .brand-sub { font-size: 10px; color: var(--text-dim); letter-spacing: .14em; text-transform: uppercase; }
+    .topbar-right { display: flex; gap: 16px; align-items: center; font-size: 12px; color: var(--text-dim); }
+    .pill { padding: 4px 12px; border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    .pill-warn { background: rgba(234,179,8,.18); color: #facc15; }
+    .pill-ok { background: rgba(34,197,94,.18); color: #4ade80; }
+
+    /* Main */
+    main { max-width: 1200px; margin: 0 auto; padding: 32px 28px; }
+
+    /* Auth gate */
+    .gate { max-width: 480px; margin: 80px auto; background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 36px; }
+    .gate h1 { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
+    .gate p { color: var(--text-soft); font-size: 14px; margin-bottom: 22px; }
+    .input { width: 100%; padding: 14px 16px; background: var(--bg); border: 1px solid var(--border-2); border-radius: 10px; color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 13px; outline: none; transition: border .15s; }
+    .input:focus { border-color: var(--accent); }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 22px; border: 0; border-radius: 10px; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer; transition: all .15s; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-soft); }
+    .btn-ghost { background: transparent; color: var(--text-soft); border: 1px solid var(--border-2); }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--text); }
+    .btn-danger { background: var(--red); color: #fff; }
+    .btn-danger:hover { opacity: .9; }
+    .btn-success { background: var(--green); color: #07111f; }
+    .btn-success:hover { opacity: .9; }
+    .btn-pro { background: linear-gradient(135deg, #22c55e, #5ba3ec); color: #fff; }
+    .btn-ent { background: linear-gradient(135deg, #a855f7, #2d7dd2); color: #fff; }
+    .btn-sm { padding: 8px 14px; font-size: 12px; }
+    .err { color: var(--red); font-size: 13px; margin-top: 8px; min-height: 18px; }
+
+    /* Stats strip */
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px; }
+    .stat { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 18px 22px; }
+    .stat-lbl { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--text-dim); font-weight: 700; }
+    .stat-val { font-size: 30px; font-weight: 800; margin-top: 6px; letter-spacing: -.02em; }
+    .stat-val small { font-size: 14px; color: var(--text-dim); font-weight: 500; }
+
+    /* Section heading */
+    .section { margin-bottom: 36px; }
+    .sec-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .sec-head h2 { font-size: 18px; font-weight: 800; }
+    .sec-head .meta { font-size: 12px; color: var(--text-dim); }
+
+    /* Application card */
+    .apps-grid { display: flex; flex-direction: column; gap: 12px; }
+    .app-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 22px 24px; transition: border .15s; }
+    .app-card:hover { border-color: var(--border-2); }
+    .app-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; gap: 14px; }
+    .app-name-block .nm { font-size: 16px; font-weight: 700; }
+    .app-name-block .em { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent-soft); margin-top: 2px; }
+    .app-company { background: rgba(45,125,210,.12); border: 1px solid var(--border-2); color: var(--text); padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+    .app-meta { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+    .app-meta-item .lbl { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: .1em; font-weight: 700; }
+    .app-meta-item .val { font-size: 13px; color: var(--text); margin-top: 3px; }
+    .app-usecase { font-size: 13px; color: var(--text-soft); margin-bottom: 16px; line-height: 1.6; padding: 12px 14px; background: var(--bg); border-left: 3px solid var(--accent); border-radius: 4px; }
+    .app-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .app-actions .ts { margin-left: auto; font-size: 11px; color: var(--text-dim); }
+    .app-domain-tag { font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+    .dt-corporate { background: rgba(34,197,94,.18); color: #4ade80; }
+    .dt-personal { background: rgba(234,179,8,.18); color: #facc15; }
+    .dt-edu { background: rgba(168,85,247,.18); color: #c084fc; }
+
+    /* Empty state */
+    .empty { text-align: center; padding: 60px 24px; color: var(--text-dim); }
+    .empty .em-icon { font-size: 48px; margin-bottom: 12px; opacity: .5; }
+
+    /* Issued key modal */
+    .modal-bg { position: fixed; inset: 0; background: rgba(7,17,31,.85); backdrop-filter: blur(6px); display: none; align-items: center; justify-content: center; z-index: 100; }
+    .modal-bg.show { display: flex; }
+    .modal { background: var(--bg-card); border: 1px solid var(--accent); border-radius: 14px; padding: 32px; max-width: 600px; width: 90%; box-shadow: 0 0 60px rgba(45,125,210,.25); }
+    .modal h3 { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+    .modal p { color: var(--text-soft); margin-bottom: 20px; }
+    .key-box { background: var(--bg); border: 1px solid var(--border-2); border-radius: 10px; padding: 14px; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--accent-soft); display: flex; gap: 10px; align-items: center; word-break: break-all; margin-bottom: 16px; }
+    .key-box code { flex: 1; }
+    .copy-btn { background: var(--accent); color: #fff; padding: 6px 14px; border-radius: 6px; font-size: 11px; font-weight: 700; border: 0; cursor: pointer; white-space: nowrap; }
+    .copy-btn.copied { background: var(--green); color: #07111f; }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+
+    /* Decisions history */
+    .hist-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-radius: 8px; background: var(--bg-card); border: 1px solid var(--border); margin-bottom: 6px; font-size: 13px; }
+    .hist-row .em { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-soft); }
+    .hist-row .meta { color: var(--text-dim); font-size: 11px; }
+    .status-chip { font-size: 10px; padding: 3px 10px; border-radius: 999px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    .chip-approved { background: rgba(34,197,94,.18); color: #4ade80; }
+    .chip-declined { background: rgba(239,68,68,.18); color: #f87171; }
+
+    @media (max-width: 720px) {
+      .app-meta { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="gate-screen">
+  <div class="gate">
+    <h1>🔐 Admin Access</h1>
+    <p>Paste your <code>MASTER_API_KEY</code> to view pending applications.</p>
+    <input type="password" class="input" id="master-input" placeholder="lc_live_master_..." />
+    <p class="err" id="auth-err"></p>
+    <button class="btn btn-primary" style="width:100%;margin-top:14px;" onclick="auth()">Sign in</button>
+    <p style="margin-top:18px;font-size:11px;color:var(--text-dim);">
+      This key is stored only in your browser's session storage and never sent anywhere except as an Authorization header to your own API.
+    </p>
+  </div>
+</div>
+
+<div id="dashboard" style="display:none;">
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">📊</div>
+      <div>
+        <div class="brand-title">Loan Clarity Admin</div>
+        <div class="brand-sub">Access Application Review</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <span class="pill pill-ok">🔒 Authenticated</span>
+      <a href="#" onclick="signout(event)">Sign out</a>
+    </div>
+  </header>
+
+  <main>
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-lbl">Pending Review</div>
+        <div class="stat-val" id="stat-pending">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-lbl">Approved (recent)</div>
+        <div class="stat-val" id="stat-approved">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-lbl">Declined (recent)</div>
+        <div class="stat-val" id="stat-declined">—</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="sec-head">
+        <h2>Pending applications</h2>
+        <div class="meta">
+          <a href="#" onclick="loadApps(event)">↻ Refresh</a>
+        </div>
+      </div>
+      <div id="apps-list" class="apps-grid">
+        <div class="empty">Loading…</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="sec-head">
+        <h2>Recent decisions</h2>
+        <div class="meta">Last 20</div>
+      </div>
+      <div id="hist-list">
+        <div class="empty" style="padding:20px;">Loading…</div>
+      </div>
+    </div>
+  </main>
+
+</div>
+
+<div class="modal-bg" id="key-modal">
+  <div class="modal">
+    <h3 id="modal-title">✅ Key issued</h3>
+    <p id="modal-sub">Email this key to the applicant. We do not store it in plaintext.</p>
+    <div class="key-box">
+      <code id="issued-key">—</code>
+      <button class="copy-btn" id="copy-key-btn" onclick="copyKey()">Copy</button>
+    </div>
+    <p style="font-size:12px;color:var(--text-dim);">
+      <b>Suggested email:</b> Subject "Loan Clarity API access — approved"<br>
+      Reply with: <i>"Welcome! Your Loan Clarity API key is below. Authentication: Bearer header. Tier: [tier]. Docs: studentloansindex.com/api"</i>
+    </p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Done</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const KEY = 'lc_admin_master_key';
+let masterKey = sessionStorage.getItem(KEY) || '';
+
+if (masterKey) {
+  // Verify it still works
+  loadApps();
+} else {
+  document.getElementById('gate-screen').style.display = 'block';
+  document.getElementById('dashboard').style.display = 'none';
+}
+
+document.getElementById('master-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') auth();
+});
+
+async function auth() {
+  const key = document.getElementById('master-input').value.trim();
+  const err = document.getElementById('auth-err');
+  err.textContent = '';
+  if (!key) { err.textContent = 'Enter your master key.'; return; }
+  // Test it
+  try {
+    const r = await fetch('/api/admin/applications', { headers: { 'Authorization': 'Bearer ' + key }});
+    if (r.status === 403) { err.textContent = '❌ Invalid master key.'; return; }
+    if (!r.ok) { err.textContent = '❌ Auth failed (HTTP ' + r.status + ')'; return; }
+    masterKey = key;
+    sessionStorage.setItem(KEY, key);
+    document.getElementById('gate-screen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    loadApps();
+  } catch (e) {
+    err.textContent = '❌ Network error: ' + e.message;
+  }
+}
+
+function signout(e) {
+  if (e) e.preventDefault();
+  sessionStorage.removeItem(KEY);
+  masterKey = '';
+  location.reload();
+}
+
+async function loadApps(e) {
+  if (e) e.preventDefault();
+  if (!masterKey) return;
+  document.getElementById('apps-list').innerHTML = '<div class="empty">Loading…</div>';
+  try {
+    const r = await fetch('/api/admin/applications', { headers: { 'Authorization': 'Bearer ' + masterKey }});
+    if (r.status === 403) return signout();
+    const data = await r.json();
+    renderApps(data.pending || []);
+    renderHistory(data.recent_decisions || []);
+    document.getElementById('stat-pending').textContent = data.pending_count || 0;
+    const approved = (data.recent_decisions || []).filter(d => d.status === 'approved').length;
+    const declined = (data.recent_decisions || []).filter(d => d.status === 'declined').length;
+    document.getElementById('stat-approved').textContent = approved;
+    document.getElementById('stat-declined').textContent = declined;
+  } catch (err) {
+    document.getElementById('apps-list').innerHTML = '<div class="empty">Error loading: ' + err.message + '</div>';
+  }
+}
+
+function esc(s) {
+  return (s || '').toString()
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+}
+
+function domainTagClass(dt) {
+  const d = (dt || '').toLowerCase();
+  if (d === 'corporate' || d === 'business') return 'dt-corporate';
+  if (d === 'edu' || d === 'academic') return 'dt-edu';
+  return 'dt-personal';
+}
+
+function formatTime(iso) {
+  if (!iso) return '';
+  try {
+    const d = new Date(iso);
+    const now = new Date();
+    const ms = now - d;
+    const mins = Math.floor(ms / 60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return mins + ' min ago';
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return hrs + ' hr ago';
+    const days = Math.floor(hrs / 24);
+    if (days < 7) return days + ' day' + (days > 1 ? 's' : '') + ' ago';
+    return d.toISOString().slice(0, 10);
+  } catch { return iso; }
+}
+
+function renderApps(apps) {
+  const el = document.getElementById('apps-list');
+  if (!apps.length) {
+    el.innerHTML = '<div class="empty"><div class="em-icon">📭</div><div>No pending applications.</div><div style="font-size:12px;margin-top:6px;">New applications from <a href="/api">/api</a> will appear here.</div></div>';
+    return;
+  }
+  el.innerHTML = apps.map((a, i) => `
+    <div class="app-card" data-i="${i}">
+      <div class="app-head">
+        <div class="app-name-block">
+          <div class="nm">${esc(a.name || '(no name)')}</div>
+          <div class="em">${esc(a.email)}</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span class="app-domain-tag ${domainTagClass(a.domain_type)}">${esc(a.domain_type || 'unknown')}</span>
+          <span class="app-company">${esc(a.company || '—')}</span>
+        </div>
+      </div>
+      <div class="app-meta">
+        <div class="app-meta-item"><div class="lbl">Role</div><div class="val">${esc(a.role || '—')}</div></div>
+        <div class="app-meta-item"><div class="lbl">Expected volume</div><div class="val">${esc(a.expected_volume || '—')}</div></div>
+        <div class="app-meta-item"><div class="lbl">Submitted</div><div class="val">${esc(a.submitted_date || '—')}</div></div>
+      </div>
+      <div class="app-usecase">${esc(a.use_case || '(no use case provided)')}</div>
+      <div class="app-actions">
+        <button class="btn btn-sm btn-success" onclick="approve('${esc(a.email)}', 'free', '${esc(a.company)}')">Approve · Free</button>
+        <button class="btn btn-sm btn-pro" onclick="approve('${esc(a.email)}', 'pro', '${esc(a.company)}')">Approve · Pro</button>
+        <button class="btn btn-sm btn-ent" onclick="approve('${esc(a.email)}', 'enterprise', '${esc(a.company)}')">Approve · Enterprise</button>
+        <button class="btn btn-sm btn-danger" onclick="decline('${esc(a.email)}')">Decline</button>
+        <span class="ts">${formatTime(a.ts)}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderHistory(hist) {
+  const el = document.getElementById('hist-list');
+  if (!hist.length) {
+    el.innerHTML = '<div class="empty" style="padding:20px;">No decisions yet.</div>';
+    return;
+  }
+  el.innerHTML = hist.map(d => `
+    <div class="hist-row">
+      <div>
+        <span class="status-chip ${d.status === 'approved' ? 'chip-approved' : 'chip-declined'}">${d.status}</span>
+        <span class="em" style="margin-left:10px;">${esc(d.email)}</span>
+        ${d.tier ? '<span style="margin-left:6px;color:var(--text-dim);font-size:11px;">[' + esc(d.tier) + ']</span>' : ''}
+      </div>
+      <div class="meta">${formatTime(d.ts)}</div>
+    </div>
+  `).join('');
+}
+
+async function approve(email, tier, company) {
+  if (!confirm('Approve ' + email + ' as ' + tier.toUpperCase() + '?')) return;
+  const note = prompt('Internal note (optional):') || '';
+  try {
+    const r = await fetch('/api/admin/issue-key', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + masterKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, tier, company, note }),
+    });
+    const data = await r.json();
+    if (data.ok && data.api_key) {
+      showKey(data.api_key, email, tier);
+      loadApps();
+    } else {
+      alert('Error: ' + (data.error || 'unknown'));
+    }
+  } catch (e) {
+    alert('Network error: ' + e.message);
+  }
+}
+
+async function decline(email) {
+  const reason = prompt('Decline reason (visible only to you):');
+  if (reason === null) return;  // user cancelled
+  if (!confirm('Decline ' + email + '?')) return;
+  try {
+    const r = await fetch('/api/admin/decline', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + masterKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, reason }),
+    });
+    const data = await r.json();
+    if (data.ok) {
+      loadApps();
+    } else {
+      alert('Error: ' + (data.error || 'unknown'));
+    }
+  } catch (e) {
+    alert('Network error: ' + e.message);
+  }
+}
+
+function showKey(key, email, tier) {
+  document.getElementById('issued-key').textContent = key;
+  document.getElementById('modal-title').textContent = '✅ ' + tier.toUpperCase() + ' key issued for ' + email;
+  document.getElementById('key-modal').classList.add('show');
+}
+function closeModal() {
+  document.getElementById('key-modal').classList.remove('show');
+}
+function copyKey() {
+  const k = document.getElementById('issued-key').textContent;
+  navigator.clipboard.writeText(k).then(() => {
+    const btn = document.getElementById('copy-key-btn');
+    btn.textContent = '✓ Copied';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1500);
+  });
+}
+</script>
+
+</body>
+</html>
