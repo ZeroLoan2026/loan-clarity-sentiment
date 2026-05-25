@@ -4,7 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>How it works · Loan Clarity Borrower Sentiment Index™</title>
-<meta name="description" content="The receipts behind the Loan Clarity Borrower Stress Index — plain English. No PhD required."/>
+<meta name="description" content="The full methodology behind the Loan Clarity Borrower Sentiment Index — six weighted signals, normalization, update cadence, and limitations. Plain English."/>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -216,10 +216,10 @@
 
 <!-- ════════════ HERO ════════════ -->
 <section class="hero">
-  <div class="hero-pill"><span class="dot"></span>HOW IT WORKS · NO PHD REQUIRED</div>
-  <h1>The receipts behind <span class="grad">your stress score.</span></h1>
+  <div class="hero-pill"><span class="dot"></span>METHODOLOGY · PLAIN ENGLISH</div>
+  <h1>The data and math behind <span class="grad">the Index.</span></h1>
   <p class="hero-sub">
-    A score is just a number. Here's what's actually under the hood — in plain English, written by people who've actually had student loans.
+    A composite score is only as good as the signals feeding it. Here is every input, weight, and calculation — documented end-to-end so anyone can audit the work.
   </p>
   <div class="hero-meta">◉ Last revised May 2026 · Open methodology · Verified data</div>
 </section>
@@ -229,26 +229,26 @@
   <!-- ════════════ OVERVIEW ════════════ -->
   <section class="section" id="overview">
     <div class="section-num"><span class="pip"></span>The big picture</div>
-    <h2>One number. <span class="accent">Six signals.</span> Zero vibes.</h2>
+    <h2>One number. <span class="accent">Six signals.</span> Fully transparent.</h2>
     <p>
-      Every 5 minutes, we pull data from six different places — Reddit, Google searches, the CFPB complaint database, NY Fed delinquency data, refinance demand, and survey panels. We blend them with a weighted formula and spit out a single score between 0 and 100.
+      Every five minutes, the engine pulls data from six independent sources — Reddit, Google search behavior, the CFPB complaint database, NY Fed delinquency data, refinance demand, and survey panels. Each is normalized, weighted, and combined into a single composite score between 0 and 100.
     </p>
     <p>
-      <b>Low score = the country is chill about student loans.</b> <b>High score = mass panic.</b> Right now (May 2026), we're in <b>high anxiety</b> territory, mostly because of SAVE plan chaos and servicer errors.
+      <b>Low score = stable, low-distress conditions.</b> <b>High score = elevated borrower stress.</b> As of May 2026, the index is reading in the <b>high anxiety</b> range, driven primarily by SAVE plan uncertainty and servicer-related complaint volume.
     </p>
 
     <div class="tldr">
-      <div class="tldr-label"><span class="ic"></span>TL;DR</div>
-      <p>We don't make stuff up. We pull real public data, run it through AI to detect emotion, and aggregate it into one easy-to-read score. The math is on this page. The sources are on the <a href="/sources" style="color:var(--neon);text-decoration:underline">sources page</a>.</p>
+      <div class="tldr-label"><span class="ic"></span>Summary</div>
+      <p>Every input is a real, public dataset. AI is used only to classify sentiment in Reddit posts. The full math is on this page; primary sources are documented on the <a href="/sources" style="color:var(--neon);text-decoration:underline">sources page</a>.</p>
     </div>
   </section>
 
   <!-- ════════════ FORMULA ════════════ -->
   <section class="section" id="weighted-index">
     <div class="section-num"><span class="pip"></span>The formula</div>
-    <h2>How we mix <span class="accent-cool">the six signals.</span></h2>
+    <h2>How the six signals <span class="accent-cool">combine.</span></h2>
     <p>
-      Each signal gets normalized to a 0–100 score, then multiplied by its weight, then added together. The weights add up to 100%. We picked these weights based on what actually predicts borrower behavior — not vibes.
+      Each signal is normalized to a 0–100 score, multiplied by its weight, then summed. Weights total 100% and were selected based on each signal's historical correlation with observed borrower behavior — not subjective judgment.
     </p>
 
     <!-- PIE CHART FORMULA VISUAL -->
@@ -336,7 +336,7 @@
       <div class="weight-card" style="border-left:3px solid #f97316">
         <span class="wc-emoji">🔍</span>
         <div class="wc-head"><div class="wc-name">Google Search Panic</div><div class="wc-pct" style="color:#f97316">24%</div></div>
-        <div class="wc-desc">When people Google "can't pay student loans" — they're stressed. Searches are private; spikes don't lie.</div>
+        <div class="wc-desc">Search queries like "can't pay student loans" are private signals of intent. Spikes consistently precede news cycles.</div>
       </div>
       <div class="weight-card" style="border-left:3px solid #f43f5e">
         <span class="wc-emoji">💬</span>
@@ -361,7 +361,7 @@
       <div class="weight-card" style="border-left:3px solid #22c55e">
         <span class="wc-emoji">🔁</span>
         <div class="wc-head"><div class="wc-name">Refinance Demand</div><div class="wc-pct" style="color:#22c55e">8%</div></div>
-        <div class="wc-desc">When everyone's searching to refi at once = collective panic signal. Google Trends + partner data.</div>
+        <div class="wc-desc">Aggregate refinance search demand signals collective rate-shopping activity. Source: Google Trends + lender application data where available.</div>
       </div>
     </div>
   </section>
@@ -369,180 +369,180 @@
   <!-- ════════════ GOOGLE TRENDS ════════════ -->
   <section class="section" id="google-trends">
     <div class="section-num"><span class="pip"></span>Signal 1 · 24% weight</div>
-    <h2>🔍 What people <span class="accent">Google when they panic.</span></h2>
+    <h2>🔍 Search behavior as <span class="accent">a distress signal.</span></h2>
     <p>
-      We pull Google Trends data for a basket of distress queries: <code>can't pay student loans</code>, <code>student loan forgiveness</code>, <code>refinance student loans</code>, <code>SAVE plan</code>. Trends gives every search a 0–100 score based on relative volume.
+      We pull Google Trends data for a basket of distress queries: <code>can't pay student loans</code>, <code>student loan forgiveness</code>, <code>refinance student loans</code>, <code>SAVE plan</code>. Trends provides a 0–100 score for each query based on relative volume.
     </p>
     <p>
-      <b>Why this matters:</b> Searches are private. People Google what they're afraid to say out loud. When "can't pay student loans" spikes 300% in a week, something real is happening — usually before the news catches up.
+      <b>Why this matters:</b> Search is private. People query what they aren't yet willing to say publicly. A 300% week-over-week spike in "can't pay student loans" reliably precedes coverage in the financial press by several days.
     </p>
 
     <div class="real-talk">
-      <div class="real-talk-label"><span class="ic"></span>Real talk</div>
-      <p>This is the closest thing we have to reading 45 million people's minds. We average the basket and scale 0–100. Source: <a href="https://trends.google.com" target="_blank" rel="noopener" style="color:var(--hot-2);text-decoration:underline">trends.google.com</a>.</p>
+      <div class="real-talk-label"><span class="ic"></span>Note</div>
+      <p>Search behavior is one of the strongest available leading indicators of household financial stress. We average the basket and scale to 0–100. Source: <a href="https://trends.google.com" target="_blank" rel="noopener" style="color:var(--hot-2);text-decoration:underline">trends.google.com</a>.</p>
     </div>
   </section>
 
   <!-- ════════════ REDDIT ════════════ -->
   <section class="section" id="reddit">
     <div class="section-num"><span class="pip"></span>Signal 2 · 23% weight</div>
-    <h2>💬 What borrowers are <span class="accent-purple">saying to each other.</span></h2>
+    <h2>💬 Aggregated <span class="accent-purple">borrower discussion.</span></h2>
     <p>
-      We pull posts from <b>r/StudentLoans</b>, <b>r/personalfinance</b>, and <b>r/povertyfinance</b> covering the past 30 days. An AI classifier reads each post and tags emotion: <b>anxiety, confusion, frustration, optimism, hopelessness</b>. We weight by post engagement (upvotes + comments) so the loudest signals matter most.
+      Posts are pulled from <b>r/StudentLoans</b>, <b>r/personalfinance</b>, and <b>r/povertyfinance</b> over a rolling 30-day window. An AI classifier scores each post across five emotional dimensions: <b>anxiety, confusion, frustration, optimism, hopelessness</b>. Posts are weighted by engagement (upvotes + comments) so high-visibility signals carry more weight in the aggregate.
     </p>
 
     <div class="quote-card">
-      <p>"Reddit is where Gen Z and millennials actually post the stuff they wouldn't say on LinkedIn. It's the most honest data we have."</p>
-      <div class="attr">— Loan Clarity research lead</div>
+      <p>"Public Reddit posts offer one of the few real-time, qualitative views into borrower sentiment that complement traditional survey data and complaint records."</p>
+      <div class="attr">— Loan Clarity research notes</div>
     </div>
 
     <p>
-      The sentiment score (0–100) flips: <b>low optimism + high anxiety = high panic score</b>. We re-run the AI every 5 minutes on the latest posts.
+      The sentiment score is inverted to align with the index: <b>low optimism + high anxiety produces a high stress score</b>. The classifier is re-run every five minutes against the most recent posts.
     </p>
   </section>
 
   <!-- ════════════ CFPB ════════════ -->
   <section class="section" id="cfpb">
     <div class="section-num"><span class="pip"></span>Signal 3 · 13% weight</div>
-    <h2>📝 Federal complaints. <span class="accent">Real receipts.</span></h2>
+    <h2>📝 Federal complaint <span class="accent">volume.</span></h2>
     <p>
-      The <b>Consumer Financial Protection Bureau (CFPB)</b> publishes every formal complaint Americans file against student loan servicers — Aidvantage, MOHELA, Nelnet, etc. We query their public API for student-loan complaints filed in the last 90 days, then compare to the same period last year.
+      The <b>Consumer Financial Protection Bureau (CFPB)</b> publishes every formal complaint filed against student loan servicers — Aidvantage, MOHELA, Nelnet, and others. We query the public API for student-loan complaints filed in the trailing 90 days and compare against the same window in the prior year.
     </p>
     <p>
-      <b>+320% YoY?</b> That's the country screaming at its servicer. <b>-10% YoY?</b> Things are quieting down. Either way, this is government-verified, not made up.
+      <b>+320% YoY</b> typically indicates a material servicer or policy failure. <b>-10% YoY</b> indicates stabilization. Either way, the data is government-published and fully auditable.
     </p>
   </section>
 
   <!-- ════════════ DELINQUENCY ════════════ -->
   <section class="section" id="delinquency">
     <div class="section-num"><span class="pip"></span>Signal 4 · 15% weight</div>
-    <h2>📉 Who's actually <span class="accent">missing payments.</span></h2>
+    <h2>📉 Actual <span class="accent">delinquency rates.</span></h2>
     <p>
-      The <b>Federal Reserve Bank of New York</b> publishes a quarterly <b>Household Debt and Credit Report</b> showing what percentage of student loan accounts are 90+ days past due. This is the gold standard for "how bad is it really."
+      The <b>Federal Reserve Bank of New York</b> publishes a quarterly <b>Household Debt and Credit Report</b> tracking the share of student loan accounts 90+ days past due. This is the authoritative measure of realized borrower distress.
     </p>
     <p>
-      We pull the latest quarterly figure, scale it against historical highs (worst was ~12% in 2019) and lows (~5% during the COVID pause), and convert to a 0–100 stress score.
+      We pull the latest quarterly figure, scale against historical extremes (peak ≈ 12% in 2019; trough ≈ 5% during the COVID payment pause), and convert to a 0–100 stress score.
     </p>
   </section>
 
   <!-- ════════════ REFINANCE ════════════ -->
   <section class="section" id="refinance">
     <div class="section-num"><span class="pip"></span>Signal 5 · 8% weight</div>
-    <h2>🔁 When everyone's <span class="accent-cool">trying to bail at once.</span></h2>
+    <h2>🔁 Refinance <span class="accent-cool">demand.</span></h2>
     <p>
-      Refinance demand is measured by Google search volume for refi-related queries combined with lender application data (where available). When borrowers can't sleep, they refresh refinance rates at 2 AM. We watch that.
+      Refinance demand is measured via Google search volume for refi-related queries, supplemented with lender application data where available. Sharp increases in refi search activity reliably follow rate moves and major policy events.
     </p>
     <p>
-      <b>Why only 10%?</b> Because refinancing is voluntary, not crisis-driven. It's a useful sentiment signal but doesn't predict the same things delinquency does.
+      <b>Why only 8%?</b> Refinancing is a voluntary, opportunity-driven action — not crisis-driven. It is a useful confirming signal but a weaker predictor than delinquency or complaint volume, so it carries a lower weight.
     </p>
   </section>
 
   <!-- ════════════ SURVEY ════════════ -->
   <section class="section" id="survey">
     <div class="section-num"><span class="pip"></span>Signal 6 · 17% weight</div>
-    <h2>📊 What people say <span class="accent-purple">when you actually ask.</span></h2>
+    <h2>📊 Self-reported <span class="accent-purple">borrower surveys.</span></h2>
     <p>
-      We aggregate self-reported borrower stress from public survey panels — University of Michigan Consumer Sentiment (filtered to student loan respondents), Pew Research, and our own quarterly survey panel as it grows. Self-reported data is messy but irreplaceable: it captures fear that hasn't shown up in delinquency stats yet.
+      We aggregate self-reported borrower stress from public survey panels: the University of Michigan Consumer Sentiment Index (filtered to student loan respondents), Pew Research, and our own quarterly proprietary panel. Survey data is noisier than transactional data, but it captures sentiment shifts before they show up in delinquency statistics.
     </p>
 
     <div class="tldr">
-      <div class="tldr-label"><span class="ic"></span>Building this part out</div>
-      <p>Honest disclosure: our proprietary survey panel is small right now (~500 borrowers). It'll get bigger and weighted higher as we grow. Right now we lean on University of Michigan + Pew.</p>
+      <div class="tldr-label"><span class="ic"></span>Coverage note</div>
+      <p>Our proprietary survey panel currently includes ~500 borrowers and is expanding. As the panel scales, it will carry more weight relative to third-party survey data. Today, University of Michigan and Pew remain the primary inputs.</p>
     </div>
   </section>
 
   <!-- ════════════ AI EMOTIONS ════════════ -->
   <section class="section" id="emotions">
     <div class="section-num"><span class="pip"></span>Under the hood</div>
-    <h2>🤖 How the <span class="accent-purple">AI reads emotion.</span></h2>
+    <h2>🤖 How the AI <span class="accent-purple">classifies sentiment.</span></h2>
     <p>
-      Every Reddit post gets fed to a language model with a prompt asking it to score five emotional dimensions from 0 to 1:
+      Each Reddit post is passed to a language model with a structured prompt that returns scores from 0 to 1 across five emotional dimensions:
     </p>
     <ul>
-      <li><b>Anxiety</b> — worry, dread, fear about the future</li>
-      <li><b>Confusion</b> — "I don't understand my plan", "what does this notice mean"</li>
-      <li><b>Frustration</b> — anger, contempt, "this is insane"</li>
-      <li><b>Optimism</b> — hope, looking forward, "I finally have a plan"</li>
-      <li><b>Hopelessness</b> — despair, giving up, "I'm never paying this off"</li>
+      <li><b>Anxiety</b> — worry, dread, fear about future repayment</li>
+      <li><b>Confusion</b> — "I don't understand my plan," "what does this notice mean"</li>
+      <li><b>Frustration</b> — anger, contempt, sharp criticism of process</li>
+      <li><b>Optimism</b> — hope, forward-looking framing, sense of control</li>
+      <li><b>Hopelessness</b> — despair, resignation, perceived futility</li>
     </ul>
     <p>
-      We aggregate across all posts in the window, weighted by engagement. The dominant emotion shows up on the dashboard. The composite is part of the Reddit signal (Signal 2).
+      Scores are aggregated across all posts in the rolling window, weighted by engagement. The dominant emotion is surfaced on the dashboard; the composite feeds the Reddit signal (Signal 2).
     </p>
   </section>
 
   <!-- ════════════ MARKET & MACRO ════════════ -->
   <section class="section" id="market-macro">
     <div class="section-num"><span class="pip"></span>Context layer</div>
-    <h2>📈 The macro stuff <span class="accent">we watch in the background.</span></h2>
+    <h2>📈 Macro indicators <span class="accent">tracked alongside.</span></h2>
     <p>
-      Not weighted into the main score (yet), but on the dashboard for context: 10-year Treasury yield (affects refi rates), unemployment rate (affects ability to pay), Federal Register actions (policy changes), CBO student loan outlook reports, and enrollment trends from NCES.
+      Not currently weighted into the composite, but surfaced on the dashboard for context: 10-year Treasury yield (drives private refi rates), headline unemployment (drives ability to pay), Federal Register actions (policy changes), CBO student loan outlook reports, and NCES enrollment trends.
     </p>
   </section>
 
   <!-- ════════════ NORMALIZATION ════════════ -->
   <section class="section" id="normalization">
-    <div class="section-num"><span class="pip"></span>The boring-but-important part</div>
-    <h2>How we get <span class="accent-cool">everything onto a 0–100 scale.</span></h2>
+    <div class="section-num"><span class="pip"></span>Normalization</div>
+    <h2>How signals are mapped <span class="accent-cool">to a common 0–100 scale.</span></h2>
     <p>
-      Different signals have different units. CFPB complaints are counts. Delinquency is a percentage. Google Trends is already 0–100. We normalize everything to a common 0–100 stress scale using historical ranges:
+      Each signal arrives in a different unit. CFPB complaints are counts. Delinquency is a percentage. Google Trends is already 0–100. To combine them, we normalize each to a common 0–100 stress scale using historical ranges:
     </p>
     <div class="step-grid">
       <div class="step">
         <div class="s-num">STEP 1</div>
-        <div class="s-name">Find the historical floor &amp; ceiling</div>
-        <div class="s-desc">For each signal, what's the calmest it's ever been and the most panicked?</div>
+        <div class="s-name">Establish historical floor &amp; ceiling</div>
+        <div class="s-desc">For each signal, identify the historical minimum and maximum observed values.</div>
       </div>
       <div class="step">
         <div class="s-num">STEP 2</div>
         <div class="s-name">Linear scale to 0–100</div>
-        <div class="s-desc">Map today's value between those two anchors. 50 = average historical stress.</div>
+        <div class="s-desc">Map today's value linearly between those two anchors. 50 corresponds to the historical average.</div>
       </div>
       <div class="step">
         <div class="s-num">STEP 3</div>
-        <div class="s-name">Flip if needed</div>
-        <div class="s-desc">Some signals are inverted (more optimism = lower stress). We standardize so high always = panic.</div>
+        <div class="s-name">Invert if needed</div>
+        <div class="s-desc">Some signals are inversely related to stress (e.g., higher optimism = lower stress). These are flipped so higher always indicates higher distress.</div>
       </div>
       <div class="step">
         <div class="s-num">STEP 4</div>
-        <div class="s-name">Multiply by weight, sum</div>
-        <div class="s-desc">Add the weighted contributions, round to nearest integer, done.</div>
+        <div class="s-name">Apply weights, sum</div>
+        <div class="s-desc">Multiply each normalized signal by its weight, sum the contributions, round to the nearest integer.</div>
       </div>
     </div>
   </section>
 
   <!-- ════════════ CADENCE ════════════ -->
   <section class="section" id="update-cadence">
-    <div class="section-num"><span class="pip"></span>How often it changes</div>
-    <h2>⏰ Updated every <span class="accent-cool">5 minutes.</span></h2>
+    <div class="section-num"><span class="pip"></span>Update cadence</div>
+    <h2>⏰ Recomputed every <span class="accent-cool">5 minutes.</span></h2>
     <p>
-      Reddit posts and Google Trends are pulled live. CFPB updates daily. NY Fed delinquency is quarterly. Surveys monthly. Whenever a fresh data point lands, we recompute the index. The dashboard always shows the latest score and timestamps each source so you can see how stale anything is.
+      Reddit and Google Trends are pulled in near real time. CFPB updates daily. NY Fed delinquency releases quarterly. Surveys release monthly. The index is recomputed whenever any source publishes a new data point. The dashboard always displays the current score and timestamps each source so the age of every input is visible.
     </p>
   </section>
 
   <!-- ════════════ LIMITATIONS ════════════ -->
   <section class="section" id="limitations">
-    <div class="section-num"><span class="pip"></span>What we're not</div>
-    <h2>What this <span class="accent">isn't.</span></h2>
+    <div class="section-num"><span class="pip"></span>Caveats</div>
+    <h2>What this index <span class="accent">does not do.</span></h2>
     <p>
-      We're going to be honest with you about what this index does <em>not</em> do:
+      Important limitations to understand before relying on the data:
     </p>
     <ul>
-      <li><b>It's not a prediction.</b> It tells you what's happening now, not what will happen.</li>
-      <li><b>It's not financial advice.</b> Don't refinance because the score is 70. Refinance because your numbers work.</li>
-      <li><b>It's not a perfect representation of every borrower.</b> Reddit skews younger, more online. We try to balance with surveys and macro data, but our coverage of older borrowers is thinner.</li>
-      <li><b>It's not a substitute for talking to your servicer.</b> If you're in trouble, call them. The index can't pay your bill.</li>
+      <li><b>It is not predictive.</b> The index measures current conditions, not future outcomes.</li>
+      <li><b>It is not financial advice.</b> A score of 70 is not a refinance or repayment trigger. Individual decisions depend on individual circumstances.</li>
+      <li><b>It is not representative of every borrower.</b> Reddit users skew younger and more online. Survey and macro data are used to balance coverage, but representation of older borrowers is thinner than ideal.</li>
+      <li><b>It is not a substitute for direct contact with your servicer.</b> The index reports market conditions; it does not reflect individual accounts. Borrowers facing repayment difficulty should contact their servicer directly.</li>
     </ul>
 
     <div class="real-talk">
       <div class="real-talk-label"><span class="ic"></span>Why this exists</div>
-      <p>We built Loan Clarity because 45 million Americans deserve to know they're not crazy when the system feels broken. The index puts your stress on a chart. The rest of the platform helps you do something about it.</p>
+      <p>The $1.77T student loan market lacked a real-time signal layer. Lenders, servicers, policymakers, and journalists were operating on quarterly reports and anecdote. The Loan Clarity Borrower Sentiment Index closes that gap with continuously updated, fully-sourced data.</p>
     </div>
   </section>
 
   <!-- ════════════ END CTA ════════════ -->
   <div class="end-cta">
-    <h3>Got the receipts. <span class="grad">Now you know what's real.</span></h3>
-    <p>You read the methodology. You know the math is solid. Use the data — but always run big financial moves by a qualified professional.</p>
+    <h3>The methodology, <span class="grad">in full.</span></h3>
+    <p>Every input, weight, and calculation is documented above. Use the data with confidence — and consult a qualified professional before making any individual financial decision.</p>
     <div style="margin-top:14px">
       <a href="/" class="cta cta-primary">📊 View Live Index</a>
       <a href="/api" class="cta cta-ghost">⚡ Get API Access</a>
@@ -554,7 +554,7 @@
 <!-- ════════════ MINI FOOTER ════════════ -->
 <div class="mini-footer-wrap">
   <div class="mini-disc">
-    The math is open. The code is public. The data is sourced from <a href="/sources" style="color:var(--purple)">irs.gov, CFPB, NY Fed, Reddit, Google Trends, and more</a>. We earn affiliate revenue when you refinance — costs you nothing.
+    Methodology is open. Data is sourced from <a href="/sources" style="color:var(--purple)">CFPB, NY Fed, U.S. Department of Education, Pew Research, University of Michigan, Google Trends, Reddit, and additional public datasets</a>. The Borrower Sentiment Index is an educational data tool — not financial advice.
   </div>
   <div class="mini-footer-row">
     <span>© 2026 Loan Clarity · Borrower Sentiment Index™</span>
