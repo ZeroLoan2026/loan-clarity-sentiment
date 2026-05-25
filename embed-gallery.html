@@ -48,6 +48,35 @@
     .nav-right a.active { color: #fff; border-bottom-color: var(--accent); }
     .nav-spacer { justify-self: end; }
 
+    /* ── Mobile nav (matches dashboard/methodology/sources/social-signals) ── */
+    @media (max-width: 760px) {
+      nav.topnav {
+        grid-template-columns: auto 1fr;
+        grid-template-rows: auto auto;
+        row-gap: 8px;
+        padding: 10px 14px;
+      }
+      .nav-left { grid-row: 1; grid-column: 1; }
+      .nav-spacer { display: none; }
+      .nav-right {
+        grid-row: 2; grid-column: 1 / -1;
+        gap: 0; padding-top: 8px;
+        border-top: 1px solid var(--border);
+        width: 100%; justify-self: stretch;
+      }
+      .nav-right a {
+        flex: 1 1 0; text-align: center;
+        font-size: 10.5px; letter-spacing: .06em;
+        padding: 4px 2px; white-space: nowrap;
+      }
+      .nav-sub { display: none; }
+      .nav-title { font-size: 15px; }
+      .logo-mark { width: 30px; height: 30px; font-size: 14px; }
+    }
+    @media (max-width: 420px) {
+      .nav-right a { font-size: 9.5px; letter-spacing: .04em; padding: 4px 2px; }
+    }
+
     /* Hero */
     .hero { padding: 70px 32px 40px; max-width: 1100px; margin: 0 auto; text-align: center; }
     .tag { display: inline-block; font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--accent-soft); font-weight: 800; background: rgba(45,125,210,.12); padding: 6px 14px; border-radius: 999px; margin-bottom: 18px; }

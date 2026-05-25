@@ -52,6 +52,35 @@
     .nav-right a.active { color: #fff; border-bottom-color: var(--accent); }
     .nav-spacer { justify-self: end; }
 
+    /* ── Mobile nav (matches dashboard/methodology/sources/social-signals) ── */
+    @media (max-width: 760px) {
+      .nav {
+        grid-template-columns: auto 1fr;
+        grid-template-rows: auto auto;
+        row-gap: 8px;
+        padding: 10px 14px;
+      }
+      .nav-left { grid-row: 1; grid-column: 1; }
+      .nav-spacer { display: none; }
+      .nav-right {
+        grid-row: 2; grid-column: 1 / -1;
+        gap: 0; padding-top: 8px;
+        border-top: 1px solid var(--border);
+        width: 100%; justify-self: stretch;
+      }
+      .nav-right a {
+        flex: 1 1 0; text-align: center;
+        font-size: 10.5px; letter-spacing: .06em;
+        padding: 4px 2px; white-space: nowrap;
+      }
+      .nav-sub { display: none; }
+      .nav-title { font-size: 15px; }
+      .logo-mark { width: 30px; height: 30px; font-size: 14px; }
+    }
+    @media (max-width: 420px) {
+      .nav-right a { font-size: 9.5px; letter-spacing: .04em; padding: 4px 2px; }
+    }
+
     /* Hero */
     .hero {
       max-width: 1280px; margin: 0 auto; padding: 80px 32px 60px;
@@ -203,7 +232,10 @@
       .endpoint-body { grid-template-columns: 1fr; }
       .use-cases { grid-template-columns: 1fr; }
       .form-grid-2 { grid-template-columns: 1fr; }
-      .nav-links { display: none; }
+      /* Pricing cards stack on mobile */
+      #pricing > div[style*="grid-template-columns:repeat(3,1fr)"] { grid-template-columns: 1fr !important; }
+      /* Embed section stacks on mobile */
+      #embed > div[style*="grid-template-columns:1.2fr 1fr"] { grid-template-columns: 1fr !important; }
     }
   </style>
 </head>
