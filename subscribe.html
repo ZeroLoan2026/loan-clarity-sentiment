@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Subscribe to Loan Clarity Pro — Live Borrower Sentiment Index</title>
+  <meta name="description" content="Subscribe to Loan Clarity Pro for live (real-time) access to the Borrower Sentiment Index. $99/mo or $899/yr. Free Sentiment Friday newsletter for everyone." />
+  <link rel="canonical" href="https://www.studentloansindex.com/subscribe" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #07111f; --bg-soft: #0d1a2d; --bg-card: #0f1f36;
+      --border: #1e3a5f; --text: #e8eef7; --text-soft: #9fb2cc;
+      --text-dim: #6b7e98; --accent: #2d7dd2; --accent-soft: #5ba3ec;
+      --green: #22c55e; --orange: #f97316;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, sans-serif; min-height: 100vh; -webkit-font-smoothing: antialiased; line-height: 1.6; }
+    a { color: var(--accent-soft); text-decoration: none; }
+    a:hover { color: var(--accent); }
+
+    nav.nav { background: rgba(7,17,31,.92); border-bottom: 1px solid var(--border);
+              padding: 14px 28px; display: grid; grid-template-columns: 1fr auto 1fr;
+              align-items: center; position: sticky; top: 0; z-index: 100; backdrop-filter: blur(10px); }
+    .nav-left { display: flex; align-items: center; gap: 12px; justify-self: start; }
+    .logo-mark { width: 34px; height: 34px; background: linear-gradient(135deg,#1a6eb5,#2d7dd2);
+                 border-radius: 8px; display: flex; align-items: center; justify-content: center;
+                 font-size: 16px; box-shadow: 0 0 14px rgba(45,125,210,.25); }
+    .nav-title { font-size: 17px; font-weight: 800; }
+    .nav-sub { font-size: 10px; color: #5a7d9d; letter-spacing: .12em; text-transform: uppercase; margin-top: 1px; }
+    .nav-right { display: flex; gap: 32px; justify-self: center; }
+    .nav-right a { color: #6f88a5; text-decoration: none; font-size: 11px; font-weight: 700;
+                   letter-spacing: .12em; text-transform: uppercase; padding: 6px 0;
+                   border-bottom: 2px solid transparent; }
+    .nav-right a:hover { color: var(--accent-soft); }
+    .nav-right a.active { color: #fff; border-bottom-color: var(--accent); }
+    .nav-spacer { justify-self: end; }
+
+    .hero { max-width: 980px; margin: 0 auto; padding: 70px 28px 30px; text-align: center; }
+    .hero-tag { display: inline-block; font-size: 11px; letter-spacing: .18em;
+                text-transform: uppercase; color: var(--accent-soft); font-weight: 800;
+                background: rgba(45,125,210,.12); padding: 6px 14px; border-radius: 999px;
+                margin-bottom: 18px; }
+    .hero h1 { font-size: clamp(36px, 5vw, 52px); font-weight: 800;
+               letter-spacing: -.03em; line-height: 1.1; margin-bottom: 16px; }
+    .hero h1 .grad { background: linear-gradient(120deg, #5ba3ec 0%, #22c55e 100%);
+                     -webkit-background-clip: text; background-clip: text;
+                     -webkit-text-fill-color: transparent; }
+    .hero p { font-size: 18px; color: var(--text-soft); max-width: 640px; margin: 0 auto; }
+
+    /* Pricing cards */
+    .pricing { max-width: 1100px; margin: 50px auto 60px; padding: 0 28px;
+               display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+    .tier { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
+            padding: 34px; display: flex; flex-direction: column; position: relative; }
+    .tier.featured { border: 2px solid var(--accent);
+                     box-shadow: 0 0 50px rgba(45,125,210,.18);
+                     transform: scale(1.02); }
+    .tier .badge { position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+                   background: linear-gradient(90deg,#22c55e,#5ba3ec); color: #fff;
+                   font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
+                   padding: 6px 16px; border-radius: 14px; font-weight: 800; white-space: nowrap; }
+    .tier-name { font-size: 11px; letter-spacing: .16em; text-transform: uppercase;
+                 font-weight: 800; color: var(--text-dim); }
+    .tier-name.pro { color: var(--accent-soft); }
+    .tier-name.ent { color: var(--green); }
+    .tier-price { font-size: 48px; font-weight: 800; margin: 8px 0 4px;
+                  letter-spacing: -.03em; }
+    .tier-price small { font-size: 18px; color: var(--text-dim); font-weight: 500; }
+    .tier-sub { color: var(--text-soft); font-size: 13px; margin-bottom: 24px; }
+    .tier ul { list-style: none; padding: 0; margin: 0 0 24px; flex: 1; }
+    .tier li { font-size: 14px; color: var(--text-soft); padding: 8px 0; }
+    .tier li b { color: var(--text); }
+    .tier li.check::before { content: "✓ "; color: var(--green); font-weight: 700; }
+    .tier li.cross::before { content: "— "; color: var(--text-dim); }
+    .tier .cta { display: block; text-align: center; padding: 14px; border-radius: 10px;
+                 font-weight: 700; text-decoration: none; transition: all .15s; }
+    .cta-primary { background: var(--accent); color: #fff; }
+    .cta-primary:hover { background: var(--accent-soft); }
+    .cta-featured { background: linear-gradient(135deg, #22c55e, #5ba3ec); color: #fff; }
+    .cta-ghost { background: transparent; border: 2px solid var(--accent); color: var(--accent-soft); }
+    .cta-ghost:hover { background: rgba(45,125,210,.1); color: var(--text); }
+
+    .annual-toggle { display: flex; gap: 10px; justify-content: center; margin: 30px 0;
+                     align-items: center; font-size: 13px; color: var(--text-soft); }
+    .save-pill { background: rgba(34,197,94,.15); color: var(--green); padding: 4px 10px;
+                 border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: .04em; }
+
+    /* Comparison table */
+    .compare { max-width: 980px; margin: 60px auto; padding: 0 28px; }
+    .compare h2 { font-size: 24px; font-weight: 800; text-align: center; margin-bottom: 30px;
+                  letter-spacing: -.02em; }
+    .compare table { width: 100%; border-collapse: collapse; background: var(--bg-card);
+                     border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .compare th, .compare td { padding: 14px 18px; text-align: left;
+                                border-bottom: 1px solid var(--border); font-size: 14px; }
+    .compare th { background: var(--bg-soft); font-weight: 700; color: var(--text-dim);
+                  font-size: 11px; letter-spacing: .14em; text-transform: uppercase; }
+    .compare td:first-child { color: var(--text-soft); }
+    .compare td.check { color: var(--green); text-align: center; font-weight: 700; }
+    .compare td.cross { color: var(--text-dim); text-align: center; }
+
+    /* FAQ */
+    .faq { max-width: 780px; margin: 0 auto 80px; padding: 0 28px; }
+    .faq h2 { font-size: 24px; font-weight: 800; text-align: center; margin-bottom: 24px;
+              letter-spacing: -.02em; }
+    .faq details { background: var(--bg-card); border: 1px solid var(--border);
+                   border-radius: 10px; padding: 16px 20px; margin-bottom: 10px; cursor: pointer; }
+    .faq summary { font-size: 15px; font-weight: 700; list-style: none;
+                   display: flex; justify-content: space-between; align-items: center; }
+    .faq summary::after { content: "+"; color: var(--accent-soft); font-size: 18px; }
+    .faq details[open] summary::after { content: "−"; }
+    .faq details p { font-size: 14px; color: var(--text-soft); margin-top: 12px; line-height: 1.7; }
+    .faq details a { color: var(--accent-soft); }
+
+    footer { border-top: 1px solid var(--border); padding: 28px; text-align: center;
+             color: var(--text-dim); font-size: 12px; }
+    footer a { color: var(--text-soft); margin: 0 12px; }
+    footer .disc { font-size: 11px; margin-top: 10px; max-width: 700px;
+                   margin-left: auto; margin-right: auto; line-height: 1.6; }
+
+    @media (max-width: 780px) {
+      .pricing { grid-template-columns: 1fr; }
+      .tier.featured { transform: none; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-left">
+    <a href="/" style="display:flex;align-items:center;gap:12px;text-decoration:none">
+      <div class="logo-mark">📊</div>
+      <div>
+        <div class="nav-title">Loan Clarity</div>
+        <div class="nav-sub">Borrower Sentiment Index™</div>
+      </div>
+    </a>
+  </div>
+  <div class="nav-right">
+    <a href="/">Dashboard</a>
+    <a href="/weekly">📰 Sentiment Friday</a>
+    <a href="/subscribe" class="active">Subscribe</a>
+    <a href="/methodology">Methodology</a>
+    <a href="/api">API</a>
+  </div>
+  <div class="nav-spacer"></div>
+</nav>
+
+<section class="hero">
+  <div class="hero-tag">SUBSCRIBE</div>
+  <h1>Get the live index. <span class="grad">Don't wait for Friday.</span></h1>
+  <p>The free Sentiment Friday newsletter ships every Friday morning. Pro subscribers see the live tracker as it moves throughout the week — plus the full back-issue archive and weekly deep-dive analysis.</p>
+</section>
+
+<div class="annual-toggle">
+  <span>Monthly</span>
+  <label style="display:inline-flex;align-items:center;cursor:pointer;">
+    <input type="checkbox" id="annual-toggle" style="display:none;">
+    <div style="width:42px;height:22px;background:var(--border);border-radius:999px;position:relative;transition:all .2s;" id="toggle-track">
+      <div style="width:18px;height:18px;background:#fff;border-radius:50%;position:absolute;top:2px;left:2px;transition:all .2s;" id="toggle-dot"></div>
+    </div>
+  </label>
+  <span>Annual <span class="save-pill">SAVE 24%</span></span>
+</div>
+
+<section class="pricing">
+
+  <!-- FREE -->
+  <div class="tier">
+    <div class="tier-name">FREE</div>
+    <div class="tier-price">$0</div>
+    <div class="tier-sub">forever</div>
+    <ul>
+      <li class="check"><b>Sentiment Friday</b> — weekly newsletter</li>
+      <li class="check">Friday index snapshot (frozen until next Friday)</li>
+      <li class="check">Public methodology + sources</li>
+      <li class="check">Free embeddable widget</li>
+      <li class="cross">No live data</li>
+      <li class="cross">No back-issue archive access</li>
+      <li class="cross">No deep-dive content</li>
+    </ul>
+    <a href="/weekly#subscribe?utm_source=subscribe-page&utm_medium=free-cta" class="cta cta-primary">Subscribe free →</a>
+  </div>
+
+  <!-- PRO (FEATURED) -->
+  <div class="tier featured">
+    <div class="badge">★ MOST POPULAR</div>
+    <div class="tier-name pro">PRO</div>
+    <div class="tier-price"><span id="price-display">$99</span><small id="price-suffix">/mo</small></div>
+    <div class="tier-sub" id="price-sub">billed monthly · cancel anytime</div>
+    <ul>
+      <li class="check">Everything in Free, plus:</li>
+      <li class="check"><b>Live index</b> — real-time updates, not weekly</li>
+      <li class="check"><b>Full back-issue archive</b> (all Sentiment Friday issues)</li>
+      <li class="check"><b>Weekly deep-dive</b> — Pro-only analysis section</li>
+      <li class="check">90-day historical data download</li>
+      <li class="check">No ads, no sponsor placements</li>
+      <li class="check">Cancel anytime, refund first 14 days</li>
+    </ul>
+    <a href="mailto:zeroloan000@gmail.com?subject=Pro%20subscription%20interest&body=Hi%2C%20I%27d%20like%20to%20subscribe%20to%20Loan%20Clarity%20Pro." id="pro-cta" class="cta cta-featured">Get Pro →</a>
+  </div>
+
+  <!-- ENTERPRISE -->
+  <div class="tier">
+    <div class="tier-name ent">ENTERPRISE</div>
+    <div class="tier-price">$5,000<small>/mo</small></div>
+    <div class="tier-sub">for production integrations</div>
+    <ul>
+      <li class="check">Everything in Pro, plus:</li>
+      <li class="check"><b>Raw API access</b> (unlimited)</li>
+      <li class="check">Custom segments (state, loan type, balance)</li>
+      <li class="check">White-label embeds</li>
+      <li class="check">Real-time webhooks</li>
+      <li class="check">SLA + dedicated Slack channel</li>
+      <li class="check">Methodology disclosure under NDA</li>
+    </ul>
+    <a href="/api#signup?utm_source=subscribe-page&utm_medium=enterprise-cta" class="cta cta-ghost">Apply →</a>
+  </div>
+
+</section>
+
+<section class="compare">
+  <h2>What you get at each tier</h2>
+  <table>
+    <thead>
+      <tr><th>Feature</th><th>Free</th><th>Pro</th><th>Enterprise</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Sentiment Friday newsletter</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+      <tr><td>Index reading (frozen, weekly)</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+      <tr><td>Live index (updates throughout week)</td><td class="cross">—</td><td class="check">✓</td><td class="check">✓</td></tr>
+      <tr><td>Full back-issue archive</td><td class="cross">—</td><td class="check">✓</td><td class="check">✓</td></tr>
+      <tr><td>Pro-only deep-dive section</td><td class="cross">—</td><td class="check">✓</td><td class="check">✓</td></tr>
+      <tr><td>Historical data export (90d / 2yr / full)</td><td class="cross">—</td><td class="check">90d</td><td class="check">Full</td></tr>
+      <tr><td>API access</td><td class="cross">—</td><td class="cross">—</td><td class="check">✓</td></tr>
+      <tr><td>Real-time webhooks</td><td class="cross">—</td><td class="cross">—</td><td class="check">✓</td></tr>
+      <tr><td>Custom segments + white-label</td><td class="cross">—</td><td class="cross">—</td><td class="check">✓</td></tr>
+      <tr><td>Methodology disclosure (under NDA)</td><td class="cross">—</td><td class="cross">—</td><td class="check">✓</td></tr>
+      <tr><td>SLA + dedicated Slack channel</td><td class="cross">—</td><td class="cross">—</td><td class="check">✓</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="faq">
+  <h2>FAQ</h2>
+  <details>
+    <summary>Why is the public index frozen on Friday?</summary>
+    <p>The Loan Clarity Borrower Sentiment Index updates continuously behind the scenes, but the public dashboard shows only the most recent Friday reading. This protects the proprietary signal flow while still giving everyone a free, weekly snapshot via <a href="/weekly">Sentiment Friday</a>. Pro subscribers see the live data as it moves.</p>
+  </details>
+  <details>
+    <summary>What's actually in the Pro tier?</summary>
+    <p>Pro subscribers get: (1) live index — updated every 5 minutes instead of every 7 days, (2) the full archive of past Sentiment Friday issues, (3) the weekly deep-dive section (Pro-only commentary on what's moving the signal), (4) 90 days of historical data for backtesting against your own portfolio data, and (5) an ad-free reading experience.</p>
+  </details>
+  <details>
+    <summary>What happens after I pay?</summary>
+    <p>You get instant access to the Pro dashboard, today's live index reading, and the full back-issue archive. The Friday newsletter you already subscribed to continues — now with bonus Pro-only sections.</p>
+  </details>
+  <details>
+    <summary>Can I cancel anytime?</summary>
+    <p>Yes. Full refund within 14 days, no questions asked. After 14 days, cancel anytime and you keep Pro access until the end of your billing period.</p>
+  </details>
+  <details>
+    <summary>What's the difference between Pro and Enterprise?</summary>
+    <p>Pro is for individuals and small teams — analysts, advisors, researchers, journalists. Enterprise is for institutional integrations — lenders running the data in production, hedge funds wiring it into SLABS models, rating agencies blending it into credit factors. Enterprise includes API access, custom segments, white-label embeds, and methodology disclosure under NDA. Apply at <a href="/api#signup">/api</a>.</p>
+  </details>
+  <details>
+    <summary>How do I subscribe? I just see a mailto link.</summary>
+    <p>We're rolling out Stripe payment processing this week — until then, email <a href="mailto:zeroloan000@gmail.com">zeroloan000@gmail.com</a> with "Pro" in the subject and we'll send you an invoice + activate your access within one business day. Annual ($899) and monthly ($99) both available.</p>
+  </details>
+</section>
+
+<footer>
+  <div>
+    <a href="/">Dashboard</a> ·
+    <a href="/weekly">Sentiment Friday</a> ·
+    <a href="/subscribe">Subscribe</a> ·
+    <a href="/methodology">Methodology</a> ·
+    <a href="/api">API</a> ·
+    <a href="/privacy">Privacy</a> ·
+    <a href="/terms">Terms</a>
+  </div>
+  <div class="disc">
+    © 2026 Loan Clarity · Borrower Sentiment Index™ is a trademark of Loan Clarity.
+    Pro is a personal subscription license; for multi-user team licenses or institutional use, see <a href="/api#signup">Enterprise</a>.
+  </div>
+</footer>
+
+<script>
+const toggle = document.getElementById('annual-toggle');
+const track = document.getElementById('toggle-track');
+const dot = document.getElementById('toggle-dot');
+const priceDisplay = document.getElementById('price-display');
+const priceSuffix = document.getElementById('price-suffix');
+const priceSub = document.getElementById('price-sub');
+const proCta = document.getElementById('pro-cta');
+
+toggle.addEventListener('change', () => {
+  if (toggle.checked) {
+    track.style.background = 'var(--accent)';
+    dot.style.left = '22px';
+    priceDisplay.textContent = '$899';
+    priceSuffix.textContent = '/yr';
+    priceSub.textContent = 'billed annually · save $289 vs monthly';
+    proCta.href = 'mailto:zeroloan000@gmail.com?subject=Pro%20annual%20subscription&body=Hi%2C%20I%27d%20like%20the%20annual%20Pro%20subscription%20%28%24899%2Fyr%29.';
+  } else {
+    track.style.background = 'var(--border)';
+    dot.style.left = '2px';
+    priceDisplay.textContent = '$99';
+    priceSuffix.textContent = '/mo';
+    priceSub.textContent = 'billed monthly · cancel anytime';
+    proCta.href = 'mailto:zeroloan000@gmail.com?subject=Pro%20monthly%20subscription&body=Hi%2C%20I%27d%20like%20the%20monthly%20Pro%20subscription%20%28%2499%2Fmo%29.';
+  }
+});
+</script>
+
+</body>
+</html>

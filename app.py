@@ -1471,15 +1471,185 @@ async def api_index_public():
             "error":   "endpoint_closed",
             "message": (
                 "Public access to the Loan Clarity Borrower Sentiment Index has been "
-                "closed. Institutional access is granted on a case-by-case basis. "
-                "To request access, apply at https://www.studentloansindex.com/api"
+                "closed. Live data requires Pro subscription. Public snapshot at "
+                "https://www.studentloansindex.com/api/index/friday — updates every Friday."
             ),
-            "request_access": "https://www.studentloansindex.com/api",
-            "contact":        "zeroloan000@gmail.com",
+            "friday_endpoint": "https://www.studentloansindex.com/api/index/friday",
+            "subscribe":       "https://www.studentloansindex.com/subscribe",
+            "contact":         "zeroloan000@gmail.com",
         }),
         status_code=410,
         media_type="application/json",
     )
+
+
+# ─── Friday Snapshot System ───────────────────────────────────────────────────
+# Public dashboard shows only the most recent Friday reading.
+# Live data is gated behind Pro subscription (/api/index requires Bearer auth).
+# Friday snapshots are persisted to friday_snapshots.jsonl so they survive deploys.
+import zoneinfo
+ET_TZ = zoneinfo.ZoneInfo("America/New_York")
+_FRIDAY_SNAPSHOTS_FILE = Path(__file__).parent / "friday_snapshots.jsonl"
+
+
+def _get_most_recent_friday_et() -> datetime:
+    """Return the date of the most recent Friday at 06:00 ET (today or earlier)."""
+    now_et = datetime.now(ET_TZ)
+    # weekday(): Monday=0, ..., Friday=4, Saturday=5, Sunday=6
+    days_since_friday = (now_et.weekday() - 4) % 7
+    friday = (now_et - timedelta(days=days_since_friday)).replace(
+        hour=6, minute=0, second=0, microsecond=0
+    )
+    # If today is Friday but before 6 AM ET, use last week's Friday
+    if days_since_friday == 0 and now_et.hour < 6:
+        friday = friday - timedelta(days=7)
+    return friday
+
+
+def _load_friday_snapshots() -> list[dict]:
+    """Load all Friday snapshots from disk (most recent last)."""
+    snapshots = []
+    if not _FRIDAY_SNAPSHOTS_FILE.exists():
+        return snapshots
+    try:
+        with _FRIDAY_SNAPSHOTS_FILE.open("r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    snapshots.append(json.loads(line))
+                except Exception:
+                    pass
+    except Exception as e:
+        print(f"[friday_snapshot] load error: {e}")
+    snapshots.sort(key=lambda s: s.get("friday_date", ""))
+    return snapshots
+
+
+def _save_friday_snapshot(snapshot: dict) -> None:
+    """Append a snapshot to disk, then dedupe (keep most recent per friday_date)."""
+    try:
+        with _FRIDAY_SNAPSHOTS_FILE.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(snapshot) + "\n")
+    except Exception as e:
+        print(f"[friday_snapshot] save error: {e}")
+
+
+async def _capture_friday_snapshot() -> dict:
+    """Snapshot the current index as Friday's reading. Idempotent per friday_date."""
+    friday = _get_most_recent_friday_et()
+    friday_date = friday.strftime("%Y-%m-%d")
+
+    # Check if we already have a snapshot for this Friday
+    existing = [s for s in _load_friday_snapshots() if s.get("friday_date") == friday_date]
+    if existing:
+        return existing[-1]
+
+    # Capture current live data
+    full = await get_live_sentiment()
+    signals = full.get("signals", {}) or {}
+
+    snapshot = {
+        "friday_date":    friday_date,
+        "captured_at":    datetime.utcnow().isoformat() + "Z",
+        "index_score":    full.get("index_score"),
+        "status":         full.get("status"),
+        "top_theme":      full.get("top_theme"),
+        "signals_summary": {
+            "google_panic": signals.get("google_trends", {}).get("score"),
+            "reddit":       signals.get("reddit", {}).get("score"),
+            "cfpb":         signals.get("cfpb", {}).get("score"),
+            "delinquency":  signals.get("delinquency", {}).get("score"),
+            "refinance":    signals.get("refinance", {}).get("score"),
+            "survey":       signals.get("survey", {}).get("score"),
+        },
+        "issue_url":      f"/weekly/{friday_date}",
+    }
+    _save_friday_snapshot(snapshot)
+    print(f"[friday_snapshot] ✓ captured {friday_date}: {snapshot['index_score']}/100 {snapshot['status']}")
+    return snapshot
+
+
+@app.get("/api/index/friday")
+async def api_index_friday():
+    """
+    PUBLIC — Returns the most recent Friday snapshot of the Borrower Sentiment Index.
+    Refreshes every Friday at 06:00 ET. Live data requires Pro subscription.
+    This is the canonical public endpoint for free visitors.
+    """
+    # Try to get existing snapshot for current Friday
+    friday = _get_most_recent_friday_et()
+    friday_date = friday.strftime("%Y-%m-%d")
+    snapshots = _load_friday_snapshots()
+    current = next((s for s in reversed(snapshots) if s.get("friday_date") == friday_date), None)
+
+    # If we don't have one for this Friday yet, capture now
+    if not current:
+        current = await _capture_friday_snapshot()
+
+    # Calculate week-over-week delta
+    delta = None
+    if len(snapshots) >= 2:
+        prev = snapshots[-2] if snapshots[-1].get("friday_date") == friday_date else snapshots[-1]
+        if prev and prev.get("friday_date") != friday_date:
+            delta = (current.get("index_score") or 0) - (prev.get("index_score") or 0)
+
+    # Calculate next Friday's refresh time
+    now_et = datetime.now(ET_TZ)
+    next_friday = friday + timedelta(days=7)
+    seconds_until_next = int((next_friday - now_et).total_seconds())
+
+    return {
+        "ok":              True,
+        "friday_date":     current.get("friday_date"),
+        "index_score":     current.get("index_score"),
+        "status":          current.get("status"),
+        "top_theme":       current.get("top_theme"),
+        "wow_change":      delta,   # week-over-week change (None if no prior data)
+        "issue_url":       current.get("issue_url"),
+        "next_refresh":    next_friday.isoformat(),
+        "seconds_until_next_refresh": seconds_until_next,
+        "_meta": {
+            "tier":   "public",
+            "note":   "Frozen Friday snapshot. Live updates require Pro subscription.",
+            "subscribe": "https://www.studentloansindex.com/subscribe",
+        },
+    }
+
+
+@app.get("/api/weekly/snapshots")
+async def api_weekly_snapshots(limit: int = 12):
+    """PUBLIC — list of past Friday snapshots (for /weekly archive page)."""
+    limit = max(1, min(52, limit))
+    snapshots = _load_friday_snapshots()
+    # Most recent first
+    recent = list(reversed(snapshots))[:limit]
+    # Return a clean summary per snapshot
+    return {
+        "ok":    True,
+        "count": len(recent),
+        "snapshots": [{
+            "friday_date":  s.get("friday_date"),
+            "index_score":  s.get("index_score"),
+            "status":       s.get("status"),
+            "top_theme":    s.get("top_theme"),
+            "issue_url":    s.get("issue_url"),
+        } for s in recent],
+    }
+
+
+@app.post("/api/admin/capture-friday")
+async def admin_capture_friday(request: Request):
+    """ADMIN — manually trigger a Friday snapshot. Useful for first issue + emergencies."""
+    token = _extract_bearer_token(request)
+    if not token or not MASTER_KEY_HASH or _hash_key(token) != MASTER_KEY_HASH:
+        return Response(
+            content=json.dumps({"ok": False, "error": "admin_only"}),
+            status_code=403, media_type="application/json",
+        )
+    snapshot = await _capture_friday_snapshot()
+    return {"ok": True, "snapshot": snapshot}
 
 
 @app.get("/api/index")
@@ -2010,6 +2180,138 @@ async def serve_api_docs():
     return FileResponse(
         Path(__file__).parent / "api.html",
         headers={"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache", "Expires": "0"},
+    )
+
+
+# ─── Newsletter: Sentiment Friday ─────────────────────────────────────────────
+# Archive of every Friday issue lives on our domain (owns the IP + SEO).
+# Issues are stored as markdown files in weekly/YYYY-MM-DD.md
+# Routes:
+#   GET /weekly                   → archive index
+#   GET /weekly/YYYY-MM-DD        → single issue
+#   GET /subscribe                → Pro tier subscribe page
+
+_WEEKLY_DIR = Path(__file__).parent / "weekly"
+
+
+def _list_weekly_issues() -> list[dict]:
+    """Return all published issues, sorted most recent first."""
+    if not _WEEKLY_DIR.exists():
+        return []
+    issues = []
+    for f in _WEEKLY_DIR.glob("*.md"):
+        date = f.stem  # YYYY-MM-DD
+        # Try to parse the first heading + summary from the file
+        try:
+            content = f.read_text(encoding="utf-8")
+            title = ""
+            summary = ""
+            for line in content.split("\n"):
+                line = line.strip()
+                if not title and line.startswith("# "):
+                    title = line[2:].strip()
+                elif not summary and line.startswith("> "):
+                    summary = line[2:].strip()
+                if title and summary:
+                    break
+            issues.append({
+                "date": date,
+                "title": title or f"Sentiment Friday — {date}",
+                "summary": summary,
+                "url": f"/weekly/{date}",
+            })
+        except Exception as e:
+            print(f"[weekly] read error for {f.name}: {e}")
+    issues.sort(key=lambda i: i["date"], reverse=True)
+    return issues
+
+
+@app.get("/weekly")
+async def serve_weekly_archive():
+    """Public — archive index of all Sentiment Friday issues."""
+    issues = _list_weekly_issues()
+    snapshots = list(reversed(_load_friday_snapshots()))[:24]
+    return FileResponse(
+        Path(__file__).parent / "weekly_archive.html",
+        headers={"Cache-Control": "no-cache, no-store, must-revalidate"},
+    )
+
+
+@app.get("/weekly/{issue_date}")
+async def serve_weekly_issue(issue_date: str):
+    """Public — render a single Sentiment Friday issue."""
+    # Validate format YYYY-MM-DD
+    try:
+        datetime.strptime(issue_date, "%Y-%m-%d")
+    except ValueError:
+        return Response(
+            content=json.dumps({"error": "invalid date format. Use YYYY-MM-DD."}),
+            status_code=400, media_type="application/json",
+        )
+
+    issue_path = _WEEKLY_DIR / f"{issue_date}.md"
+    if not issue_path.exists():
+        # 404 with a link back to the archive
+        return Response(
+            content=f"""<!DOCTYPE html><html><head><meta charset="utf-8"><title>Issue not found — Sentiment Friday</title>
+<style>body{{background:#07111f;color:#e8eef7;font-family:-apple-system,Inter,sans-serif;text-align:center;padding:80px 20px;}}
+a{{color:#5ba3ec;}}</style></head><body>
+<h1>Issue not found</h1>
+<p>No Sentiment Friday issue for {issue_date}.</p>
+<p><a href="/weekly">← View all issues</a> · <a href="/">Dashboard</a></p>
+</body></html>""",
+            status_code=404, media_type="text/html",
+            headers={"Cache-Control": "no-cache"},
+        )
+
+    return FileResponse(
+        Path(__file__).parent / "weekly_issue.html",
+        headers={
+            "Cache-Control": "public, max-age=300",  # cache 5min
+            "X-Issue-Date": issue_date,
+        },
+    )
+
+
+@app.get("/api/weekly/issue/{issue_date}")
+async def api_weekly_issue_content(issue_date: str):
+    """Returns the markdown content of a specific issue."""
+    try:
+        datetime.strptime(issue_date, "%Y-%m-%d")
+    except ValueError:
+        return Response(
+            content=json.dumps({"error": "invalid date format"}),
+            status_code=400, media_type="application/json",
+        )
+    issue_path = _WEEKLY_DIR / f"{issue_date}.md"
+    if not issue_path.exists():
+        return Response(
+            content=json.dumps({"error": "issue not found", "date": issue_date}),
+            status_code=404, media_type="application/json",
+        )
+    return {
+        "ok":          True,
+        "date":        issue_date,
+        "content":     issue_path.read_text(encoding="utf-8"),
+        "url":         f"/weekly/{issue_date}",
+    }
+
+
+@app.get("/api/weekly/list")
+async def api_weekly_list():
+    """Returns all published issues."""
+    return {
+        "ok":     True,
+        "issues": _list_weekly_issues(),
+    }
+
+
+@app.get("/subscribe")
+async def serve_subscribe():
+    """Pro subscription landing page."""
+    return FileResponse(
+        Path(__file__).parent / "subscribe.html",
+        headers={"Cache-Control": "no-cache, no-store, must-revalidate"},
     )
 
 

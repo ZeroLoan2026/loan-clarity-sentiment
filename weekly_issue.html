@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Loading… — Sentiment Friday | Loan Clarity</title>
+  <meta name="description" content="Weekly Sentiment Friday briefing on student loan borrower stress, signals, and what's moving the index." />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&family=Source+Serif+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #07111f; --bg-soft: #0d1a2d; --bg-card: #0f1f36;
+      --border: #1e3a5f; --text: #e8eef7; --text-soft: #9fb2cc;
+      --text-dim: #6b7e98; --accent: #2d7dd2; --accent-soft: #5ba3ec;
+      --green: #22c55e; --orange: #f97316; --red: #ef4444; --yellow: #eab308;
+      --serif: 'Source Serif Pro', Georgia, serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, sans-serif; min-height: 100vh; -webkit-font-smoothing: antialiased; line-height: 1.65; }
+    a { color: var(--accent-soft); text-decoration: underline; text-decoration-color: rgba(91,163,236,.4); text-underline-offset: 3px; transition: all .15s; }
+    a:hover { color: var(--accent); text-decoration-color: var(--accent); }
+
+    nav.nav { background: rgba(7,17,31,.92); border-bottom: 1px solid var(--border);
+              padding: 14px 28px; display: grid; grid-template-columns: 1fr auto 1fr;
+              align-items: center; position: sticky; top: 0; z-index: 100;
+              backdrop-filter: blur(10px); }
+    .nav-left { display: flex; align-items: center; gap: 12px; justify-self: start; }
+    .logo-mark { width: 34px; height: 34px; background: linear-gradient(135deg,#1a6eb5,#2d7dd2);
+                 border-radius: 8px; display: flex; align-items: center; justify-content: center;
+                 font-size: 16px; box-shadow: 0 0 14px rgba(45,125,210,.25); }
+    .nav-title { font-size: 17px; font-weight: 800; color: #fff; }
+    .nav-sub { font-size: 10px; color: #5a7d9d; letter-spacing: .12em; text-transform: uppercase; margin-top: 1px; }
+    .nav-right { display: flex; gap: 32px; justify-self: center; }
+    .nav-right a { color: #6f88a5; text-decoration: none; font-size: 11px; font-weight: 700;
+                   letter-spacing: .12em; text-transform: uppercase; padding: 6px 0;
+                   border-bottom: 2px solid transparent; }
+    .nav-right a:hover { color: var(--accent-soft); }
+    .nav-right a.active { color: #fff; border-bottom-color: var(--accent); }
+    .nav-spacer { justify-self: end; }
+
+    /* Article container */
+    article { max-width: 740px; margin: 0 auto; padding: 50px 28px 100px; }
+    .breadcrumb { font-size: 12px; color: var(--text-dim); margin-bottom: 28px; letter-spacing: .04em; }
+    .breadcrumb a { color: var(--text-soft); text-decoration: none; }
+    .breadcrumb a:hover { color: var(--accent-soft); }
+
+    .issue-meta { display: flex; gap: 14px; align-items: center; margin-bottom: 14px;
+                  font-size: 11px; color: var(--text-dim); letter-spacing: .14em; text-transform: uppercase; font-weight: 700; }
+    .issue-tag { background: rgba(249,115,22,.12); color: var(--orange);
+                 padding: 5px 12px; border-radius: 999px; font-weight: 800; }
+
+    .issue-title { font-family: var(--serif); font-size: clamp(34px, 4.5vw, 46px);
+                   font-weight: 700; letter-spacing: -.02em; line-height: 1.15;
+                   margin-bottom: 18px; color: var(--text); }
+
+    .issue-lede { font-size: 19px; color: var(--text-soft); line-height: 1.55;
+                  margin-bottom: 36px; font-weight: 400; }
+
+    /* Content blocks rendered from markdown */
+    #content h1 { display: none; }
+    #content h2 { font-family: var(--serif); font-size: 26px; font-weight: 700;
+                  margin: 50px 0 18px; letter-spacing: -.01em; color: var(--text); }
+    #content h3 { font-size: 18px; font-weight: 700; margin: 30px 0 12px;
+                  color: var(--text); letter-spacing: -.005em; }
+    #content p { font-size: 17px; color: var(--text-soft); margin-bottom: 18px;
+                 font-family: var(--serif); line-height: 1.7; }
+    #content ul, #content ol { margin: 0 0 22px 24px; }
+    #content li { font-size: 17px; color: var(--text-soft); margin-bottom: 10px;
+                  font-family: var(--serif); line-height: 1.65; }
+    #content blockquote { border-left: 3px solid var(--orange); padding: 12px 0 12px 22px;
+                          margin: 30px 0; font-style: italic; color: var(--text); font-size: 18px;
+                          font-family: var(--serif); }
+    #content blockquote cite { display: block; margin-top: 8px; font-size: 12px;
+                                color: var(--text-dim); font-style: normal; }
+    #content strong, #content b { color: var(--text); font-weight: 700; }
+    #content code { font-family: 'JetBrains Mono', monospace; font-size: 14px;
+                    background: var(--bg-card); padding: 2px 6px; border-radius: 4px;
+                    color: var(--accent-soft); }
+    #content hr { border: 0; border-top: 1px solid var(--border); margin: 40px 0; }
+    #content .pro-gate { background: linear-gradient(135deg, rgba(45,125,210,.08), rgba(34,197,94,.06));
+                         border: 1px solid var(--accent); border-radius: 14px; padding: 24px 28px;
+                         margin: 36px 0; }
+    #content .pro-gate h3 { margin-top: 0; color: var(--accent-soft); font-size: 16px;
+                            letter-spacing: .04em; text-transform: uppercase; }
+    #content .pro-gate p { font-family: 'Inter', sans-serif; font-size: 15px; color: var(--text-soft); }
+    #content .pro-gate a.cta { display: inline-block; background: var(--accent); color: #fff;
+                                padding: 10px 22px; border-radius: 8px; font-weight: 700;
+                                text-decoration: none; margin-top: 8px; font-family: 'Inter', sans-serif; }
+    #content .pro-gate a.cta:hover { background: var(--accent-soft); }
+
+    /* Index display in article */
+    .index-display { background: var(--bg-card); border: 1px solid var(--border);
+                     border-radius: 14px; padding: 28px; margin: 30px 0;
+                     display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: center; }
+    .index-score-big { font-size: 84px; font-weight: 800; letter-spacing: -.04em;
+                       color: var(--orange); line-height: 1; font-family: 'JetBrains Mono', monospace; }
+    .index-status { font-size: 18px; font-weight: 800; letter-spacing: .08em;
+                    text-transform: uppercase; color: var(--orange); margin-top: 6px; }
+    .index-label { font-size: 11px; color: var(--text-dim); letter-spacing: .12em;
+                   text-transform: uppercase; font-weight: 700; margin-bottom: 10px; }
+    .index-delta { font-size: 14px; color: var(--text-soft); margin-top: 8px; }
+
+    /* Footer / share */
+    .footer-cta { background: var(--bg-card); border: 1px solid var(--border);
+                  border-radius: 14px; padding: 28px; margin: 50px 0 0; text-align: center; }
+    .footer-cta h3 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+    .footer-cta p { font-size: 14px; color: var(--text-soft); margin-bottom: 18px; }
+    .share-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    .share-btn { padding: 10px 18px; background: transparent; border: 1px solid var(--border);
+                 color: var(--text-soft); border-radius: 8px; font-size: 13px;
+                 text-decoration: none; transition: all .15s; }
+    .share-btn:hover { border-color: var(--accent); color: var(--text); }
+
+    footer.site { border-top: 1px solid var(--border); padding: 28px; text-align: center;
+                  color: var(--text-dim); font-size: 12px; }
+    footer.site a { color: var(--text-soft); margin: 0 12px; text-decoration: none; }
+    footer.site .disc { font-size: 11px; margin-top: 10px; max-width: 700px;
+                        margin-left: auto; margin-right: auto; line-height: 1.6; }
+
+    .loading { text-align: center; padding: 80px 20px; color: var(--text-dim); }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-left">
+    <a href="/" style="display:flex;align-items:center;gap:12px;text-decoration:none">
+      <div class="logo-mark">📊</div>
+      <div>
+        <div class="nav-title">Loan Clarity</div>
+        <div class="nav-sub">Borrower Sentiment Index™</div>
+      </div>
+    </a>
+  </div>
+  <div class="nav-right">
+    <a href="/">Dashboard</a>
+    <a href="/weekly" class="active" style="color:#f97316">📰 Sentiment Friday</a>
+    <a href="/subscribe">Subscribe</a>
+    <a href="/methodology">Methodology</a>
+    <a href="/api">API</a>
+  </div>
+  <div class="nav-spacer"></div>
+</nav>
+
+<article>
+  <div class="breadcrumb">
+    <a href="/weekly">← All issues</a>
+  </div>
+  <div id="content">
+    <div class="loading">Loading issue…</div>
+  </div>
+
+  <div class="footer-cta">
+    <h3>Get next Friday's briefing in your inbox</h3>
+    <p>Free. One email Friday morning. Unsubscribe anytime.</p>
+    <a href="/weekly#subscribe?utm_source=issue&utm_medium=footer" class="share-btn" style="background:var(--accent);color:#fff;border-color:var(--accent);">Subscribe →</a>
+    <div class="share-row" style="margin-top:14px;">
+      <a href="#" id="share-twitter" class="share-btn">Share on Twitter</a>
+      <a href="#" id="share-linkedin" class="share-btn">Share on LinkedIn</a>
+      <a href="#" id="share-email" class="share-btn">Share via email</a>
+      <a href="#" id="copy-link" class="share-btn">Copy link</a>
+    </div>
+  </div>
+</article>
+
+<footer class="site">
+  <div>
+    <a href="/">Dashboard</a> ·
+    <a href="/weekly">Sentiment Friday</a> ·
+    <a href="/subscribe">Subscribe</a> ·
+    <a href="/methodology">Methodology</a> ·
+    <a href="/sources">Sources</a> ·
+    <a href="/privacy">Privacy</a> ·
+    <a href="/terms">Terms</a>
+  </div>
+  <div class="disc">
+    © 2026 Loan Clarity · Borrower Sentiment Index™ is a trademark of Loan Clarity.
+    Sentiment Friday is published for informational purposes only and does not constitute
+    financial, legal, or investment advice. Content is the proprietary work of Loan Clarity
+    and not for redistribution without written permission.
+  </div>
+</footer>
+
+<script>
+// Minimal markdown renderer (handles our specific template format)
+function renderMarkdown(md) {
+  let html = md;
+
+  // HTML blocks (pass-through for our custom .pro-gate divs etc.)
+  // Already valid HTML, leave alone
+
+  // Code blocks
+  html = html.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+
+  // Headings
+  html = html.replace(/^### (.*$)/gm, '<h3>$1</h3>');
+  html = html.replace(/^## (.*$)/gm, '<h2>$1</h2>');
+  html = html.replace(/^# (.*$)/gm, '<h1>$1</h1>');
+
+  // Blockquote
+  html = html.replace(/^> (.*$)/gm, '<blockquote>$1</blockquote>');
+
+  // Horizontal rule
+  html = html.replace(/^---+$/gm, '<hr>');
+
+  // Bold / italic
+  html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+
+  // Inline code
+  html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+  // Links [text](url) — preserve, browsers handle
+  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+
+  // Unordered lists (basic)
+  html = html.replace(/(^|\n)((?:- .+\n?)+)/g, (m, pre, block) => {
+    const items = block.trim().split('\n').map(l => '<li>' + l.replace(/^- /, '') + '</li>').join('');
+    return pre + '<ul>' + items + '</ul>';
+  });
+
+  // Paragraphs — wrap remaining non-tag lines
+  html = html.split('\n\n').map(block => {
+    const trimmed = block.trim();
+    if (!trimmed) return '';
+    if (trimmed.startsWith('<') || trimmed.startsWith('#')) return trimmed;
+    return '<p>' + trimmed + '</p>';
+  }).join('\n\n');
+
+  return html;
+}
+
+async function loadIssue() {
+  const date = document.location.pathname.split('/').filter(Boolean).pop();
+  try {
+    const r = await fetch('/api/weekly/issue/' + date);
+    if (!r.ok) {
+      document.getElementById('content').innerHTML =
+        '<div class="loading"><h2>Issue not found</h2><p><a href="/weekly">← Back to archive</a></p></div>';
+      return;
+    }
+    const data = await r.json();
+    const rendered = renderMarkdown(data.content);
+    document.getElementById('content').innerHTML = rendered;
+
+    // Set page title from first H1 in markdown
+    const titleMatch = data.content.match(/^# (.+)$/m);
+    if (titleMatch) {
+      document.title = titleMatch[1] + ' — Sentiment Friday | Loan Clarity';
+    }
+
+    // Set canonical link
+    const link = document.createElement('link');
+    link.rel = 'canonical';
+    link.href = 'https://www.studentloansindex.com/weekly/' + date;
+    document.head.appendChild(link);
+
+    // Wire share buttons
+    const url = encodeURIComponent('https://www.studentloansindex.com/weekly/' + date);
+    const title = encodeURIComponent('Sentiment Friday — ' + date);
+    document.getElementById('share-twitter').href =
+      'https://twitter.com/intent/tweet?text=' + title + '&url=' + url;
+    document.getElementById('share-linkedin').href =
+      'https://www.linkedin.com/sharing/share-offsite/?url=' + url;
+    document.getElementById('share-email').href =
+      'mailto:?subject=' + title + '&body=' + url;
+    document.getElementById('copy-link').addEventListener('click', e => {
+      e.preventDefault();
+      navigator.clipboard.writeText('https://www.studentloansindex.com/weekly/' + date);
+      e.target.textContent = '✓ Copied';
+      setTimeout(() => { e.target.textContent = 'Copy link'; }, 1500);
+    });
+  } catch (e) {
+    document.getElementById('content').innerHTML =
+      '<div class="loading"><h2>Could not load issue</h2><p>' + e.message + '</p></div>';
+  }
+}
+loadIssue();
+</script>
+
+</body>
+</html>

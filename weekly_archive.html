@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sentiment Friday — Weekly Borrower Sentiment Briefings | Loan Clarity</title>
+  <meta name="description" content="Sentiment Friday — the weekly briefing on student loan borrower sentiment. Real data, real analysis, every Friday morning. Free." />
+  <link rel="canonical" href="https://www.studentloansindex.com/weekly" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #07111f; --bg-soft: #0d1a2d; --bg-card: #0f1f36;
+      --border: #1e3a5f; --text: #e8eef7; --text-soft: #9fb2cc;
+      --text-dim: #6b7e98; --accent: #2d7dd2; --accent-soft: #5ba3ec;
+      --green: #22c55e; --orange: #f97316; --red: #ef4444; --yellow: #eab308;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, sans-serif; min-height: 100vh; -webkit-font-smoothing: antialiased; line-height: 1.6; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    a { color: var(--accent-soft); text-decoration: none; transition: color .15s; }
+    a:hover { color: var(--accent); }
+
+    /* Unified nav (matches site canonical) */
+    nav.nav { background: rgba(7,17,31,.92); border-bottom: 1px solid var(--border);
+              padding: 14px 28px; display: grid; grid-template-columns: 1fr auto 1fr;
+              align-items: center; position: sticky; top: 0; z-index: 100;
+              backdrop-filter: blur(10px); }
+    .nav-left { display: flex; align-items: center; gap: 12px; justify-self: start; }
+    .logo-mark { width: 34px; height: 34px; background: linear-gradient(135deg,#1a6eb5,#2d7dd2);
+                 border-radius: 8px; display: flex; align-items: center; justify-content: center;
+                 font-size: 16px; box-shadow: 0 0 14px rgba(45,125,210,.25); }
+    .nav-title { font-size: 17px; font-weight: 800; color: #fff; letter-spacing: -.02em; }
+    .nav-sub { font-size: 10px; color: #5a7d9d; letter-spacing: .12em; text-transform: uppercase; margin-top: 1px; }
+    .nav-right { display: flex; gap: 32px; justify-self: center; }
+    .nav-right a { color: #6f88a5; text-decoration: none; font-size: 11px; font-weight: 700;
+                   letter-spacing: .12em; text-transform: uppercase; padding: 6px 0;
+                   border-bottom: 2px solid transparent; transition: all .15s; }
+    .nav-right a:hover { color: var(--accent-soft); }
+    .nav-right a.active { color: #fff; border-bottom-color: var(--accent); }
+    .nav-spacer { justify-self: end; }
+
+    /* Hero */
+    .hero { max-width: 980px; margin: 0 auto; padding: 70px 32px 40px; text-align: center; }
+    .hero-tag { display: inline-block; font-size: 11px; letter-spacing: .18em;
+                text-transform: uppercase; color: var(--orange); font-weight: 800;
+                background: rgba(249,115,22,.12); padding: 6px 14px; border-radius: 999px;
+                margin-bottom: 18px; }
+    .hero h1 { font-size: clamp(36px, 5vw, 56px); font-weight: 800;
+               letter-spacing: -.03em; line-height: 1.05; margin-bottom: 18px; }
+    .hero h1 .grad { background: linear-gradient(120deg, #f97316 0%, #eab308 100%);
+                     -webkit-background-clip: text; background-clip: text;
+                     -webkit-text-fill-color: transparent; }
+    .hero p { font-size: 18px; color: var(--text-soft); max-width: 680px; margin: 0 auto 28px; }
+    .hero .cta-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 14px 24px;
+           border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer;
+           border: 0; transition: all .15s; text-decoration: none; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-soft); }
+    .btn-ghost { background: transparent; color: var(--text-soft); border: 1px solid var(--border); }
+    .btn-ghost:hover { color: var(--text); border-color: var(--accent); }
+
+    /* Subscribe inline form */
+    .sub-card { max-width: 600px; margin: 30px auto 0; background: var(--bg-card);
+                border: 1px solid var(--border); border-radius: 14px; padding: 24px;
+                display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .sub-card input { flex: 1; min-width: 240px; padding: 12px 14px; background: var(--bg);
+                      border: 1px solid var(--border); border-radius: 8px; color: var(--text);
+                      font-family: inherit; font-size: 14px; outline: none; }
+    .sub-card input:focus { border-color: var(--accent); }
+    .sub-card button { padding: 12px 22px; background: var(--accent); color: #fff; border: 0;
+                       border-radius: 8px; font-weight: 700; font-size: 14px; cursor: pointer; }
+    .sub-status { width: 100%; font-size: 12px; color: var(--text-dim); }
+    .sub-status.ok { color: var(--green); }
+    .sub-status.err { color: var(--red); }
+
+    /* Issues grid */
+    .issues { max-width: 980px; margin: 60px auto 100px; padding: 0 32px; }
+    .issues h2 { font-size: 22px; font-weight: 800; margin-bottom: 24px;
+                 letter-spacing: -.02em; }
+    .issues h2 .count { color: var(--text-dim); font-weight: 500; font-size: 16px; margin-left: 8px; }
+    .issue-list { display: flex; flex-direction: column; gap: 14px; }
+    .issue { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+             padding: 22px 24px; display: grid; grid-template-columns: auto 1fr auto;
+             gap: 20px; align-items: center; transition: all .15s; cursor: pointer; }
+    .issue:hover { border-color: var(--accent); transform: translateY(-1px); }
+    .issue-num { font-family: 'JetBrains Mono', monospace; font-size: 12px;
+                 color: var(--text-dim); letter-spacing: .08em; }
+    .issue-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+    .issue-summary { font-size: 13px; color: var(--text-soft); }
+    .issue-score { font-size: 32px; font-weight: 800; font-family: 'JetBrains Mono', monospace;
+                   letter-spacing: -.03em; min-width: 80px; text-align: right; }
+    .issue-arrow { font-size: 18px; color: var(--text-dim); }
+    .issue:hover .issue-arrow { color: var(--accent); transform: translateX(4px); transition: all .15s; }
+
+    .empty { text-align: center; padding: 60px 24px; color: var(--text-dim);
+             border: 1px dashed var(--border); border-radius: 12px; }
+    .empty .em-icon { font-size: 40px; margin-bottom: 10px; opacity: .5; }
+
+    /* Footer */
+    footer { border-top: 1px solid var(--border); padding: 30px 32px; text-align: center;
+             color: var(--text-dim); font-size: 13px; }
+    footer a { margin: 0 12px; color: var(--text-soft); }
+    footer .disc { font-size: 11px; color: var(--text-dim); margin-top: 10px; max-width: 700px;
+                   margin-left: auto; margin-right: auto; line-height: 1.6; }
+
+    @media (max-width: 600px) {
+      .issue { grid-template-columns: 1fr; gap: 12px; }
+      .issue-score { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-left">
+    <a href="/" style="display:flex;align-items:center;gap:12px;text-decoration:none">
+      <div class="logo-mark">📊</div>
+      <div>
+        <div class="nav-title">Loan Clarity</div>
+        <div class="nav-sub">Borrower Sentiment Index™</div>
+      </div>
+    </a>
+  </div>
+  <div class="nav-right">
+    <a href="/">Dashboard</a>
+    <a href="/weekly" class="active" style="color:#f97316">📰 Sentiment Friday</a>
+    <a href="/subscribe">Subscribe</a>
+    <a href="/methodology">Methodology</a>
+    <a href="/api">API</a>
+  </div>
+  <div class="nav-spacer"></div>
+</nav>
+
+<section class="hero">
+  <div class="hero-tag">📰 The weekly briefing on borrower sentiment</div>
+  <h1>Sentiment <span class="grad">Friday</span></h1>
+  <p>The data-driven briefing on student loan borrower sentiment. Real numbers, real signals, every Friday morning. <b>Free.</b></p>
+  <div class="cta-row">
+    <a href="#subscribe" class="btn btn-primary">Subscribe free →</a>
+    <a href="/subscribe" class="btn btn-ghost">See Pro tier ($99/mo)</a>
+  </div>
+
+  <div class="sub-card" id="subscribe">
+    <input type="email" id="sub-email" placeholder="your@email.com" />
+    <button onclick="subscribe()">Subscribe →</button>
+    <div class="sub-status" id="sub-status">Free forever. One email Friday morning. Unsubscribe anytime.</div>
+  </div>
+</section>
+
+<section class="issues">
+  <h2>All issues <span class="count" id="issue-count"></span></h2>
+  <div class="issue-list" id="issues-list">
+    <div class="empty" id="empty-state" style="display:none;">
+      <div class="em-icon">📭</div>
+      <div><b>The first issue ships this Friday.</b></div>
+      <div style="margin-top:6px;font-size:13px;">Subscribe above to be the first to receive it.</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div>
+    <a href="/">Dashboard</a> ·
+    <a href="/weekly">Sentiment Friday</a> ·
+    <a href="/subscribe">Subscribe</a> ·
+    <a href="/methodology">Methodology</a> ·
+    <a href="/sources">Sources</a> ·
+    <a href="/api">API</a> ·
+    <a href="/privacy">Privacy</a> ·
+    <a href="/terms">Terms</a>
+  </div>
+  <div class="disc">
+    © 2026 Loan Clarity · Borrower Sentiment Index™ is a trademark of Loan Clarity.
+    Sentiment Friday content is published for informational purposes only and does not constitute
+    financial, legal, or investment advice. Not for redistribution without written permission.
+  </div>
+</footer>
+
+<script>
+async function loadIssues() {
+  try {
+    const r = await fetch('/api/weekly/list');
+    const data = await r.json();
+    const list = document.getElementById('issues-list');
+    const empty = document.getElementById('empty-state');
+    const count = document.getElementById('issue-count');
+    const issues = (data && data.issues) || [];
+    count.textContent = issues.length ? '(' + issues.length + ')' : '';
+    if (!issues.length) {
+      empty.style.display = 'block';
+      return;
+    }
+    empty.remove();
+    issues.forEach((issue, i) => {
+      const num = String(issues.length - i).padStart(3, '0');
+      const card = document.createElement('a');
+      card.href = issue.url + '?utm_source=archive&utm_medium=web';
+      card.className = 'issue';
+      card.style.textDecoration = 'none';
+      card.innerHTML = `
+        <div>
+          <div class="issue-num">#${num} · ${issue.date}</div>
+        </div>
+        <div>
+          <div class="issue-title">${escapeHtml(issue.title)}</div>
+          <div class="issue-summary">${escapeHtml(issue.summary || '')}</div>
+        </div>
+        <div class="issue-arrow">→</div>
+      `;
+      list.appendChild(card);
+    });
+  } catch (e) {
+    document.getElementById('issues-list').innerHTML =
+      '<div class="empty">Could not load issues. Reload to try again.</div>';
+  }
+}
+
+function escapeHtml(s) {
+  return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                  .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+async function subscribe() {
+  const email = document.getElementById('sub-email').value.trim();
+  const status = document.getElementById('sub-status');
+  if (!email || !email.includes('@')) {
+    status.textContent = 'Please enter a valid email.';
+    status.className = 'sub-status err';
+    return;
+  }
+  status.textContent = 'Subscribing...';
+  status.className = 'sub-status';
+  try {
+    const r = await fetch('/api/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, source: 'weekly-archive' }),
+    });
+    const data = await r.json();
+    if (data && (data.ok || data.success)) {
+      status.textContent = '✓ Subscribed! Watch for the first issue this Friday.';
+      status.className = 'sub-status ok';
+      document.getElementById('sub-email').value = '';
+    } else {
+      status.textContent = data.error || 'Subscription failed. Try again or email zeroloan000@gmail.com.';
+      status.className = 'sub-status err';
+    }
+  } catch (e) {
+    status.textContent = 'Network error: ' + e.message;
+    status.className = 'sub-status err';
+  }
+}
+
+loadIssues();
+</script>
+
+</body>
+</html>

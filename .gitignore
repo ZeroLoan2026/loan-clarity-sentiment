@@ -7,3 +7,4 @@ __pycache__/
 
 # Application decisions — should never leave the server
 decisions.jsonl
+friday_snapshots.jsonl
