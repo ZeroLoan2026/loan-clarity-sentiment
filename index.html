@@ -113,10 +113,22 @@
     .hist-delta.fl { color: var(--muted); background: var(--card-2); border: 1px solid var(--border-2); }
     .hist-windowlabel { font-family: var(--mono); font-size: 10.5px; color: var(--muted-2); margin-left: 4px; }
     .hist-tabs { display: flex; gap: 2px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 3px; }
-    .hist-tab { font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: .04em; padding: 6px 12px; border-radius: 5px; cursor: pointer; color: var(--muted); transition: all .12s; border: none; background: transparent; }
+    .hist-tab { font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: .04em; padding: 6px 12px; border-radius: 5px; cursor: pointer; color: var(--muted); transition: all .12s; border: none; background: transparent; position: relative; }
     .hist-tab:hover { color: var(--accent-2); }
     .hist-tab.active { background: var(--accent); color: #fff; box-shadow: 0 0 12px rgba(45,125,210,.4); }
-    .hist-chart-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px 8px; }
+    .hist-tab.locked { color: #5a7d9d; opacity: .85; }
+    .hist-tab.locked:hover { color: var(--accent-2); opacity: 1; }
+    .hist-tab .lock-icon { font-size: 9px; margin-left: 4px; opacity: .8; }
+    .hist-chart-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px 8px; position: relative; }
+
+    /* ── Paywall overlay (locked time ranges) ──────────── */
+    .hist-paywall { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(7,17,31,.55) 0%, rgba(7,17,31,.92) 60%); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px; text-align: center; z-index: 5; }
+    .hist-paywall-icon { width: 48px; height: 48px; background: linear-gradient(135deg, #22c55e, #5ba3ec); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 0 30px rgba(45,125,210,.3); }
+    .hist-paywall-title { font-size: 19px; font-weight: 800; color: #fff; letter-spacing: -.01em; }
+    .hist-paywall-desc { font-size: 13px; color: var(--muted); max-width: 380px; line-height: 1.55; }
+    .hist-paywall-cta { display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; background: linear-gradient(135deg, #22c55e, #5ba3ec); color: #fff; border-radius: 8px; font-weight: 700; font-size: 13px; text-decoration: none; transition: transform .15s; margin-top: 4px; }
+    .hist-paywall-cta:hover { transform: translateY(-1px); }
+    .hist-paywall-meta { font-size: 11px; color: #4a6888; font-family: var(--mono); letter-spacing: .06em; }
     .hist-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; font-family: var(--mono); font-size: 10px; color: var(--muted-2); }
 
     .kpi-bar { display: grid; grid-template-columns: repeat(4,1fr); border-bottom: 1px solid var(--border); background: var(--panel); }
@@ -886,11 +898,18 @@ function SrcTag({ source, source_url, updated_at, methodology_ref, label, compac
 }
 
 // ─── Multi-window history chart with time tabs ────────────────────────────
+// FREE tier: 1W only. 1M, 3M, 6M, 1Y, 5Y are Pro-only (paywall overlay).
 const WINDOWS = ['1W','1M','3M','6M','1Y','5Y'];
+const FREE_WINDOW = '1W';
 function HistoryChart({ history, currentScore }) {
-  const [win, setWin] = useState('3M');
-  if (!history || !history[win]) return null;
-  const data = history[win];
+  const [win, setWin] = useState(FREE_WINDOW);
+  const isLocked = win !== FREE_WINDOW;
+
+  // Use the 1W data underneath the paywall overlay so the locked tab still
+  // shows a teaser chart (the same 7-day data, just with overlay on top).
+  const dataWin = isLocked ? FREE_WINDOW : win;
+  if (!history || !history[dataWin]) return null;
+  const data = history[dataWin];
   const points = data.points;
   const W = 1200, H = 260;
   const pad = { t: 16, r: 18, b: 26, l: 38 };
@@ -917,56 +936,80 @@ function HistoryChart({ history, currentScore }) {
       <div className="hist-head">
         <div className="hist-title-block">
           <div>
-            <div className="hist-title">Borrower Stress Index · {winLabels[win]}</div>
+            <div className="hist-title">
+              Borrower Stress Index · {winLabels[isLocked ? win : FREE_WINDOW]}
+              {isLocked && <span style={{marginLeft:8,fontSize:'11px',color:'#5ba3ec',fontWeight:700,letterSpacing:'.08em'}}>🔒 PRO</span>}
+            </div>
             <div style={{display:'flex',alignItems:'baseline',gap:10,marginTop:4}}>
               <div className="hist-now">{currentScore}</div>
-              <div className={`hist-delta ${dirCls}`}>{sign}{data.delta} ({sign}{data.delta_pct}%)</div>
-              <div className="hist-windowlabel">vs {win} ago</div>
+              {!isLocked && (
+                <>
+                  <div className={`hist-delta ${dirCls}`}>{sign}{data.delta} ({sign}{data.delta_pct}%)</div>
+                  <div className="hist-windowlabel">vs {FREE_WINDOW} ago</div>
+                </>
+              )}
+              {isLocked && (
+                <div className="hist-windowlabel" style={{color:'#5ba3ec'}}>Subscribe to Pro for full history →</div>
+              )}
             </div>
           </div>
         </div>
         <div className="hist-tabs" role="tablist">
-          {WINDOWS.map(w => (
-            <button key={w} className={`hist-tab ${win===w?'active':''}`} onClick={()=>setWin(w)} role="tab">{w}</button>
-          ))}
+          {WINDOWS.map(w => {
+            const locked = w !== FREE_WINDOW;
+            const cls = `hist-tab ${win===w?'active':''} ${locked?'locked':''}`;
+            return (
+              <button key={w} className={cls} onClick={()=>setWin(w)} role="tab"
+                      title={locked ? 'Pro subscribers only — click to learn more' : 'Free'}>
+                {w}{locked && <span className="lock-icon">🔒</span>}
+              </button>
+            );
+          })}
         </div>
       </div>
 
       <div className="hist-chart-wrap">
-        <svg viewBox={`0 0 ${W} ${H}`} style={{width:'100%',height:'auto',display:'block'}} preserveAspectRatio="none">
+        <svg viewBox={`0 0 ${W} ${H}`} style={{width:'100%',height:'auto',display:'block',filter: isLocked ? 'blur(3px) opacity(.6)' : 'none', transition: 'filter .2s'}} preserveAspectRatio="none">
           <defs>
             <linearGradient id="histGrad" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%"  stopColor={lineColor} stopOpacity="0.35"/>
               <stop offset="100%" stopColor={lineColor} stopOpacity="0.02"/>
             </linearGradient>
           </defs>
-          {/* Grid lines */}
           {[0,20,40,60,80,100].map(v=>(
             <g key={v}>
               <line x1={pad.l} y1={scaleY(v)} x2={W-pad.r} y2={scaleY(v)} stroke="#0f1d33" strokeWidth="1" strokeDasharray={v===0||v===100?'':'2 4'}/>
               <text x={pad.l-6} y={scaleY(v)+4} textAnchor="end" fontSize="11" fill="#4a6888" fontFamily="JetBrains Mono">{v}</text>
             </g>
           ))}
-          {/* Zone color bands (very faint) */}
           <rect x={pad.l} y={scaleY(80)} width={W-pad.l-pad.r} height={scaleY(60)-scaleY(80)} fill="#f97316" opacity="0.04"/>
           <rect x={pad.l} y={scaleY(100)} width={W-pad.l-pad.r} height={scaleY(80)-scaleY(100)} fill="#dc2626" opacity="0.05"/>
-
-          {/* Area + line */}
           <path d={areaD} fill="url(#histGrad)"/>
           <polyline points={linePts} fill="none" stroke={lineColor} strokeWidth="2.4" strokeLinejoin="round" strokeLinecap="round"/>
-
-          {/* End point marker */}
           <circle cx={pts[pts.length-1][0]} cy={pts[pts.length-1][1]} r="6" fill="#fff" stroke={lineColor} strokeWidth="2.5"/>
           <circle cx={pts[pts.length-1][0]} cy={pts[pts.length-1][1]} r="2.5" fill={lineColor}/>
-
-          {/* X-axis labels */}
           {points.map((p,i)=> p.label ? (
             <text key={i} x={scaleX(i)} y={H-pad.b+16} textAnchor="middle" fontSize="10.5" fill="#5a7d9d" fontFamily="JetBrains Mono">{p.label}</text>
           ) : null)}
         </svg>
+
+        {isLocked && (
+          <div className="hist-paywall">
+            <div className="hist-paywall-icon">🔒</div>
+            <div className="hist-paywall-title">{winLabels[win]} is a Pro feature</div>
+            <div className="hist-paywall-desc">
+              See {win} of historical data, deeper trend analysis, and backtest the index against your portfolio. Pro subscribers get all 6 time ranges plus the live tracker.
+            </div>
+            <a href="/subscribe?utm_source=dashboard&utm_medium=chart-paywall&utm_campaign=range-locked" className="hist-paywall-cta">
+              Unlock with Pro — $99/mo →
+            </a>
+            <div className="hist-paywall-meta">FREE TIER · 1W ONLY · CANCEL ANYTIME</div>
+          </div>
+        )}
+
         <div className="hist-foot">
           <div>Source · Loan Clarity proprietary weighted index</div>
-          <div>{points.length} data points</div>
+          <div>{isLocked ? 'Pro tier — full history available' : `${points.length} data points`}</div>
         </div>
       </div>
     </div>
