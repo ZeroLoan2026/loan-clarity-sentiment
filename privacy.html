@@ -14,10 +14,40 @@
       --muted: #6b8fa8; --muted-2: #3d5a72; --border: #1a2f48;
       --mono: 'JetBrains Mono', monospace;
     }
-    body { background: var(--bg); color: #c8dcf0; font-family: 'Inter', sans-serif; line-height: 1.7; }
-    nav { background: var(--panel); border-bottom: 1px solid var(--border); padding: 14px 32px; display: flex; align-items: center; gap: 12px; }
-    .nav-brand { font-weight: 900; font-size: 16px; color: #fff; text-decoration: none; letter-spacing: -.02em; }
-    .nav-sub { font-size: 11px; color: var(--muted); font-family: var(--mono); }
+    body { background: var(--bg); color: #c8dcf0; font-family: 'Inter', sans-serif; line-height: 1.7; padding-top: 64px; }
+    /* Unified nav (matches site canonical) */
+    nav.nav { background: rgba(7,17,31,.92); border-bottom: 1px solid var(--border);
+              padding: 14px 28px; display: grid; grid-template-columns: 1fr auto 1fr;
+              align-items: center; position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+              backdrop-filter: blur(10px); }
+    .nav-left { display: flex; align-items: center; gap: 12px; justify-self: start; }
+    .logo-mark { width: 34px; height: 34px; background: linear-gradient(135deg,#1a6eb5,#2d7dd2);
+                 border-radius: 8px; display: flex; align-items: center; justify-content: center;
+                 font-size: 16px; box-shadow: 0 0 14px rgba(45,125,210,.25); }
+    .nav-title { font-size: 17px; font-weight: 800; color: #fff; letter-spacing: -.02em; }
+    .nav-sub-tag { font-size: 10px; color: #5a7d9d; letter-spacing: .12em; text-transform: uppercase; margin-top: 1px; font-family: 'Inter', sans-serif; }
+    .nav-right { display: flex; gap: 32px; justify-self: center; }
+    .nav-right a { color: #6f88a5; text-decoration: none; font-size: 11px; font-weight: 700;
+                   letter-spacing: .12em; text-transform: uppercase; padding: 6px 0;
+                   border-bottom: 2px solid transparent; transition: all .15s; }
+    .nav-right a:hover { color: #6fb6ff; }
+    .nav-right a.active { color: #fff; border-bottom-color: #2d7dd2; }
+    .nav-spacer { justify-self: end; }
+    @media (max-width: 760px) {
+      body { padding-top: 110px; }
+      nav.nav { display: grid; grid-template-columns: auto 1fr auto; grid-template-rows: auto auto; row-gap: 8px; padding: 10px 14px; }
+      .nav-left { grid-row: 1; grid-column: 1; }
+      .nav-spacer { grid-row: 1; grid-column: 3; }
+      .nav-right { grid-row: 2; grid-column: 1 / -1; display: flex; gap: 0; padding-top: 8px; border-top: 1px solid var(--border); width: 100%; }
+      .nav-right a { flex: 1 1 0; text-align: center; font-size: 10.5px; letter-spacing: .06em; padding: 4px 2px; white-space: nowrap; }
+      .nav-sub-tag { display: none; }
+      .nav-title { font-size: 15px; }
+      .logo-mark { width: 30px; height: 30px; font-size: 14px; }
+    }
+    @media (max-width: 420px) {
+      .nav-right a { font-size: 9.5px; letter-spacing: .04em; padding: 4px 2px; }
+      .nav-emoji { display: none; }
+    }
     .container { max-width: 760px; margin: 0 auto; padding: 48px 32px 80px; }
     h1 { font-size: 36px; font-weight: 900; color: #fff; letter-spacing: -.03em; line-height: 1.1; margin-bottom: 8px; }
     .sub { font-size: 15px; color: var(--muted); margin-bottom: 40px; font-family: var(--mono); }
@@ -36,9 +66,25 @@
   </style>
 </head>
 <body>
-<nav>
-  <a href="/" class="nav-brand">Loan Clarity</a>
-  <span class="nav-sub">· Borrower Sentiment Index™</span>
+<nav class="nav">
+  <div class="nav-left">
+    <a href="/" style="display:flex;align-items:center;gap:12px;text-decoration:none">
+      <div class="logo-mark">📊</div>
+      <div>
+        <div class="nav-title">Loan Clarity</div>
+        <div class="nav-sub-tag">Borrower Sentiment Index™</div>
+      </div>
+    </a>
+  </div>
+  <div class="nav-right">
+    <a href="/">Dashboard</a>
+    <a href="/social-signals" style="color:#ff8a3d"><span class="nav-emoji">📡 </span>Social Signals</a>
+    <a href="/weekly" style="color:#f97316"><span class="nav-emoji">📰 </span>Sentiment Friday</a>
+    <a href="/api" style="color:#5ba3ec"><span class="nav-emoji">⚡ </span>API</a>
+    <a href="/methodology">Methodology</a>
+    <a href="/sources">Sources</a>
+  </div>
+  <div class="nav-spacer"></div>
 </nav>
 
 <div class="container">
