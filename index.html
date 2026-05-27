@@ -71,42 +71,6 @@
     .hbtn { width: 32px; height: 32px; border-radius: 7px; background: var(--card); border: 1px solid var(--border-2); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; color: var(--muted); transition: all .15s; }
     .hbtn:hover { background: var(--card-2); color: var(--accent-2); }
 
-    /* ── ProGate paywall overlay (Option B — depth gated, score free) ── */
-    .pro-section { padding: 24px 28px; border-bottom: 1px solid var(--border); background: var(--panel); }
-    .pro-section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; }
-    .pro-section-title { font-size: 13px; font-weight: 800; color: #fff; letter-spacing: -.01em; display: flex; align-items: center; gap: 10px; }
-    .pro-section-title .lock-chip { font-size: 9px; background: linear-gradient(90deg, #22c55e, #5ba3ec); color: #fff; padding: 3px 9px; border-radius: 999px; letter-spacing: .12em; font-weight: 800; }
-    .pro-section-sub { font-size: 11px; color: var(--muted); font-family: var(--mono); letter-spacing: .04em; }
-    .pro-gate-wrap { position: relative; min-height: 160px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--card); }
-    .pro-gate-blur { filter: blur(6px) opacity(.55); pointer-events: none; user-select: none; padding: 22px 24px; }
-    .pro-gate-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(7,17,31,.6) 0%, rgba(7,17,31,.92) 65%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 24px; text-align: center; backdrop-filter: blur(2px); }
-    .pro-gate-icon { width: 42px; height: 42px; background: linear-gradient(135deg, #22c55e, #5ba3ec); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: 0 0 24px rgba(45,125,210,.3); }
-    .pro-gate-title { font-size: 15px; font-weight: 800; color: #fff; letter-spacing: -.01em; }
-    .pro-gate-desc { font-size: 12px; color: var(--muted); max-width: 360px; line-height: 1.5; }
-    .pro-gate-cta { display: inline-flex; gap: 6px; align-items: center; background: linear-gradient(135deg, #22c55e, #5ba3ec); color: #fff; padding: 8px 18px; border-radius: 7px; font-weight: 700; font-size: 12px; text-decoration: none; transition: transform .15s; margin-top: 2px; }
-    .pro-gate-cta:hover { transform: translateY(-1px); }
-    .pro-gate-tier { font-size: 10px; color: #5a7d9d; font-family: var(--mono); letter-spacing: .08em; }
-
-    /* Mock content inside the blurred area (so it looks real before blur) */
-    .mock-signals { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
-    .mock-signal { padding: 10px 12px; background: var(--card-2); border: 1px solid var(--border-2); border-radius: 6px; }
-    .mock-signal .sl { font-size: 9px; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; font-weight: 700; }
-    .mock-signal .sv { font-size: 22px; font-weight: 800; font-family: var(--mono); color: #fff; margin-top: 4px; }
-    .mock-signal .sd { font-size: 10px; color: var(--muted); margin-top: 2px; font-family: var(--mono); }
-    .mock-posts { display: flex; flex-direction: column; gap: 10px; }
-    .mock-post { padding: 12px 14px; background: var(--card-2); border: 1px solid var(--border-2); border-radius: 6px; }
-    .mock-post .pt { font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 4px; }
-    .mock-post .pm { font-size: 10px; color: var(--muted); font-family: var(--mono); }
-    .mock-emo { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
-    .mock-emo-bar { padding: 8px 10px; background: var(--card-2); border: 1px solid var(--border-2); border-radius: 6px; text-align: center; }
-    .mock-emo-bar .el { font-size: 9px; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; font-weight: 700; margin-bottom: 3px; }
-    .mock-emo-bar .ev { font-size: 18px; font-weight: 800; color: var(--accent-2); font-family: var(--mono); }
-
-    @media (max-width: 720px) {
-      .mock-signals { grid-template-columns: repeat(3, 1fr); }
-      .mock-emo { grid-template-columns: repeat(3, 1fr); }
-    }
-
     /* ── July 1 countdown banner ──────────────────────────────── */
     .j1-banner { display: block; text-decoration: none; background: linear-gradient(90deg, rgba(249,115,22,.18) 0%, rgba(234,179,8,.10) 50%, rgba(239,68,68,.18) 100%); border-bottom: 1px solid rgba(249,115,22,.35); transition: filter .15s; cursor: pointer; }
     .j1-banner:hover { filter: brightness(1.15); }
@@ -955,36 +919,6 @@ function SrcTag({ source, source_url, updated_at, methodology_ref, label, compac
   );
 }
 
-// ─── ProGate — paywall overlay for Pro-only sections ────────────────────
-// Shows blurred preview content + paywall CTA. Currently always-gated
-// (no Pro auth yet); once Stripe + cookies wired up, toggle to free if
-// document.cookie.includes('lc_pro=1') or similar.
-function ProGate({ title, description, children, sub }) {
-  return (
-    <section className="pro-section">
-      <div className="pro-section-head">
-        <div className="pro-section-title">
-          {title}
-          <span className="lock-chip">🔒 PRO</span>
-        </div>
-        <div className="pro-section-sub">{sub}</div>
-      </div>
-      <div className="pro-gate-wrap">
-        <div className="pro-gate-blur">{children}</div>
-        <div className="pro-gate-overlay">
-          <div className="pro-gate-icon">🔒</div>
-          <div className="pro-gate-title">{title} is a Pro feature</div>
-          <div className="pro-gate-desc">{description}</div>
-          <a href="/subscribe?utm_source=dashboard&utm_medium=progate&utm_campaign=dashboard-pro-section" className="pro-gate-cta">
-            Unlock with Pro — $500/mo →
-          </a>
-          <div className="pro-gate-tier">FREE TIER · LIVE SCORE ONLY · UPGRADE FOR DEPTH</div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 // ─── July 1, 2026 — slim countdown banner on dashboard ───────────────────
 function July1Banner() {
   const target = useMemo(() => new Date(Date.UTC(2026, 6, 1, 4, 0, 0)), []); // July 1 2026 00:00 ET
@@ -1485,47 +1419,6 @@ function App() {
         </div>
       </section>
 
-      {/* ════════════ PRO-ONLY: SIGNAL BREAKDOWN ═══════════ */}
-      <ProGate
-        title="Signal breakdown"
-        description="See live scores for all 6 weighted signals — Google panic searches, Reddit sentiment (AI), CFPB complaints, NY Fed delinquency, refinance demand, borrower surveys — updated continuously."
-        sub="6 signals · live · updated continuously">
-        <div className="mock-signals">
-          <div className="mock-signal"><div className="sl">Google Panic</div><div className="sv">68</div><div className="sd">+4 WoW</div></div>
-          <div className="mock-signal"><div className="sl">Reddit AI</div><div className="sv">74</div><div className="sd">+2 WoW</div></div>
-          <div className="mock-signal"><div className="sl">CFPB</div><div className="sv">70</div><div className="sd">+8 WoW</div></div>
-          <div className="mock-signal"><div className="sl">Delinquency</div><div className="sv">76</div><div className="sd">+1 WoW</div></div>
-          <div className="mock-signal"><div className="sl">Refinance</div><div className="sv">66</div><div className="sd">-4 WoW</div></div>
-          <div className="mock-signal"><div className="sl">Survey</div><div className="sv">80</div><div className="sd">flat</div></div>
-        </div>
-      </ProGate>
-
-      {/* ════════════ PRO-ONLY: TRENDING DISCUSSIONS ═══════════ */}
-      <ProGate
-        title="Trending borrower discussions"
-        description="The top 10 most-engaged Reddit posts each day across r/StudentLoans, r/personalfinance, r/povertyfinance — AI-classified by emotion, with permalinks to the source."
-        sub="Updated daily · sorted by engagement">
-        <div className="mock-posts">
-          <div className="mock-post"><div className="pt">"Wage garnishment notice today. $480 a month. I'm a teacher..."</div><div className="pm">▲ 2,427 · 812 comments · r/StudentLoans</div></div>
-          <div className="mock-post"><div className="pt">"SAVE plan transition notice came — they want $1,180/mo"</div><div className="pm">▲ 1,893 · 524 comments · r/StudentLoans</div></div>
-          <div className="mock-post"><div className="pt">"MOHELA portal won't load. Anyone else?"</div><div className="pm">▲ 1,204 · 397 comments · r/personalfinance</div></div>
-        </div>
-      </ProGate>
-
-      {/* ════════════ PRO-ONLY: EMOTION BREAKDOWN ═══════════ */}
-      <ProGate
-        title="Borrower emotion mix"
-        description="Anthropic Claude classifies thousands of borrower posts each day by emotion — anxiety, confusion, urgency, optimism, hopelessness. See the live mix shift in real time."
-        sub="AI-classified · ~500 posts/day analyzed">
-        <div className="mock-emo">
-          <div className="mock-emo-bar"><div className="el">Anxiety</div><div className="ev">38%</div></div>
-          <div className="mock-emo-bar"><div className="el">Confusion</div><div className="ev">22%</div></div>
-          <div className="mock-emo-bar"><div className="el">Urgency</div><div className="ev">14%</div></div>
-          <div className="mock-emo-bar"><div className="el">Resigned</div><div className="ev">12%</div></div>
-          <div className="mock-emo-bar"><div className="el">Other</div><div className="ev">14%</div></div>
-        </div>
-      </ProGate>
-
       {/* ════════════ ACTION ROW — newsletter + collab ════════════ */}
       <section className="action-row">
         <div className="ar-inner">
@@ -1582,9 +1475,9 @@ function App() {
 
       {/* ════════════ MINIMAL TRUST STRIP ═══════════ */}
       <div className="trust-mini">
-        <span>📊 Live score · free forever</span>
+        <span>🔒 No login required · no tracking cookies</span>
         <span>•</span>
-        <span>🔓 Full depth via <a href="/subscribe" style={{color:'var(--neon)'}}>Pro ($500/mo)</a></span>
+        <span>📊 Index updated every 5 min</span>
         <span>•</span>
         <span>🤖 AI sentiment via <a href="https://www.anthropic.com" target="_blank" rel="noopener" style={{color:'var(--muted)'}}>Anthropic Claude</a></span>
       </div>
