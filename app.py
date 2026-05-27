@@ -2793,8 +2793,9 @@ async def subscribe(request: Request, payload: dict = Body(...)):
     email = (payload.get("email") or "").strip().lower()[:200]
     if "@" not in email or "." not in email.split("@")[-1]:
         return {"ok": False, "error": "Please provide a valid email."}
+    # Name is OPTIONAL for newsletter signups (was blocking subscribers)
     if not name:
-        return {"ok": False, "error": "Please provide your name."}
+        name = email.split("@")[0]  # use email local part as fallback display name
 
     now = datetime.now()
     headers = request.headers
