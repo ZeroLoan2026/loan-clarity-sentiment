@@ -93,8 +93,10 @@
     .stats-strip { max-width: 1100px; margin: 30px auto 60px; padding: 0 28px;
                    display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
     .stat { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
-            padding: 20px 22px; transition: border .15s; }
-    .stat:hover { border-color: var(--orange); }
+            padding: 20px 22px; transition: all .15s; text-decoration: none; color: inherit;
+            display: block; cursor: pointer; }
+    .stat:hover { border-color: var(--orange); transform: translateY(-2px); }
+    a.stat:hover .stat-num { color: var(--orange-soft); }
     .stat-num { font-family: 'JetBrains Mono', monospace; font-size: 30px; font-weight: 800;
                 color: var(--orange); letter-spacing: -.03em; line-height: 1; }
     .stat-lbl { font-size: 10px; color: var(--text-dim); letter-spacing: .14em; text-transform: uppercase; font-weight: 700; margin-top: 10px; }
@@ -215,27 +217,28 @@
   </div>
 </section>
 
-<!-- STATS STRIP -->
+<!-- STATS STRIP — every card is clickable -->
 <section class="stats-strip">
-  <div class="stat">
+  <a class="stat" href="#all-issues" title="Jump to all issues">
     <div class="stat-num" id="stat-count">--</div>
     <div class="stat-lbl">Issues Published</div>
-  </div>
-  <div class="stat">
+    <div class="stat-sub" style="color:var(--accent-soft);">Browse the archive →</div>
+  </a>
+  <a class="stat" href="/?utm_source=archive&utm_medium=stat-card&utm_campaign=current-index" title="See the live dashboard">
     <div class="stat-num" id="stat-score">--</div>
     <div class="stat-lbl">Current Index</div>
     <div class="stat-sub" id="stat-status">Loading…</div>
-  </div>
-  <div class="stat">
+  </a>
+  <a class="stat" href="/methodology?utm_source=archive&utm_medium=stat-card&utm_campaign=signals#weighted-index" title="How the 6 signals work">
     <div class="stat-num">6</div>
     <div class="stat-lbl">Signals Tracked</div>
-    <div class="stat-sub">Updated continuously</div>
-  </div>
-  <div class="stat">
+    <div class="stat-sub" style="color:var(--accent-soft);">See methodology →</div>
+  </a>
+  <a class="stat" href="/subscribe?utm_source=archive&utm_medium=stat-card&utm_campaign=price" title="See Pro tier">
     <div class="stat-num">$0</div>
     <div class="stat-lbl">Subscription Cost</div>
-    <div class="stat-sub">Pro for live + history</div>
-  </div>
+    <div class="stat-sub" style="color:var(--accent-soft);">Pro: $500/mo →</div>
+  </a>
 </section>
 
 <!-- FEATURED LATEST ISSUE -->
@@ -256,7 +259,7 @@
 </section>
 
 <!-- ALL ISSUES -->
-<section class="issues-section">
+<section class="issues-section" id="all-issues">
   <div class="section-head">
     <h2>All issues <span class="count" id="issue-count"></span></h2>
     <a href="#subscribe">↑ Subscribe</a>

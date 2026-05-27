@@ -132,13 +132,22 @@
 
     /* ── Special embedded blocks (rendered from raw HTML in markdown) ── */
 
-    /* Index display box */
-    #content .index-display {
+    /* Index display box (works as <div> or as <a> link) */
+    #content .index-display, #content a.index-display {
       background: linear-gradient(180deg, var(--bg-card) 0%, var(--bg-elev) 100%);
       border: 1px solid var(--border-2); border-radius: 16px;
       padding: 32px; margin: 32px 0;
       display: grid; grid-template-columns: auto 1fr; gap: 36px;
       align-items: center; box-shadow: 0 0 50px rgba(249,115,22,.08);
+      text-decoration: none !important; color: inherit;
+      transition: all .2s; cursor: pointer;
+    }
+    #content a.index-display:hover {
+      border-color: var(--orange); transform: translateY(-2px);
+      box-shadow: 0 0 60px rgba(249,115,22,.18);
+    }
+    #content a.index-display:hover .index-score-big {
+      text-shadow: 0 0 20px rgba(249,115,22,.4);
     }
     #content .index-display > div:first-child { text-align: center; padding-right: 30px; border-right: 1px solid var(--border); }
     #content .index-label { font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
