@@ -1426,7 +1426,7 @@ def _auth_or_401(request: Request) -> Optional[Response]:
                 "used_24h": used,
                 "message": (
                     f"You've used {used}/{limit} checks in the last 24h on the "
-                    f"{tier} tier. Upgrade to Pro (50 checks/day, $499/mo) or Enterprise "
+                    f"{tier} tier. Upgrade to Pro (50 checks/day, $500/mo) or Enterprise "
                     f"(unlimited, $5,000/mo) — email zeroloan000@gmail.com."
                 ),
                 "upgrade_url": "https://www.studentloansindex.com/api#pricing",

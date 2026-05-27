@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Subscribe to Loan Clarity Pro — Live Borrower Sentiment Index</title>
-  <meta name="description" content="Subscribe to Loan Clarity Pro for live (real-time) access to the Borrower Sentiment Index. $99/mo or $899/yr. Free Sentiment Friday newsletter for everyone." />
+  <meta name="description" content="Subscribe to Loan Clarity Pro for live (real-time) access to the Borrower Sentiment Index. $500/mo. Free Sentiment Friday newsletter for everyone." />
   <link rel="canonical" href="https://www.studentloansindex.com/subscribe" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
   <style>
@@ -154,17 +154,6 @@
   <p>The free Sentiment Friday newsletter ships every Friday morning. Pro subscribers see the live tracker as it moves throughout the week — plus the full back-issue archive and weekly deep-dive analysis.</p>
 </section>
 
-<div class="annual-toggle">
-  <span>Monthly</span>
-  <label style="display:inline-flex;align-items:center;cursor:pointer;">
-    <input type="checkbox" id="annual-toggle" style="display:none;">
-    <div style="width:42px;height:22px;background:var(--border);border-radius:999px;position:relative;transition:all .2s;" id="toggle-track">
-      <div style="width:18px;height:18px;background:#fff;border-radius:50%;position:absolute;top:2px;left:2px;transition:all .2s;" id="toggle-dot"></div>
-    </div>
-  </label>
-  <span>Annual <span class="save-pill">SAVE 24%</span></span>
-</div>
-
 <section class="pricing">
 
   <!-- FREE -->
@@ -188,8 +177,8 @@
   <div class="tier featured">
     <div class="badge">★ MOST POPULAR</div>
     <div class="tier-name pro">PRO</div>
-    <div class="tier-price"><span id="price-display">$99</span><small id="price-suffix">/mo</small></div>
-    <div class="tier-sub" id="price-sub">billed monthly · cancel anytime</div>
+    <div class="tier-price">$500<small>/mo</small></div>
+    <div class="tier-sub">billed monthly · cancel anytime</div>
     <ul>
       <li class="check">Everything in Free, plus:</li>
       <li class="check"><b>Live index</b> — real-time updates, not weekly</li>
@@ -199,7 +188,7 @@
       <li class="check">No ads, no sponsor placements</li>
       <li class="check">Cancel anytime, refund first 14 days</li>
     </ul>
-    <a href="mailto:zeroloan000@gmail.com?subject=Pro%20subscription%20interest&body=Hi%2C%20I%27d%20like%20to%20subscribe%20to%20Loan%20Clarity%20Pro." id="pro-cta" class="cta cta-featured">Get Pro →</a>
+    <a href="mailto:zeroloan000@gmail.com?subject=Pro%20subscription%20interest&body=Hi%2C%20I%27d%20like%20to%20subscribe%20to%20Loan%20Clarity%20Pro%20(%24500%2Fmo)." id="pro-cta" class="cta cta-featured">Get Pro →</a>
   </div>
 
   <!-- ENTERPRISE -->
@@ -267,7 +256,7 @@
   </details>
   <details>
     <summary>How do I subscribe? I just see a mailto link.</summary>
-    <p>We're rolling out Stripe payment processing this week — until then, email <a href="mailto:zeroloan000@gmail.com">zeroloan000@gmail.com</a> with "Pro" in the subject and we'll send you an invoice + activate your access within one business day. Annual ($899) and monthly ($99) both available.</p>
+    <p>We're rolling out Stripe payment processing this week — until then, email <a href="mailto:zeroloan000@gmail.com">zeroloan000@gmail.com</a> with "Pro" in the subject and we'll send you an invoice + activate your access within one business day. Pro is $500/mo, billed monthly, cancel anytime.</p>
   </details>
 </section>
 
@@ -287,33 +276,6 @@
   </div>
 </footer>
 
-<script>
-const toggle = document.getElementById('annual-toggle');
-const track = document.getElementById('toggle-track');
-const dot = document.getElementById('toggle-dot');
-const priceDisplay = document.getElementById('price-display');
-const priceSuffix = document.getElementById('price-suffix');
-const priceSub = document.getElementById('price-sub');
-const proCta = document.getElementById('pro-cta');
-
-toggle.addEventListener('change', () => {
-  if (toggle.checked) {
-    track.style.background = 'var(--accent)';
-    dot.style.left = '22px';
-    priceDisplay.textContent = '$899';
-    priceSuffix.textContent = '/yr';
-    priceSub.textContent = 'billed annually · save $289 vs monthly';
-    proCta.href = 'mailto:zeroloan000@gmail.com?subject=Pro%20annual%20subscription&body=Hi%2C%20I%27d%20like%20the%20annual%20Pro%20subscription%20%28%24899%2Fyr%29.';
-  } else {
-    track.style.background = 'var(--border)';
-    dot.style.left = '2px';
-    priceDisplay.textContent = '$99';
-    priceSuffix.textContent = '/mo';
-    priceSub.textContent = 'billed monthly · cancel anytime';
-    proCta.href = 'mailto:zeroloan000@gmail.com?subject=Pro%20monthly%20subscription&body=Hi%2C%20I%27d%20like%20the%20monthly%20Pro%20subscription%20%28%2499%2Fmo%29.';
-  }
-});
-</script>
 
 </body>
 </html>
