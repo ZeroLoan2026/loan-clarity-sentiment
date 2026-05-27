@@ -71,6 +71,28 @@
     .hbtn { width: 32px; height: 32px; border-radius: 7px; background: var(--card); border: 1px solid var(--border-2); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; color: var(--muted); transition: all .15s; }
     .hbtn:hover { background: var(--card-2); color: var(--accent-2); }
 
+    /* ── July 1 countdown banner ──────────────────────────────── */
+    .j1-banner { display: block; text-decoration: none; background: linear-gradient(90deg, rgba(249,115,22,.18) 0%, rgba(234,179,8,.10) 50%, rgba(239,68,68,.18) 100%); border-bottom: 1px solid rgba(249,115,22,.35); transition: filter .15s; cursor: pointer; }
+    .j1-banner:hover { filter: brightness(1.15); }
+    .j1-banner.live { background: linear-gradient(90deg, rgba(239,68,68,.25) 0%, rgba(249,115,22,.18) 100%); }
+    .j1-banner-inner { max-width: 1440px; margin: 0 auto; padding: 11px 28px; display: flex; align-items: center; gap: 16px; font-size: 12px; color: #fff; flex-wrap: wrap; }
+    .j1-pulse { width: 8px; height: 8px; border-radius: 50%; background: #f97316; box-shadow: 0 0 10px #f97316; animation: j1pulse 1.6s ease-in-out infinite; flex-shrink: 0; }
+    @keyframes j1pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.85)} }
+    .j1-lbl { font-weight: 800; letter-spacing: .12em; color: #fbbf24; font-size: 11px; text-transform: uppercase; }
+    .j1-cd { display: inline-flex; gap: 4px; align-items: baseline; font-family: var(--mono); }
+    .j1-cd-num { font-size: 16px; font-weight: 800; color: #fff; letter-spacing: -.02em; min-width: 22px; text-align: right; }
+    .j1-cd-unit { font-size: 10px; color: #fbbf24; font-weight: 700; margin-right: 4px; }
+    .j1-divider { width: 1px; height: 18px; background: rgba(255,255,255,.15); }
+    .j1-msg { color: #e8eef7; font-weight: 500; }
+    .j1-cta { margin-left: auto; color: #fbbf24; font-weight: 800; letter-spacing: .04em; font-size: 12px; }
+    .j1-banner:hover .j1-cta { color: #fff; }
+    @media (max-width: 760px) {
+      .j1-banner-inner { padding: 10px 16px; gap: 10px; font-size: 11px; }
+      .j1-divider, .j1-msg { display: none; }
+      .j1-cta { margin-left: 0; font-size: 11px; }
+      .j1-cd-num { font-size: 14px; }
+    }
+
     /* ── KPI bar ─────────────────────────────────────────────── */
     /* ── HERO Stress Index (TOP — main feature) ─────────────────── */
     .hero-stress {
@@ -865,7 +887,7 @@
 <body>
 <div id="root"></div>
 <script type="text/babel">
-const { useState, useEffect, useCallback } = React;
+const { useState, useEffect, useCallback, useMemo } = React;
 
 const ECOL = {anxiety:'#f97316',confusion:'#eab308',frustration:'#ef4444',optimism:'#22c55e',hopelessness:'#dc2626'};
 
@@ -894,6 +916,48 @@ function SrcTag({ source, source_url, updated_at, methodology_ref, label, compac
         </div>
       </span>
     </span>
+  );
+}
+
+// ─── July 1, 2026 — slim countdown banner on dashboard ───────────────────
+function July1Banner() {
+  const target = useMemo(() => new Date(Date.UTC(2026, 6, 1, 4, 0, 0)), []); // July 1 2026 00:00 ET
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  const ms = target - now;
+  if (ms <= 0) {
+    return (
+      <a href="/july1?utm_source=dashboard&utm_medium=banner&utm_campaign=july1-live" className="j1-banner live">
+        <div className="j1-banner-inner">
+          <span className="j1-pulse"/><b>🚨 The July 1 rules are now in effect.</b>
+          <span className="j1-cta">View live tracker →</span>
+        </div>
+      </a>
+    );
+  }
+  const days  = Math.floor(ms / 86400000);
+  const hours = Math.floor((ms % 86400000) / 3600000);
+  const mins  = Math.floor((ms % 3600000) / 60000);
+  const secs  = Math.floor((ms % 60000) / 1000);
+  return (
+    <a href="/july1?utm_source=dashboard&utm_medium=banner&utm_campaign=july1-countdown" className="j1-banner">
+      <div className="j1-banner-inner">
+        <span className="j1-pulse"/>
+        <span className="j1-lbl">JULY 1 · STUDENT LOAN RULE CHANGES</span>
+        <span className="j1-cd">
+          <span className="j1-cd-num">{days}</span><span className="j1-cd-unit">d</span>
+          <span className="j1-cd-num">{String(hours).padStart(2,'0')}</span><span className="j1-cd-unit">h</span>
+          <span className="j1-cd-num">{String(mins).padStart(2,'0')}</span><span className="j1-cd-unit">m</span>
+          <span className="j1-cd-num">{String(secs).padStart(2,'0')}</span><span className="j1-cd-unit">s</span>
+        </span>
+        <span className="j1-divider"/>
+        <span className="j1-msg">Track borrower stress through the chaos</span>
+        <span className="j1-cta">View tracker →</span>
+      </div>
+    </a>
   );
 }
 
@@ -1316,6 +1380,9 @@ function App() {
           <div className="hbtn" onClick={fetchData} title="Refresh">↻</div>
         </div>
       </header>
+
+      {/* ════════════ JULY 1 COUNTDOWN BANNER ═══════════ */}
+      <July1Banner/>
 
       {/* ════════════ HERO 1 — Borrower Stress Index (main feature) ═══════════ */}
       <section className="hero-stress">
