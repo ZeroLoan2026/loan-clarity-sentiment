@@ -5,20 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Loading… — Sentiment Friday | Loan Clarity</title>
   <meta name="description" content="Weekly Sentiment Friday briefing on student loan borrower stress, signals, and what's moving the index." />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&family=Source+Serif+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #07111f; --bg-soft: #0d1a2d; --bg-card: #0f1f36;
-      --border: #1e3a5f; --text: #e8eef7; --text-soft: #9fb2cc;
-      --text-dim: #6b7e98; --accent: #2d7dd2; --accent-soft: #5ba3ec;
-      --green: #22c55e; --orange: #f97316; --red: #ef4444; --yellow: #eab308;
-      --serif: 'Source Serif Pro', Georgia, serif;
+      --bg: #07111f; --bg-soft: #0d1a2d; --bg-card: #0f1f36; --bg-elev: #11233c;
+      --border: #1e3a5f; --border-2: #2d4870;
+      --text: #e8eef7; --text-soft: #9fb2cc; --text-dim: #6b7e98;
+      --accent: #2d7dd2; --accent-soft: #5ba3ec;
+      --orange: #f97316; --orange-soft: #fbbf24;
+      --red: #ef4444; --green: #22c55e; --yellow: #eab308; --purple: #a855f7;
+      --grad-orange: linear-gradient(120deg, #f97316 0%, #eab308 100%);
+      --grad-fire: linear-gradient(120deg, #f97316 0%, #ef4444 100%);
+      --grad-blue: linear-gradient(120deg, #5ba3ec 0%, #22c55e 100%);
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, sans-serif; min-height: 100vh; -webkit-font-smoothing: antialiased; line-height: 1.65; }
-    a { color: var(--accent-soft); text-decoration: underline; text-decoration-color: rgba(91,163,236,.4); text-underline-offset: 3px; transition: all .15s; }
-    a:hover { color: var(--accent); text-decoration-color: var(--accent); }
+    a { color: var(--accent-soft); text-decoration: underline; text-decoration-color: rgba(91,163,236,.35); text-underline-offset: 3px; transition: all .15s; }
+    a:hover { color: var(--orange-soft); text-decoration-color: var(--orange); }
 
+    /* ── Unified nav ─────────────────────────────── */
     nav.nav { background: rgba(7,17,31,.92); border-bottom: 1px solid var(--border);
               padding: 14px 28px; display: grid; grid-template-columns: 1fr auto 1fr;
               align-items: center; position: sticky; top: 0; z-index: 100;
@@ -36,87 +41,174 @@
     .nav-right a:hover { color: var(--accent-soft); }
     .nav-right a.active { color: #fff; border-bottom-color: var(--accent); }
     .nav-spacer { justify-self: end; }
+    @media (max-width: 760px) {
+      nav.nav { grid-template-columns: auto 1fr auto; grid-template-rows: auto auto; row-gap: 8px; padding: 10px 14px; }
+      .nav-left { grid-row: 1; grid-column: 1; }
+      .nav-spacer { grid-row: 1; grid-column: 3; }
+      .nav-right { grid-row: 2; grid-column: 1 / -1; display: flex; gap: 0; padding-top: 8px; border-top: 1px solid var(--border); width: 100%; }
+      .nav-right a { flex: 1 1 0; text-align: center; font-size: 10.5px; padding: 4px 2px; white-space: nowrap; }
+      .nav-sub { display: none; }
+    }
 
-    /* Article container */
-    article { max-width: 740px; margin: 0 auto; padding: 50px 28px 100px; }
-    .breadcrumb { font-size: 12px; color: var(--text-dim); margin-bottom: 28px; letter-spacing: .04em; }
+    /* ── Article container ─────────────────────────── */
+    article { max-width: 820px; margin: 0 auto; padding: 0 28px 60px; }
+
+    /* Hero card with issue meta */
+    .issue-hero { background: linear-gradient(180deg, rgba(249,115,22,.10) 0%, transparent 70%);
+                  border-bottom: 1px solid var(--border); padding: 50px 0 40px; margin-bottom: 50px; position: relative; }
+    .issue-hero::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+                          background: linear-gradient(90deg, transparent 0%, rgba(249,115,22,.4) 50%, transparent 100%); }
+    .breadcrumb { font-size: 11px; color: var(--text-dim); letter-spacing: .12em; text-transform: uppercase; font-weight: 700; margin-bottom: 22px; }
     .breadcrumb a { color: var(--text-soft); text-decoration: none; }
-    .breadcrumb a:hover { color: var(--accent-soft); }
+    .breadcrumb a:hover { color: var(--orange-soft); }
+    .breadcrumb .sep { margin: 0 8px; color: var(--text-dim); }
 
-    .issue-meta { display: flex; gap: 14px; align-items: center; margin-bottom: 14px;
-                  font-size: 11px; color: var(--text-dim); letter-spacing: .14em; text-transform: uppercase; font-weight: 700; }
-    .issue-tag { background: rgba(249,115,22,.12); color: var(--orange);
-                 padding: 5px 12px; border-radius: 999px; font-weight: 800; }
+    .issue-meta-row { display: flex; gap: 12px; align-items: center; margin-bottom: 18px; flex-wrap: wrap; }
+    .issue-pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; font-weight: 800; }
+    .issue-pill.brand { background: rgba(249,115,22,.15); color: var(--orange); }
+    .issue-pill.date { background: var(--bg-card); color: var(--text-soft); border: 1px solid var(--border); }
+    .issue-pill.read { background: var(--bg-card); color: var(--text-dim); border: 1px solid var(--border); font-family: 'JetBrains Mono', monospace; letter-spacing: .04em; text-transform: none; }
+    .issue-pill .dot { width: 6px; height: 6px; background: var(--orange); border-radius: 50%; animation: pulse 1.6s infinite; }
+    @keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: .35 } }
 
-    .issue-title { font-family: var(--serif); font-size: clamp(34px, 4.5vw, 46px);
-                   font-weight: 700; letter-spacing: -.02em; line-height: 1.15;
-                   margin-bottom: 18px; color: var(--text); }
+    .issue-title { font-size: clamp(36px, 5vw, 54px); font-weight: 900; letter-spacing: -.035em; line-height: 1.05; color: var(--text); margin-bottom: 24px; }
+    .issue-title .grad { background: var(--grad-orange); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
 
-    .issue-lede { font-size: 19px; color: var(--text-soft); line-height: 1.55;
-                  margin-bottom: 36px; font-weight: 400; }
+    .share-bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding-top: 18px; border-top: 1px solid var(--border); }
+    .share-bar .lbl { font-size: 10px; color: var(--text-dim); letter-spacing: .14em; text-transform: uppercase; font-weight: 700; margin-right: 4px; }
+    .share-btn { padding: 7px 14px; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-soft); border-radius: 7px; font-size: 12px; font-weight: 600; text-decoration: none; transition: all .15s; }
+    .share-btn:hover { background: var(--bg-elev); border-color: var(--orange); color: var(--orange-soft); }
 
-    /* Content blocks rendered from markdown */
+    /* ── Markdown content rendering ─────────────────── */
+    #content > * + * { margin-top: 1.05em; }
     #content h1 { display: none; }
-    #content h2 { font-family: var(--serif); font-size: 26px; font-weight: 700;
-                  margin: 50px 0 18px; letter-spacing: -.01em; color: var(--text); }
-    #content h3 { font-size: 18px; font-weight: 700; margin: 30px 0 12px;
-                  color: var(--text); letter-spacing: -.005em; }
-    #content p { font-size: 17px; color: var(--text-soft); margin-bottom: 18px;
-                 font-family: var(--serif); line-height: 1.7; }
-    #content ul, #content ol { margin: 0 0 22px 24px; }
-    #content li { font-size: 17px; color: var(--text-soft); margin-bottom: 10px;
-                  font-family: var(--serif); line-height: 1.65; }
-    #content blockquote { border-left: 3px solid var(--orange); padding: 12px 0 12px 22px;
-                          margin: 30px 0; font-style: italic; color: var(--text); font-size: 18px;
-                          font-family: var(--serif); }
-    #content blockquote cite { display: block; margin-top: 8px; font-size: 12px;
-                                color: var(--text-dim); font-style: normal; }
-    #content strong, #content b { color: var(--text); font-weight: 700; }
+
+    /* Lede / first blockquote = pull quote treatment */
+    #content > blockquote:first-of-type {
+      border: 0; padding: 0; margin: 0 0 36px;
+      font-size: clamp(19px, 2.2vw, 23px); font-weight: 500;
+      color: var(--text-soft); line-height: 1.5; font-style: normal;
+      padding-left: 22px; border-left: 3px solid var(--orange);
+    }
+
+    #content p { font-size: 17px; color: var(--text-soft); line-height: 1.75; }
+    #content p strong, #content p b { color: var(--text); font-weight: 700; }
+
+    #content h2 {
+      font-size: clamp(24px, 3vw, 30px); font-weight: 800; letter-spacing: -.02em;
+      color: var(--text); margin: 56px 0 18px; line-height: 1.2;
+      padding-bottom: 12px; border-bottom: 1px solid var(--border);
+      position: relative;
+    }
+    #content h2::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 60px; height: 2px; background: var(--orange); }
+
+    #content h3 { font-size: 19px; font-weight: 700; color: var(--text); margin: 32px 0 12px; letter-spacing: -.01em; }
+
+    #content ul, #content ol { margin: 0 0 22px 22px; }
+    #content li { font-size: 16px; color: var(--text-soft); margin-bottom: 12px; line-height: 1.7; padding-left: 6px; }
+    #content li::marker { color: var(--orange); }
+    #content li strong, #content li b { color: var(--text); font-weight: 700; }
+
+    /* Pull-quote / Reddit voice blockquote */
+    #content blockquote {
+      background: linear-gradient(180deg, rgba(249,115,22,.08) 0%, var(--bg-card) 100%);
+      border: 1px solid var(--border); border-left: 4px solid var(--orange);
+      border-radius: 0 12px 12px 0; padding: 28px 30px;
+      margin: 36px 0; font-size: 19px; font-weight: 500;
+      color: var(--text); line-height: 1.55; font-style: italic;
+      position: relative;
+    }
+    #content blockquote::before { content: '"'; position: absolute; top: -10px; left: 14px;
+                                   font-family: Georgia, serif; font-size: 70px; color: var(--orange);
+                                   line-height: 1; opacity: .35; font-weight: 900; }
+    #content blockquote cite { display: block; margin-top: 14px; font-size: 12px; color: var(--text-dim); font-style: normal; letter-spacing: .04em; font-family: 'JetBrains Mono', monospace; }
+
     #content code { font-family: 'JetBrains Mono', monospace; font-size: 14px;
-                    background: var(--bg-card); padding: 2px 6px; border-radius: 4px;
-                    color: var(--accent-soft); }
-    #content hr { border: 0; border-top: 1px solid var(--border); margin: 40px 0; }
-    #content .pro-gate { background: linear-gradient(135deg, rgba(45,125,210,.08), rgba(34,197,94,.06));
-                         border: 1px solid var(--accent); border-radius: 14px; padding: 24px 28px;
-                         margin: 36px 0; }
-    #content .pro-gate h3 { margin-top: 0; color: var(--accent-soft); font-size: 16px;
-                            letter-spacing: .04em; text-transform: uppercase; }
-    #content .pro-gate p { font-family: 'Inter', sans-serif; font-size: 15px; color: var(--text-soft); }
-    #content .pro-gate a.cta { display: inline-block; background: var(--accent); color: #fff;
-                                padding: 10px 22px; border-radius: 8px; font-weight: 700;
-                                text-decoration: none; margin-top: 8px; font-family: 'Inter', sans-serif; }
-    #content .pro-gate a.cta:hover { background: var(--accent-soft); }
+                    background: var(--bg-card); padding: 2px 7px; border-radius: 5px;
+                    color: var(--orange-soft); border: 1px solid var(--border); }
 
-    /* Index display in article */
-    .index-display { background: var(--bg-card); border: 1px solid var(--border);
-                     border-radius: 14px; padding: 28px; margin: 30px 0;
-                     display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: center; }
-    .index-score-big { font-size: 84px; font-weight: 800; letter-spacing: -.04em;
-                       color: var(--orange); line-height: 1; font-family: 'JetBrains Mono', monospace; }
-    .index-status { font-size: 18px; font-weight: 800; letter-spacing: .08em;
-                    text-transform: uppercase; color: var(--orange); margin-top: 6px; }
-    .index-label { font-size: 11px; color: var(--text-dim); letter-spacing: .12em;
-                   text-transform: uppercase; font-weight: 700; margin-bottom: 10px; }
-    .index-delta { font-size: 14px; color: var(--text-soft); margin-top: 8px; }
+    #content hr { border: 0; height: 1px; margin: 50px 0;
+                  background: linear-gradient(90deg, transparent 0%, var(--border-2) 50%, transparent 100%); }
 
-    /* Footer / share */
-    .footer-cta { background: var(--bg-card); border: 1px solid var(--border);
-                  border-radius: 14px; padding: 28px; margin: 50px 0 0; text-align: center; }
-    .footer-cta h3 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
-    .footer-cta p { font-size: 14px; color: var(--text-soft); margin-bottom: 18px; }
-    .share-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-    .share-btn { padding: 10px 18px; background: transparent; border: 1px solid var(--border);
-                 color: var(--text-soft); border-radius: 8px; font-size: 13px;
-                 text-decoration: none; transition: all .15s; }
-    .share-btn:hover { border-color: var(--accent); color: var(--text); }
+    /* ── Special embedded blocks (rendered from raw HTML in markdown) ── */
 
-    footer.site { border-top: 1px solid var(--border); padding: 28px; text-align: center;
-                  color: var(--text-dim); font-size: 12px; }
+    /* Index display box */
+    #content .index-display {
+      background: linear-gradient(180deg, var(--bg-card) 0%, var(--bg-elev) 100%);
+      border: 1px solid var(--border-2); border-radius: 16px;
+      padding: 32px; margin: 32px 0;
+      display: grid; grid-template-columns: auto 1fr; gap: 36px;
+      align-items: center; box-shadow: 0 0 50px rgba(249,115,22,.08);
+    }
+    #content .index-display > div:first-child { text-align: center; padding-right: 30px; border-right: 1px solid var(--border); }
+    #content .index-label { font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+                            color: var(--text-dim); font-weight: 700; margin: 0; }
+    #content .index-score-big { font-family: 'JetBrains Mono', monospace; font-size: 96px;
+                                 font-weight: 800; letter-spacing: -.05em; line-height: .9;
+                                 color: var(--orange); margin: 8px 0; }
+    #content .index-status { font-size: 14px; font-weight: 800; letter-spacing: .12em;
+                              text-transform: uppercase; color: var(--orange); }
+    #content .index-delta { font-size: 12px; color: var(--text-dim); margin-top: 6px; line-height: 1.5; }
+    @media (max-width: 640px) {
+      #content .index-display { grid-template-columns: 1fr; gap: 22px; padding: 24px; }
+      #content .index-display > div:first-child { padding-right: 0; border-right: 0; padding-bottom: 22px; border-bottom: 1px solid var(--border); }
+      #content .index-score-big { font-size: 76px; }
+    }
+
+    /* Pro-gate deep dive callout */
+    #content .pro-gate {
+      background: linear-gradient(135deg, rgba(34,197,94,.08) 0%, rgba(91,163,236,.06) 100%);
+      border: 1px solid var(--accent); border-radius: 16px;
+      padding: 28px 30px; margin: 40px 0; position: relative;
+      box-shadow: 0 0 40px rgba(45,125,210,.10);
+    }
+    #content .pro-gate::before { content: '🔒 PRO'; position: absolute; top: -10px; left: 24px;
+                                  background: linear-gradient(90deg,#22c55e,#5ba3ec); color: #fff;
+                                  font-size: 9px; padding: 4px 10px; border-radius: 999px;
+                                  letter-spacing: .15em; font-weight: 800; }
+    #content .pro-gate h3 { color: var(--accent-soft); margin: 4px 0 12px; font-size: 17px; }
+    #content .pro-gate p { font-size: 15px; color: var(--text-soft); line-height: 1.65; margin-bottom: 18px; }
+    #content .pro-gate a.cta { display: inline-flex; align-items: center; gap: 6px;
+                                background: linear-gradient(135deg,#22c55e,#5ba3ec); color: #fff !important;
+                                padding: 11px 22px; border-radius: 8px; font-weight: 800;
+                                text-decoration: none !important; font-size: 13px; transition: transform .15s; }
+    #content .pro-gate a.cta:hover { transform: translateY(-1px); }
+
+    /* ── Sticky right rail subscribe (desktop only) ─ */
+    /* (Optional — skipping for v1 to keep layout simple) */
+
+    /* ── Footer / share / nav between issues ───────── */
+    .issue-footer { margin-top: 60px; }
+    .next-prev { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 50px 0; }
+    .np-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 22px; text-decoration: none; transition: all .15s; }
+    .np-card:hover { border-color: var(--orange); transform: translateY(-2px); }
+    .np-card.empty { opacity: .35; pointer-events: none; }
+    .np-label { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--text-dim); font-weight: 700; margin-bottom: 8px; }
+    .np-title { font-size: 15px; color: var(--text); font-weight: 700; line-height: 1.4; }
+    .np-card.next { text-align: right; }
+    @media (max-width: 600px) { .next-prev { grid-template-columns: 1fr; } .np-card.next { text-align: left; } }
+
+    .end-cta { background: linear-gradient(180deg, var(--bg-card) 0%, var(--bg-soft) 100%);
+               border: 1px solid var(--border-2); border-radius: 16px;
+               padding: 36px; text-align: center; margin: 30px 0; position: relative; overflow: hidden; }
+    .end-cta::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: var(--grad-orange); }
+    .end-cta h3 { font-size: 24px; font-weight: 800; margin-bottom: 10px; letter-spacing: -.02em; color: var(--text); }
+    .end-cta h3 .grad { background: var(--grad-orange); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .end-cta p { font-size: 14px; color: var(--text-soft); margin-bottom: 20px; max-width: 500px; margin-left: auto; margin-right: auto; }
+    .end-cta .cta-btn { display: inline-flex; align-items: center; gap: 8px; background: var(--grad-orange); color: #07111f !important;
+                        padding: 13px 26px; border-radius: 10px; font-weight: 800; font-size: 14px; text-decoration: none !important;
+                        transition: transform .15s; }
+    .end-cta .cta-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(249,115,22,.3); }
+
+    .footer-share { display: flex; justify-content: center; gap: 8px; margin-top: 24px; flex-wrap: wrap; }
+
+    footer.site { border-top: 1px solid var(--border); padding: 30px 28px; text-align: center; color: var(--text-dim); font-size: 12px; }
     footer.site a { color: var(--text-soft); margin: 0 12px; text-decoration: none; }
-    footer.site .disc { font-size: 11px; margin-top: 10px; max-width: 700px;
-                        margin-left: auto; margin-right: auto; line-height: 1.6; }
+    footer.site .disc { font-size: 11px; margin-top: 12px; max-width: 720px; margin-left: auto; margin-right: auto; line-height: 1.6; }
 
-    .loading { text-align: center; padding: 80px 20px; color: var(--text-dim); }
+    .loading { text-align: center; padding: 100px 20px; color: var(--text-dim); }
+    .loading-spinner { display: inline-block; width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--orange); border-radius: 50%; animation: spin .8s linear infinite; margin-bottom: 14px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
@@ -143,51 +235,69 @@
 </nav>
 
 <article>
-  <div class="breadcrumb">
-    <a href="/weekly">← All issues</a>
-  </div>
-  <div id="content">
-    <div class="loading">Loading issue…</div>
-  </div>
 
-  <div class="footer-cta">
-    <h3>Get next Friday's briefing in your inbox</h3>
-    <p>Free. One email Friday morning. Unsubscribe anytime.</p>
-    <a href="/weekly#subscribe?utm_source=issue&utm_medium=footer" class="share-btn" style="background:var(--accent);color:#fff;border-color:var(--accent);">Subscribe →</a>
-    <div class="share-row" style="margin-top:14px;">
-      <a href="#" id="share-twitter" class="share-btn">Share on Twitter</a>
-      <a href="#" id="share-linkedin" class="share-btn">Share on LinkedIn</a>
-      <a href="#" id="share-email" class="share-btn">Share via email</a>
-      <a href="#" id="copy-link" class="share-btn">Copy link</a>
+  <!-- HERO -->
+  <header class="issue-hero">
+    <div class="breadcrumb">
+      <a href="/weekly">← Sentiment Friday</a>
+      <span class="sep">·</span>
+      <span id="bc-date">Loading…</span>
+    </div>
+    <div class="issue-meta-row">
+      <span class="issue-pill brand"><span class="dot"></span>SENTIMENT FRIDAY</span>
+      <span class="issue-pill date" id="meta-date">--</span>
+      <span class="issue-pill read" id="meta-read">~3 min read</span>
+    </div>
+    <h1 class="issue-title" id="page-title">Loading…</h1>
+  </header>
+
+  <!-- CONTENT (markdown rendered) -->
+  <div id="content">
+    <div class="loading">
+      <div class="loading-spinner"></div>
+      <div>Loading issue…</div>
     </div>
   </div>
+
+  <!-- NEXT / PREV NAV -->
+  <div class="next-prev" id="next-prev"></div>
+
+  <!-- END CTA -->
+  <div class="end-cta">
+    <h3>Get next Friday's briefing <span class="grad">in your inbox</span>.</h3>
+    <p>Free. One email Friday morning. Index reading, what's driving it, what to watch next week. Unsubscribe in one click.</p>
+    <a href="/weekly#subscribe?utm_source=issue&utm_medium=end-cta" class="cta-btn">📰 Subscribe to Sentiment Friday →</a>
+    <div class="footer-share">
+      <span class="share-btn" style="color:var(--text-dim);font-size:10px;padding:7px 0;">SHARE THIS ISSUE:</span>
+      <a href="#" id="share-twitter" class="share-btn">𝕏 Twitter</a>
+      <a href="#" id="share-linkedin" class="share-btn">in LinkedIn</a>
+      <a href="#" id="share-email" class="share-btn">✉ Email</a>
+      <a href="#" id="copy-link" class="share-btn">🔗 Copy link</a>
+    </div>
+  </div>
+
 </article>
 
 <footer class="site">
   <div>
     <a href="/">Dashboard</a> ·
-    <a href="/weekly">Sentiment Friday</a> ·
-    <a href="/subscribe">Subscribe</a> ·
+    <a href="/social-signals">📡 Social Signals</a> ·
+    <a href="/weekly">📰 Sentiment Friday</a> ·
+    <a href="/api">⚡ API</a> ·
     <a href="/methodology">Methodology</a> ·
-    <a href="/sources">Sources</a> ·
-    <a href="/privacy">Privacy</a> ·
-    <a href="/terms">Terms</a>
+    <a href="/sources">Sources</a>
   </div>
   <div class="disc">
     © 2026 Loan Clarity · Borrower Sentiment Index™ is a trademark of Loan Clarity.
     Sentiment Friday is published for informational purposes only and does not constitute
-    financial, legal, or investment advice. Content is the proprietary work of Loan Clarity
-    and not for redistribution without written permission.
+    financial, legal, or investment advice. Proprietary work of Loan Clarity. Not for redistribution.
   </div>
 </footer>
 
 <script>
-// Minimal markdown renderer (handles our specific template format)
+// ── Markdown renderer (handles our specific format) ──────────
 function renderMarkdown(md) {
   let html = md;
-
-  // HTML blocks (pass-through for our custom .pro-gate divs etc.)
-  // Already valid HTML, leave alone
 
   // Code blocks
   html = html.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
@@ -197,84 +307,147 @@ function renderMarkdown(md) {
   html = html.replace(/^## (.*$)/gm, '<h2>$1</h2>');
   html = html.replace(/^# (.*$)/gm, '<h1>$1</h1>');
 
-  // Blockquote
-  html = html.replace(/^> (.*$)/gm, '<blockquote>$1</blockquote>');
+  // Blockquotes (multi-line, group consecutive > lines)
+  html = html.replace(/((?:^> .*(?:\n|$))+)/gm, function(match) {
+    const inner = match.replace(/^> ?/gm, '').trim();
+    return '<blockquote>' + inner + '</blockquote>';
+  });
 
-  // Horizontal rule
+  // Horizontal rules
   html = html.replace(/^---+$/gm, '<hr>');
 
-  // Bold / italic
+  // Bold / italic (italic must come AFTER bold to avoid conflict)
   html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-  html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+  html = html.replace(/(^|[^*])\*([^*]+)\*/g, '$1<em>$2</em>');
 
   // Inline code
   html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
 
-  // Links [text](url) — preserve, browsers handle
+  // Links
   html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
 
-  // Unordered lists (basic)
-  html = html.replace(/(^|\n)((?:- .+\n?)+)/g, (m, pre, block) => {
-    const items = block.trim().split('\n').map(l => '<li>' + l.replace(/^- /, '') + '</li>').join('');
+  // Unordered lists
+  html = html.replace(/(^|\n)((?:- .+\n?)+)/g, function(m, pre, block) {
+    const items = block.trim().split('\n').map(function(l) { return '<li>' + l.replace(/^- /, '') + '</li>'; }).join('');
     return pre + '<ul>' + items + '</ul>';
   });
 
-  // Paragraphs — wrap remaining non-tag lines
-  html = html.split('\n\n').map(block => {
+  // Paragraphs — wrap remaining text blocks
+  html = html.split('\n\n').map(function(block) {
     const trimmed = block.trim();
     if (!trimmed) return '';
-    if (trimmed.startsWith('<') || trimmed.startsWith('#')) return trimmed;
+    if (/^</.test(trimmed) || /^#/.test(trimmed) || trimmed.startsWith('---')) return trimmed;
     return '<p>' + trimmed + '</p>';
   }).join('\n\n');
 
   return html;
 }
 
+// ── Reading time estimate (words / 200) ──────────
+function estimateReadingTime(text) {
+  const words = text.split(/\s+/).filter(Boolean).length;
+  const mins = Math.max(1, Math.round(words / 200));
+  return '~' + mins + ' min read';
+}
+
+// ── Pretty date ──────────
+function prettyDate(iso) {
+  const d = new Date(iso + 'T00:00:00');
+  return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+}
+
+// ── Load + render ──────────
 async function loadIssue() {
-  const date = document.location.pathname.split('/').filter(Boolean).pop();
+  const date = location.pathname.split('/').filter(Boolean).pop();
   try {
     const r = await fetch('/api/weekly/issue/' + date);
     if (!r.ok) {
       document.getElementById('content').innerHTML =
-        '<div class="loading"><h2>Issue not found</h2><p><a href="/weekly">← Back to archive</a></p></div>';
+        '<div class="loading"><h2 style="color:var(--text)">Issue not found</h2><p style="margin-top:8px;"><a href="/weekly">← Back to archive</a></p></div>';
       return;
     }
     const data = await r.json();
-    const rendered = renderMarkdown(data.content);
-    document.getElementById('content').innerHTML = rendered;
+    const md = data.content;
 
-    // Set page title from first H1 in markdown
-    const titleMatch = data.content.match(/^# (.+)$/m);
-    if (titleMatch) {
-      document.title = titleMatch[1] + ' — Sentiment Friday | Loan Clarity';
-    }
+    // Title extraction
+    const titleMatch = md.match(/^# (.+)$/m);
+    const title = titleMatch ? titleMatch[1] : 'Sentiment Friday ' + date;
 
-    // Set canonical link
+    // Title with gradient on last part — split on em-dash if present
+    const titleHtml = (function() {
+      const m = title.match(/^(.*? — )(.+)$/);
+      if (m) return m[1] + '<span class="grad">' + m[2] + '</span>';
+      return title;
+    })();
+
+    document.getElementById('page-title').innerHTML = titleHtml;
+    document.title = title + ' — Sentiment Friday | Loan Clarity';
+
+    document.getElementById('bc-date').textContent = prettyDate(date);
+    document.getElementById('meta-date').textContent = prettyDate(date);
+    document.getElementById('meta-read').textContent = estimateReadingTime(md);
+
+    // Strip the H1 from markdown before rendering (we show it in hero)
+    const bodyMd = md.replace(/^# .+$\n?/m, '');
+
+    document.getElementById('content').innerHTML = renderMarkdown(bodyMd);
+
+    // Canonical link
     const link = document.createElement('link');
     link.rel = 'canonical';
     link.href = 'https://www.studentloansindex.com/weekly/' + date;
     document.head.appendChild(link);
 
-    // Wire share buttons
+    // Share buttons
     const url = encodeURIComponent('https://www.studentloansindex.com/weekly/' + date);
-    const title = encodeURIComponent('Sentiment Friday — ' + date);
-    document.getElementById('share-twitter').href =
-      'https://twitter.com/intent/tweet?text=' + title + '&url=' + url;
-    document.getElementById('share-linkedin').href =
-      'https://www.linkedin.com/sharing/share-offsite/?url=' + url;
-    document.getElementById('share-email').href =
-      'mailto:?subject=' + title + '&body=' + url;
-    document.getElementById('copy-link').addEventListener('click', e => {
+    const text = encodeURIComponent(title);
+    document.getElementById('share-twitter').href = 'https://twitter.com/intent/tweet?text=' + text + '&url=' + url;
+    document.getElementById('share-linkedin').href = 'https://www.linkedin.com/sharing/share-offsite/?url=' + url;
+    document.getElementById('share-email').href = 'mailto:?subject=' + text + '&body=' + url;
+    document.getElementById('copy-link').addEventListener('click', function(e) {
       e.preventDefault();
       navigator.clipboard.writeText('https://www.studentloansindex.com/weekly/' + date);
       e.target.textContent = '✓ Copied';
-      setTimeout(() => { e.target.textContent = 'Copy link'; }, 1500);
+      setTimeout(function() { e.target.textContent = '🔗 Copy link'; }, 1500);
     });
+
+    // Next / prev nav from /api/weekly/list
+    loadNextPrev(date);
+
   } catch (e) {
     document.getElementById('content').innerHTML =
-      '<div class="loading"><h2>Could not load issue</h2><p>' + e.message + '</p></div>';
+      '<div class="loading"><h2 style="color:var(--text)">Could not load issue</h2><p style="margin-top:8px;">' + e.message + '</p></div>';
   }
 }
+
+async function loadNextPrev(currentDate) {
+  try {
+    const r = await fetch('/api/weekly/list');
+    const data = await r.json();
+    const issues = (data && data.issues) || [];
+    const idx = issues.findIndex(function(i) { return i.date === currentDate; });
+    if (idx === -1) return;
+    // issues are sorted most-recent first → so prev = idx+1, next = idx-1
+    const newer = idx > 0 ? issues[idx - 1] : null;
+    const older = idx < issues.length - 1 ? issues[idx + 1] : null;
+
+    const html =
+      (older ?
+        '<a href="' + older.url + '" class="np-card prev"><div class="np-label">← Previous issue</div><div class="np-title">' + escapeHtml(older.title) + '</div></a>'
+        : '<div class="np-card prev empty"><div class="np-label">← Previous issue</div><div class="np-title">First issue</div></div>'
+      ) +
+      (newer ?
+        '<a href="' + newer.url + '" class="np-card next"><div class="np-label">Next issue →</div><div class="np-title">' + escapeHtml(newer.title) + '</div></a>'
+        : '<div class="np-card next empty"><div class="np-label">Next issue →</div><div class="np-title">Coming Friday</div></div>'
+      );
+    document.getElementById('next-prev').innerHTML = html;
+  } catch (e) { /* silent */ }
+}
+
+function escapeHtml(s) {
+  return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 loadIssue();
 </script>
 
