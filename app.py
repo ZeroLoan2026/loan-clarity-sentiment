@@ -2194,13 +2194,44 @@ async def serve_api_docs():
 _WEEKLY_DIR = Path(__file__).parent / "weekly"
 
 
-def _list_weekly_issues() -> list[dict]:
-    """Return all published issues, sorted most recent first."""
+def _is_issue_published(issue_date_str: str) -> bool:
+    """
+    An issue is 'published' if its Friday release date is THIS WEEK or earlier.
+    Future issues (next Friday or beyond) are hidden from public listings + 404
+    on direct URL access. This lets us pre-write Issues #2, #3, etc. without
+    leaking them.
+
+    Rule: issue_date <= upcoming_friday_in_ET → published.
+
+    Examples (today = Wed 2026-05-27):
+      - 2026-05-29 (Fri this week) → published ✓ (upcoming Friday)
+      - 2026-06-05 (Fri next week) → hidden ✗
+      - 2026-05-22 (Fri last week) → published ✓
+    """
+    try:
+        issue_date = datetime.strptime(issue_date_str, "%Y-%m-%d").date()
+        today_et = datetime.now(ET_TZ).date()
+        # Days until next Friday (0 if today IS Friday). weekday(): Mon=0..Fri=4..Sun=6
+        days_until_friday = (4 - today_et.weekday()) % 7
+        upcoming_friday = today_et + timedelta(days=days_until_friday)
+        return issue_date <= upcoming_friday
+    except Exception:
+        return False
+
+
+def _list_weekly_issues(include_unpublished: bool = False) -> list[dict]:
+    """
+    Return all published issues, sorted most recent first.
+    Set include_unpublished=True for admin/internal views.
+    """
     if not _WEEKLY_DIR.exists():
         return []
     issues = []
     for f in _WEEKLY_DIR.glob("*.md"):
         date = f.stem  # YYYY-MM-DD
+        # Filter unpublished (future-dated) issues
+        if not include_unpublished and not _is_issue_published(date):
+            continue
         # Try to parse the first heading + summary from the file
         try:
             content = f.read_text(encoding="utf-8")
@@ -2250,8 +2281,9 @@ async def serve_weekly_issue(issue_date: str):
         )
 
     issue_path = _WEEKLY_DIR / f"{issue_date}.md"
-    if not issue_path.exists():
-        # 404 with a link back to the archive
+
+    # Hide future-dated issues from public access (404 looks like they don't exist)
+    if not issue_path.exists() or not _is_issue_published(issue_date):
         return Response(
             content=f"""<!DOCTYPE html><html><head><meta charset="utf-8"><title>Issue not found — Sentiment Friday</title>
 <style>body{{background:#07111f;color:#e8eef7;font-family:-apple-system,Inter,sans-serif;text-align:center;padding:80px 20px;}}
@@ -2284,7 +2316,8 @@ async def api_weekly_issue_content(issue_date: str):
             status_code=400, media_type="application/json",
         )
     issue_path = _WEEKLY_DIR / f"{issue_date}.md"
-    if not issue_path.exists():
+    # Hide future-dated issues from public access
+    if not issue_path.exists() or not _is_issue_published(issue_date):
         return Response(
             content=json.dumps({"error": "issue not found", "date": issue_date}),
             status_code=404, media_type="application/json",
