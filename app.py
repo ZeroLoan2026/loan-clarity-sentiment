@@ -2358,6 +2358,36 @@ async def serve_july1_tracker():
     )
 
 
+@app.get("/sli-mark.svg")
+async def serve_logo_mark():
+    """Brand logo — icon mark. Served as a static SVG used in nav across all pages."""
+    return FileResponse(
+        Path(__file__).parent / "sli-mark.svg",
+        media_type="image/svg+xml",
+        headers={"Cache-Control": "public, max-age=86400"},
+    )
+
+
+@app.get("/sli-lockup.svg")
+async def serve_logo_lockup():
+    """Brand logo — full horizontal lockup (icon + wordmark + LIVE tag)."""
+    return FileResponse(
+        Path(__file__).parent / "sli-lockup.svg",
+        media_type="image/svg+xml",
+        headers={"Cache-Control": "public, max-age=86400"},
+    )
+
+
+@app.get("/favicon.svg")
+async def serve_favicon_svg():
+    """Favicon — reuses the icon mark."""
+    return FileResponse(
+        Path(__file__).parent / "sli-mark.svg",
+        media_type="image/svg+xml",
+        headers={"Cache-Control": "public, max-age=86400"},
+    )
+
+
 @app.get("/embed/july1")
 async def serve_july1_embed():
     """Embeddable July 1 countdown + index widget. iframe-safe for news sites."""
