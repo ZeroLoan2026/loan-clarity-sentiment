@@ -154,6 +154,19 @@
     .hist-paywall-meta { font-size: 11px; color: #4a6888; font-family: var(--mono); letter-spacing: .06em; }
     .hist-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; font-family: var(--mono); font-size: 10px; color: var(--muted-2); }
 
+    /* Market context strip (macro tracker) */
+    .market-strip { display: grid; grid-template-columns: 1.15fr 1fr 1fr 1fr; border-bottom: 1px solid var(--border); background: linear-gradient(180deg, #0a1730 0%, var(--panel) 100%); }
+    .ms-cell { padding: 13px 22px; border-right: 1px solid var(--border); text-decoration: none; display: flex; flex-direction: column; justify-content: center; transition: background .15s; }
+    .ms-cell:last-child { border-right: none; }
+    .ms-cell:hover { background: rgba(45,125,210,.06); }
+    .ms-live { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--accent-2); }
+    .ms-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); animation: mspulse 1.5s infinite; }
+    @keyframes mspulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+    .ms-sub { font-size: 10px; color: var(--muted-2); font-family: var(--mono); letter-spacing: .04em; margin-top: 5px; }
+    .ms-num { font-size: 26px; font-weight: 800; letter-spacing: -.02em; font-family: var(--mono); line-height: 1; }
+    .ms-lbl { font-size: 10px; color: var(--muted-2); text-transform: uppercase; letter-spacing: .1em; font-weight: 700; margin-top: 6px; }
+    @media (max-width: 760px) { .market-strip { grid-template-columns: 1fr 1fr; } .ms-head { grid-column: 1 / -1; border-right: none; } }
+
     .kpi-bar { display: grid; grid-template-columns: repeat(4,1fr); border-bottom: 1px solid var(--border); background: var(--panel); }
     .kpi-item { padding: 13px 22px; border-right: 1px solid var(--border); position: relative; cursor: pointer; transition: background .15s; }
     .kpi-item:hover { background: rgba(45, 125, 210, 0.06); }
@@ -921,6 +934,29 @@ function SrcTag({ source, source_url, updated_at, methodology_ref, label, compac
 }
 
 // ─── July 1, 2026 — slim countdown banner on dashboard ───────────────────
+function MarketStrip() {
+  // Macro market context — figures sourced from Federal Reserve / NY Fed Household Debt & Credit Report.
+  const stats = [
+    { num: '$1.7T', lbl: 'Total market size', color: 'var(--green)' },
+    { num: '43M',   lbl: 'Borrowers in the U.S.', color: 'var(--orange)' },
+    { num: '$37K',  lbl: 'Avg. borrower debt', color: '#fff' },
+  ];
+  return (
+    <section className="market-strip">
+      <a className="ms-cell ms-head" href="/sources?utm_source=dashboard&utm_medium=market-strip" title="Market data sources">
+        <div className="ms-live"><span className="ms-dot"/>U.S. Student Loan Market</div>
+        <div className="ms-sub">Live macro tracker · updated quarterly</div>
+      </a>
+      {stats.map((s, i) => (
+        <a key={i} className="ms-cell" href="/sources?utm_source=dashboard&utm_medium=market-strip" title="View data sources">
+          <div className="ms-num" style={{color: s.color}}>{s.num}</div>
+          <div className="ms-lbl">{s.lbl}</div>
+        </a>
+      ))}
+    </section>
+  );
+}
+
 function July1Banner() {
   const target = useMemo(() => new Date(Date.UTC(2026, 6, 1, 4, 0, 0)), []); // July 1 2026 00:00 ET
   const [now, setNow] = useState(new Date());
@@ -1384,6 +1420,9 @@ function App() {
 
       {/* ════════════ JULY 1 COUNTDOWN BANNER ═══════════ */}
       <July1Banner/>
+
+      {/* ════════════ MARKET CONTEXT STRIP (macro tracker) ═══════════ */}
+      <MarketStrip/>
 
       {/* ════════════ HERO 1 — Borrower Stress Index (main feature) ═══════════ */}
       <section className="hero-stress">
