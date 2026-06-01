@@ -1026,7 +1026,7 @@ async def get_live_sentiment():
                 raw=f"{trends['raw_index']}/100",
                 methodology_anchor="google-trends",
             ),
-            "weight": "24%", "score": trends["score"],
+            "weight_tier": "Primary", "score": trends["score"],
         },
         "reddit": {
             **signal_payload(
@@ -1036,7 +1036,7 @@ async def get_live_sentiment():
                 raw=f"{len(posts)} posts",
                 methodology_anchor="reddit",
             ),
-            "weight": "23%", "score": sentiment["sentiment_score"], "posts": len(posts),
+            "weight_tier": "Primary", "score": sentiment["sentiment_score"], "posts": len(posts),
         },
         "cfpb": {
             **signal_payload(
@@ -1046,7 +1046,7 @@ async def get_live_sentiment():
                 raw=f"{cfpb['count_90d']:,} / 90d",
                 methodology_anchor="cfpb",
             ),
-            "weight": "13%", "score": cfpb["score"], "complaints_90d": cfpb["count_90d"],
+            "weight_tier": "Moderate", "score": cfpb["score"], "complaints_90d": cfpb["count_90d"],
         },
         "delinquency": {
             **signal_payload(
@@ -1056,7 +1056,7 @@ async def get_live_sentiment():
                 raw="5.7% / Q1 2026",
                 methodology_anchor="delinquency",
             ),
-            "weight": "15%", "score": 76,
+            "weight_tier": "High", "score": 76,
         },
         "refinance": {
             **signal_payload(
@@ -1066,7 +1066,7 @@ async def get_live_sentiment():
                 raw="+82% YoY",
                 methodology_anchor="refinance",
             ),
-            "weight": "8%", "score": 66,
+            "weight_tier": "Moderate", "score": 66,
         },
         "survey": {
             **signal_payload(
@@ -1076,7 +1076,7 @@ async def get_live_sentiment():
                 raw="80% worried",
                 methodology_anchor="survey",
             ),
-            "weight": "17%", "score": 80,
+            "weight_tier": "High", "score": 80,
         },
     }
 
@@ -1669,13 +1669,13 @@ async def api_index(request: Request):
             "status": str,             # "High Anxiety", "Confidence", etc.
             "as_of": str,              # ISO 8601 timestamp
             "signals": {
-                "google_panic":   {"score": int, "weight": float},
-                "reddit":         {"score": int, "weight": float, "posts_analyzed": int},
-                "cfpb":           {"score": int, "weight": float, "complaints_90d": int},
-                "delinquency":   {"score": int, "weight": float},
-                "refinance":      {"score": int, "weight": float},
-                "survey":         {"score": int, "weight": float},
-            },
+                "google_panic":   {"score": int, "weight_tier": str},
+                "reddit":         {"score": int, "weight_tier": str, "posts_analyzed": int},
+                "cfpb":           {"score": int, "weight_tier": str, "complaints_90d": int},
+                "delinquency":   {"score": int, "weight_tier": str},
+                "refinance":      {"score": int, "weight_tier": str},
+                "survey":         {"score": int, "weight_tier": str},
+            },  # weight_tier: "Primary" | "High" | "Moderate" (exact weights proprietary)
             "top_theme": str,
             "drivers": [str, ...],
         }
@@ -1696,29 +1696,29 @@ async def api_index(request: Request):
         "signals": {
             "google_panic": {
                 "score":  signals.get("google_trends", {}).get("score"),
-                "weight": 0.24,
+                "weight_tier": "Primary",
             },
             "reddit": {
                 "score":            signals.get("reddit", {}).get("score"),
-                "weight":           0.23,
+                "weight_tier":      "Primary",
                 "posts_analyzed":   signals.get("reddit", {}).get("posts"),
             },
             "cfpb": {
                 "score":            signals.get("cfpb", {}).get("score"),
-                "weight":           0.13,
+                "weight_tier":      "Moderate",
                 "complaints_90d":   signals.get("cfpb", {}).get("complaints_90d"),
             },
             "delinquency": {
                 "score":  signals.get("delinquency", {}).get("score"),
-                "weight": 0.15,
+                "weight_tier": "High",
             },
             "refinance": {
                 "score":  signals.get("refinance", {}).get("score"),
-                "weight": 0.08,
+                "weight_tier": "Moderate",
             },
             "survey": {
                 "score":  signals.get("survey", {}).get("score"),
-                "weight": 0.17,
+                "weight_tier": "High",
             },
         },
         "top_theme":  full.get("top_theme"),

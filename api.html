@@ -299,10 +299,10 @@
   <span class="tok-key">"status"</span>: <span class="tok-str">"High Anxiety"</span>,
   <span class="tok-key">"as_of"</span>: <span class="tok-str">"2026-05-24T15:30:00Z"</span>,
   <span class="tok-key">"signals"</span>: {
-    <span class="tok-key">"google_panic"</span>: { <span class="tok-key">"score"</span>: <span class="tok-num">68</span>, <span class="tok-key">"weight"</span>: <span class="tok-num">0.24</span> },
-    <span class="tok-key">"reddit"</span>:       { <span class="tok-key">"score"</span>: <span class="tok-num">72</span>, <span class="tok-key">"weight"</span>: <span class="tok-num">0.23</span> },
-    <span class="tok-key">"cfpb"</span>:         { <span class="tok-key">"score"</span>: <span class="tok-num">70</span>, <span class="tok-key">"weight"</span>: <span class="tok-num">0.13</span> },
-    <span class="tok-key">"delinquency"</span>:  { <span class="tok-key">"score"</span>: <span class="tok-num">76</span>, <span class="tok-key">"weight"</span>: <span class="tok-num">0.15</span> }
+    <span class="tok-key">"google_panic"</span>: { <span class="tok-key">"score"</span>: <span class="tok-num">68</span>, <span class="tok-key">"weight_tier"</span>: <span class="tok-str">"Primary"</span> },
+    <span class="tok-key">"reddit"</span>:       { <span class="tok-key">"score"</span>: <span class="tok-num">72</span>, <span class="tok-key">"weight_tier"</span>: <span class="tok-str">"Primary"</span> },
+    <span class="tok-key">"cfpb"</span>:         { <span class="tok-key">"score"</span>: <span class="tok-num">70</span>, <span class="tok-key">"weight_tier"</span>: <span class="tok-str">"Moderate"</span> },
+    <span class="tok-key">"delinquency"</span>:  { <span class="tok-key">"score"</span>: <span class="tok-num">76</span>, <span class="tok-key">"weight_tier"</span>: <span class="tok-str">"High"</span> }
   },
   <span class="tok-key">"top_theme"</span>: <span class="tok-str">"SAVE plan uncertainty"</span>
 }</pre>
@@ -369,29 +369,29 @@
   <span class="tok-key">"signals"</span>: {
     <span class="tok-key">"google_panic"</span>: {
       <span class="tok-key">"score"</span>: <span class="tok-num">68</span>,
-      <span class="tok-key">"weight"</span>: <span class="tok-num">0.24</span>
+      <span class="tok-key">"weight_tier"</span>: <span class="tok-str">"Primary"</span>
     },
     <span class="tok-key">"reddit"</span>: {
       <span class="tok-key">"score"</span>: <span class="tok-num">72</span>,
-      <span class="tok-key">"weight"</span>: <span class="tok-num">0.23</span>,
+      <span class="tok-key">"weight_tier"</span>: <span class="tok-str">"Primary"</span>,
       <span class="tok-key">"posts_analyzed"</span>: <span class="tok-num">25</span>
     },
     <span class="tok-key">"cfpb"</span>: {
       <span class="tok-key">"score"</span>: <span class="tok-num">70</span>,
-      <span class="tok-key">"weight"</span>: <span class="tok-num">0.13</span>,
+      <span class="tok-key">"weight_tier"</span>: <span class="tok-str">"Moderate"</span>,
       <span class="tok-key">"complaints_90d"</span>: <span class="tok-num">8500</span>
     },
     <span class="tok-key">"delinquency"</span>: {
       <span class="tok-key">"score"</span>: <span class="tok-num">76</span>,
-      <span class="tok-key">"weight"</span>: <span class="tok-num">0.15</span>
+      <span class="tok-key">"weight_tier"</span>: <span class="tok-str">"High"</span>
     },
     <span class="tok-key">"refinance"</span>: {
       <span class="tok-key">"score"</span>: <span class="tok-num">66</span>,
-      <span class="tok-key">"weight"</span>: <span class="tok-num">0.08</span>
+      <span class="tok-key">"weight_tier"</span>: <span class="tok-str">"Moderate"</span>
     },
     <span class="tok-key">"survey"</span>: {
       <span class="tok-key">"score"</span>: <span class="tok-num">80</span>,
-      <span class="tok-key">"weight"</span>: <span class="tok-num">0.17</span>
+      <span class="tok-key">"weight_tier"</span>: <span class="tok-str">"High"</span>
     }
   },
   <span class="tok-key">"top_theme"</span>: <span class="tok-str">"SAVE plan uncertainty"</span>,

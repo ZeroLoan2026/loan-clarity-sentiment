@@ -98,7 +98,7 @@
   .weight-card:hover{border-color:var(--purple);transform:translateY(-2px)}
   .weight-card .wc-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px}
   .weight-card .wc-name{font-size:13px;font-weight:800;color:#fff;letter-spacing:-.005em}
-  .weight-card .wc-pct{font-family:var(--mono);font-size:18px;font-weight:900;color:var(--neon);letter-spacing:-.02em}
+  .weight-card .wc-pct{font-family:var(--mono);font-size:10px;font-weight:800;color:var(--neon);letter-spacing:.12em;text-transform:uppercase;border:1px solid currentColor;border-radius:999px;padding:3px 9px;white-space:nowrap;opacity:.9}
   .weight-card .wc-emoji{font-size:22px;margin-bottom:6px;display:block}
   .weight-card .wc-desc{font-size:13px;color:#a8becc;line-height:1.5}
 
@@ -115,7 +115,7 @@
   .pie-legend-item:hover{opacity:.85}
   .pie-dot{width:11px;height:11px;border-radius:3px;flex-shrink:0}
   .pie-legend-name{font-size:13px;font-weight:600;color:#c8d8e8;flex:1}
-  .pie-legend-pct{font-family:var(--mono);font-size:14px;font-weight:900;letter-spacing:-.01em}
+  .pie-legend-pct{font-family:var(--mono);font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
   .pie-legend-bar-wrap{flex:1;height:4px;background:#1a2f48;border-radius:4px;overflow:hidden}
   .pie-legend-bar{height:100%;border-radius:4px;transition:width .4s ease}
   @media(max-width:640px){.pie-wrap{flex-direction:column;align-items:center}.pie-legend{width:100%}}
@@ -250,14 +250,12 @@
     <div class="section-num"><span class="pip"></span>The formula</div>
     <h2>How the six signals <span class="accent-cool">combine.</span></h2>
     <p>
-      Each signal is normalized to a 0–100 score, multiplied by its weight, then summed. Weights total 100% and were selected based on each signal's historical correlation with observed borrower behavior — not subjective judgment.
+      Each signal is normalized to a 0–100 score, multiplied by its weight, then summed into the composite. The relative weighting was calibrated against each signal's historical correlation with observed borrower behavior — not subjective judgment. The exact weights are proprietary; the chart below shows each signal's <em>relative</em> influence on the index.
     </p>
 
     <!-- PIE CHART FORMULA VISUAL -->
     <div class="pie-wrap">
-      <!-- SVG donut chart: segments drawn as stroke-dasharray on circles r=80, circumference=502.65 -->
-      <!-- Weights: Google 24%, Reddit 23%, CFPB 13%, Delinquency 15%, Refinance 8%, Survey 17% -->
-      <!-- Offsets (cumulative %): G=0, R=24, C=47, D=60, Rf=75, S=83 -->
+      <!-- SVG donut chart: relative-influence visual. Exact segment weights are proprietary. -->
       <div class="pie-chart">
         <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
           <defs>
@@ -265,22 +263,22 @@
           </defs>
           <!-- background track -->
           <circle cx="100" cy="100" r="80" fill="none" stroke="#1a2f48" stroke-width="28"/>
-          <!-- Google 24%: dash=120.64, offset=0 -->
+          <!-- segment 1 -->
           <circle cx="100" cy="100" r="80" fill="none" stroke="#f97316" stroke-width="28"
                   stroke-dasharray="120.64 382.01" stroke-dashoffset="0" stroke-linecap="butt" filter="url(#glow)"/>
-          <!-- Reddit 23%: dash=115.61, offset=-120.64 (502.65-120.64=382.01... use negative offset trick) -->
+          <!-- segment 2 -->
           <circle cx="100" cy="100" r="80" fill="none" stroke="#f43f5e" stroke-width="28"
                   stroke-dasharray="115.61 387.04" stroke-dashoffset="-120.64" stroke-linecap="butt"/>
-          <!-- CFPB 13%: dash=65.34, offset=-(120.64+115.61)=-236.25 -->
+          <!-- segment 3 -->
           <circle cx="100" cy="100" r="80" fill="none" stroke="#dc2626" stroke-width="28"
                   stroke-dasharray="65.34 437.31" stroke-dashoffset="-236.25" stroke-linecap="butt"/>
-          <!-- Delinquency 15%: dash=75.40, offset=-(236.25+65.34)=-301.59 -->
+          <!-- segment 4 -->
           <circle cx="100" cy="100" r="80" fill="none" stroke="#a855f7" stroke-width="28"
                   stroke-dasharray="75.40 427.25" stroke-dashoffset="-301.59" stroke-linecap="butt"/>
-          <!-- Refinance 8%: dash=40.21, offset=-(301.59+75.40)=-376.99 -->
+          <!-- segment 5 -->
           <circle cx="100" cy="100" r="80" fill="none" stroke="#22c55e" stroke-width="28"
                   stroke-dasharray="40.21 462.44" stroke-dashoffset="-376.99" stroke-linecap="butt"/>
-          <!-- Survey 17%: dash=85.45, offset=-(376.99+40.21)=-417.20 -->
+          <!-- segment 6 -->
           <circle cx="100" cy="100" r="80" fill="none" stroke="#2d7dd2" stroke-width="28"
                   stroke-dasharray="85.45 417.20" stroke-dashoffset="-417.20" stroke-linecap="butt"/>
           <!-- gap dividers (thin dark lines between segments) -->
@@ -299,73 +297,73 @@
           <div class="pie-dot" style="background:#f97316"></div>
           <div class="pie-legend-name">Google Search Panic</div>
           <div class="pie-legend-bar-wrap"><div class="pie-legend-bar" style="width:96%;background:#f97316"></div></div>
-          <div class="pie-legend-pct" style="color:#f97316">24%</div>
+          <div class="pie-legend-pct" style="color:#f97316">Primary</div>
         </div>
         <div class="pie-legend-item">
           <div class="pie-dot" style="background:#f43f5e"></div>
           <div class="pie-legend-name">Reddit Sentiment (AI)</div>
           <div class="pie-legend-bar-wrap"><div class="pie-legend-bar" style="width:92%;background:#f43f5e"></div></div>
-          <div class="pie-legend-pct" style="color:#f43f5e">23%</div>
+          <div class="pie-legend-pct" style="color:#f43f5e">Primary</div>
         </div>
         <div class="pie-legend-item">
           <div class="pie-dot" style="background:#a855f7"></div>
           <div class="pie-legend-name">Borrower Surveys</div>
           <div class="pie-legend-bar-wrap"><div class="pie-legend-bar" style="width:68%;background:#a855f7"></div></div>
-          <div class="pie-legend-pct" style="color:#a855f7">17%</div>
+          <div class="pie-legend-pct" style="color:#a855f7">High</div>
         </div>
         <div class="pie-legend-item">
           <div class="pie-dot" style="background:#2d7dd2"></div>
           <div class="pie-legend-name">Delinquency Trends</div>
           <div class="pie-legend-bar-wrap"><div class="pie-legend-bar" style="width:60%;background:#2d7dd2"></div></div>
-          <div class="pie-legend-pct" style="color:#2d7dd2">15%</div>
+          <div class="pie-legend-pct" style="color:#2d7dd2">High</div>
         </div>
         <div class="pie-legend-item">
           <div class="pie-dot" style="background:#dc2626"></div>
           <div class="pie-legend-name">CFPB Complaints</div>
           <div class="pie-legend-bar-wrap"><div class="pie-legend-bar" style="width:52%;background:#dc2626"></div></div>
-          <div class="pie-legend-pct" style="color:#dc2626">13%</div>
+          <div class="pie-legend-pct" style="color:#dc2626">Moderate</div>
         </div>
         <div class="pie-legend-item">
           <div class="pie-dot" style="background:#22c55e"></div>
           <div class="pie-legend-name">Refinance Demand</div>
           <div class="pie-legend-bar-wrap"><div class="pie-legend-bar" style="width:32%;background:#22c55e"></div></div>
-          <div class="pie-legend-pct" style="color:#22c55e">8%</div>
+          <div class="pie-legend-pct" style="color:#22c55e">Moderate</div>
         </div>
       </div>
       <p style="font-size:12px;color:var(--text-dim,#6b7e98);margin-top:18px;text-align:center;">
-        All six signal weights are disclosed below. The proprietary work is in the normalization, AI classification prompts, and continuous tuning — not the recipe.
+        Signals are ranked by their relative influence on the index — Primary, High, or Moderate. The exact weights, normalization curves, and AI classification prompts are proprietary.
       </p>
     </div>
 
     <div class="weight-grid">
       <div class="weight-card" style="border-left:3px solid #f97316">
         <span class="wc-emoji">🔍</span>
-        <div class="wc-head"><div class="wc-name">Google Search Panic</div><div class="wc-pct" style="color:#f97316">24%</div></div>
+        <div class="wc-head"><div class="wc-name">Google Search Panic</div><div class="wc-pct" style="color:#f97316">Primary</div></div>
         <div class="wc-desc">Search queries like "can't pay student loans" are private signals of intent. Spikes consistently precede news cycles. <b>Source: Google Trends.</b></div>
       </div>
       <div class="weight-card" style="border-left:3px solid #f43f5e">
         <span class="wc-emoji">💬</span>
-        <div class="wc-head"><div class="wc-name">Reddit Sentiment (AI)</div><div class="wc-pct" style="color:#f43f5e">23%</div></div>
+        <div class="wc-head"><div class="wc-name">Reddit Sentiment (AI)</div><div class="wc-pct" style="color:#f43f5e">Primary</div></div>
         <div class="wc-desc">Anthropic Claude classifies emotion across r/StudentLoans, r/personalfinance, r/povertyfinance in real time. <b>Source: Reddit + Anthropic.</b></div>
       </div>
       <div class="weight-card" style="border-left:3px solid #a855f7">
         <span class="wc-emoji">📊</span>
-        <div class="wc-head"><div class="wc-name">Borrower Surveys</div><div class="wc-pct" style="color:#a855f7">17%</div></div>
+        <div class="wc-head"><div class="wc-name">Borrower Surveys</div><div class="wc-pct" style="color:#a855f7">High</div></div>
         <div class="wc-desc">Self-reported stress from public panels. Direct signal, no inference needed. <b>Sources: Pew Research, U-Michigan Consumer Sentiment.</b></div>
       </div>
       <div class="weight-card" style="border-left:3px solid #2d7dd2">
         <span class="wc-emoji">📉</span>
-        <div class="wc-head"><div class="wc-name">Delinquency Trends</div><div class="wc-pct" style="color:#2d7dd2">15%</div></div>
+        <div class="wc-head"><div class="wc-name">Delinquency Trends</div><div class="wc-pct" style="color:#2d7dd2">High</div></div>
         <div class="wc-desc">% of borrowers 90+ days behind. <b>Source: NY Fed Household Debt &amp; Credit Report.</b></div>
       </div>
       <div class="weight-card" style="border-left:3px solid #dc2626">
         <span class="wc-emoji">📝</span>
-        <div class="wc-head"><div class="wc-name">CFPB Complaints</div><div class="wc-pct" style="color:#dc2626">13%</div></div>
+        <div class="wc-head"><div class="wc-name">CFPB Complaints</div><div class="wc-pct" style="color:#dc2626">Moderate</div></div>
         <div class="wc-desc">Federal complaint volume from actual borrowers. Spikes = servicer failures. <b>Source: CFPB Consumer Complaint Database.</b></div>
       </div>
       <div class="weight-card" style="border-left:3px solid #22c55e">
         <span class="wc-emoji">🔁</span>
-        <div class="wc-head"><div class="wc-name">Refinance Demand</div><div class="wc-pct" style="color:#22c55e">8%</div></div>
+        <div class="wc-head"><div class="wc-name">Refinance Demand</div><div class="wc-pct" style="color:#22c55e">Moderate</div></div>
         <div class="wc-desc">Aggregate rate-shopping signals. <b>Source: Google Trends refi queries + public lender application volume.</b></div>
       </div>
     </div>
@@ -373,7 +371,7 @@
 
   <!-- ════════════ GOOGLE TRENDS ════════════ -->
   <section class="section" id="google-trends">
-    <div class="section-num"><span class="pip"></span>Signal 1 · 24% weight</div>
+    <div class="section-num"><span class="pip"></span>Signal 1 · Primary weight</div>
     <h2>🔍 Search behavior as <span class="accent">a distress signal.</span></h2>
     <p>
       We pull Google Trends data for a basket of distress queries: <code>can't pay student loans</code>, <code>student loan forgiveness</code>, <code>refinance student loans</code>, <code>SAVE plan</code>. Trends provides a 0–100 score for each query based on relative volume.
@@ -390,7 +388,7 @@
 
   <!-- ════════════ REDDIT ════════════ -->
   <section class="section" id="reddit">
-    <div class="section-num"><span class="pip"></span>Signal 2 · 23% weight</div>
+    <div class="section-num"><span class="pip"></span>Signal 2 · Primary weight</div>
     <h2>💬 Aggregated <span class="accent-purple">borrower discussion.</span></h2>
     <p>
       Posts are pulled from <b>r/StudentLoans</b>, <b>r/personalfinance</b>, and <b>r/povertyfinance</b> over a rolling 30-day window. An AI classifier scores each post across five emotional dimensions: <b>anxiety, confusion, frustration, optimism, hopelessness</b>. Posts are weighted by engagement (upvotes + comments) so high-visibility signals carry more weight in the aggregate.
@@ -408,7 +406,7 @@
 
   <!-- ════════════ CFPB ════════════ -->
   <section class="section" id="cfpb">
-    <div class="section-num"><span class="pip"></span>Signal 3 · 13% weight</div>
+    <div class="section-num"><span class="pip"></span>Signal 3 · Moderate weight</div>
     <h2>📝 Federal complaint <span class="accent">volume.</span></h2>
     <p>
       The <b>Consumer Financial Protection Bureau (CFPB)</b> publishes every formal complaint filed against student loan servicers — Aidvantage, MOHELA, Nelnet, and others. We query the public API for student-loan complaints filed in the trailing 90 days and compare against the same window in the prior year.
@@ -420,7 +418,7 @@
 
   <!-- ════════════ DELINQUENCY ════════════ -->
   <section class="section" id="delinquency">
-    <div class="section-num"><span class="pip"></span>Signal 4 · 15% weight</div>
+    <div class="section-num"><span class="pip"></span>Signal 4 · High weight</div>
     <h2>📉 Actual <span class="accent">delinquency rates.</span></h2>
     <p>
       The <b>Federal Reserve Bank of New York</b> publishes a quarterly <b>Household Debt and Credit Report</b> tracking the share of student loan accounts 90+ days past due. This is the authoritative measure of realized borrower distress.
@@ -432,7 +430,7 @@
 
   <!-- ════════════ REFINANCE ════════════ -->
   <section class="section" id="refinance">
-    <div class="section-num"><span class="pip"></span>Signal 5 · 8% weight</div>
+    <div class="section-num"><span class="pip"></span>Signal 5 · Moderate weight</div>
     <h2>🔁 Refinance <span class="accent-cool">demand.</span></h2>
     <p>
       Refinance demand is measured via Google search volume for refi-related queries, supplemented with lender application data where available. Sharp increases in refi search activity reliably follow rate moves and major policy events.
@@ -444,7 +442,7 @@
 
   <!-- ════════════ SURVEY ════════════ -->
   <section class="section" id="survey">
-    <div class="section-num"><span class="pip"></span>Signal 6 · 17% weight</div>
+    <div class="section-num"><span class="pip"></span>Signal 6 · High weight</div>
     <h2>📊 Self-reported <span class="accent-purple">borrower surveys.</span></h2>
     <p>
       We aggregate self-reported borrower stress from public survey panels: the University of Michigan Consumer Sentiment Index (filtered to student loan respondents), Pew Research, and our own quarterly proprietary panel. Survey data is noisier than transactional data, but it captures sentiment shifts before they show up in delinquency statistics.
