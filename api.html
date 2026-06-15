@@ -141,6 +141,10 @@
     .stat-num { font-size: 30px; font-weight: 800; color: var(--text); letter-spacing: -0.02em; }
     .stat-num .unit { color: var(--accent-soft); }
     .stat-lbl { font-size: 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.8px; margin-top: 6px; font-weight: 600; }
+    .api-status { max-width: 1100px; margin: 4px auto 0; padding: 12px 24px; text-align: center;
+                  font-size: 13px; color: var(--text-soft); font-family: 'JetBrains Mono', ui-monospace, monospace; letter-spacing: .02em; }
+    .api-status .status-dot { color: #6b7280; }
+    .api-status .status-sep { color: var(--border); margin: 0 6px; }
 
     /* Sections */
     section { max-width: 1280px; margin: 0 auto; padding: 80px 32px; }
@@ -324,9 +328,16 @@
     <div class="stat-lbl">Median Response</div>
   </div>
   <div>
-    <div class="stat-num">$1.77<span class="unit">T</span></div>
+    <div class="stat-num">$1.7<span class="unit">T</span></div>
     <div class="stat-lbl">Market Covered</div>
   </div>
+</div>
+
+<div class="api-status">
+  <span id="api-status-dot" class="status-dot">●</span>
+  <span id="api-status-txt">Checking status…</span>
+  <span class="status-sep">·</span> 99.9% uptime target
+  <span class="status-sep">·</span> Enterprise SLA available
 </div>
 
 <!-- ENDPOINTS -->
@@ -758,6 +769,20 @@ console.log(data.index_score);  <span class="tok-cmt">// → 70</span></pre>
 </footer>
 
 <script>
+// Live API status — pings the real /api/health endpoint.
+(function(){
+  fetch('/api/health').then(r=>r.json()).then(d=>{
+    const ok = d && d.status === 'ok';
+    const dot = document.getElementById('api-status-dot');
+    const txt = document.getElementById('api-status-txt');
+    if (dot) dot.style.color = ok ? '#22c55e' : '#f97316';
+    if (txt) txt.textContent = ok ? 'All systems operational' : 'Degraded performance';
+  }).catch(()=>{
+    const txt = document.getElementById('api-status-txt');
+    if (txt) txt.textContent = 'Status check unavailable';
+  });
+})();
+
 function copyCode(btn, id) {
   const el = document.getElementById(id);
   const text = el.innerText;

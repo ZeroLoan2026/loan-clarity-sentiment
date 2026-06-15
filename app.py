@@ -1252,9 +1252,9 @@ async def get_sources():
             "type":        type_name,
             "id":          type_name.lower().replace(" ", "_"),
             "description": (
-                f"{len(source_names)} data source(s) in this category. "
-                f"Specific publishers, API endpoints, and refresh cadences are confidential "
-                f"and available to institutional licensing partners under NDA."
+                "Aggregated from primary government, market, and institutional data feeds. "
+                "Specific publishers, API endpoints, and refresh cadences are confidential "
+                "and disclosed to institutional licensing partners under NDA."
             ),
             "cadence":     "Varies",
             "url":         "/api",  # link to access request

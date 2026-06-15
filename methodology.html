@@ -127,6 +127,12 @@
   .step .s-num{font-family:var(--mono);color:var(--electric);font-size:12px;font-weight:800;letter-spacing:.08em}
   .step .s-name{font-size:15px;font-weight:800;color:#fff;margin:4px 0 6px;letter-spacing:-.01em}
   .step .s-desc{font-size:13.5px;color:#a8becc;line-height:1.55}
+  .band-scale{display:flex;flex-direction:column;gap:8px;margin:24px 0}
+  .band{display:grid;grid-template-columns:78px 168px 1fr;align-items:center;gap:14px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:13px 18px}
+  .band-range{font-family:var(--mono);font-size:14px;font-weight:800;letter-spacing:.02em}
+  .band-name{font-size:14.5px;font-weight:800;color:#fff;letter-spacing:-.01em}
+  .band-desc{font-size:13px;color:#a8becc;line-height:1.5}
+  @media (max-width:640px){.band{grid-template-columns:64px 1fr;row-gap:4px}.band-desc{grid-column:1 / -1}}
 
   /* Quote-style "what it feels like" */
   .quote-card{background:linear-gradient(180deg,#150d24 0%,#0a0716 100%);border:1px solid rgba(167,139,250,.35);border-radius:14px;
@@ -519,6 +525,36 @@
     <h2>⏰ Recomputed every <span class="accent-cool">5 minutes.</span></h2>
     <p>
       Reddit and Google Trends are pulled in near real time. CFPB updates daily. NY Fed delinquency releases quarterly. Surveys release monthly. The index is recomputed whenever any source publishes a new data point. The dashboard always displays the current score and timestamps each source so the age of every input is visible.
+    </p>
+  </section>
+
+  <!-- ════════════ READING THE INDEX ════════════ -->
+  <section class="section" id="reading-the-index">
+    <div class="section-num"><span class="pip"></span>How to read it</div>
+    <h2>What a <span class="accent-cool">move actually means.</span></h2>
+    <p>
+      The index is a <b>momentum-and-intensity measure</b>, not a forecast and not a health gauge. It answers one question: how acute is borrower stress in the signals <em>right now</em>, relative to history. Five bands map the 0–100 scale:
+    </p>
+
+    <div class="band-scale">
+      <div class="band"><span class="band-range" style="color:#16a34a">0–20</span><span class="band-name">Financial Optimism</span><span class="band-desc">Stress signals near historical lows.</span></div>
+      <div class="band"><span class="band-range" style="color:#22c55e">21–40</span><span class="band-name">Confidence</span><span class="band-desc">Below-average distress; calm conditions.</span></div>
+      <div class="band"><span class="band-range" style="color:#eab308">41–60</span><span class="band-name">Neutral</span><span class="band-desc">Around the historical average. Watch the direction.</span></div>
+      <div class="band"><span class="band-range" style="color:#f97316">61–80</span><span class="band-name">High Anxiety</span><span class="band-desc">Elevated, persistent borrower stress.</span></div>
+      <div class="band"><span class="band-range" style="color:#dc2626">81–100</span><span class="band-name">Extreme Distress</span><span class="band-desc">Stress signals near historical highs.</span></div>
+    </div>
+
+    <p style="margin-top:22px">
+      <b>Week-to-week moves of 10–20 points are normal.</b> Several inputs — search demand, Reddit volume, CFPB complaint acceleration — are inherently volatile, so the composite breathes. A single-week swing is <em>information about momentum</em>, not instability in the methodology.
+    </p>
+
+    <div class="tldr">
+      <div class="tldr-label"><span class="ic"></span>What makes a move meaningful</div>
+      <p>A move is signal — not noise — when it meets two tests: <b>(1) breadth</b> — multiple independent signals move the same direction, not one input dragging the composite; and <b>(2) persistence</b> — the move holds across recompute cycles rather than reverting on the next pull. A 15-point drop driven by one cooling signal that snaps back the next day is noise. The same drop confirmed by three signals and held for a week is a regime change.</p>
+    </div>
+
+    <p>
+      This is why a reading should always be read <b>with its band and its direction</b>, not as an isolated number. A 57 falling from 74 (cooling out of High Anxiety) and a 57 climbing from 40 (deteriorating out of Confidence) describe two very different markets at the same score. Pro and Enterprise tiers expose the per-signal decomposition behind every move so you can apply the breadth-and-persistence test yourself.
     </p>
   </section>
 

@@ -50,13 +50,12 @@
     .hero p { font-size: 18px; color: var(--text-soft); max-width: 640px; margin: 0 auto; }
 
     /* Pricing cards */
-    .pricing { max-width: 1100px; margin: 50px auto 60px; padding: 0 28px;
-               display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+    .pricing { max-width: 1280px; margin: 30px auto 60px; padding: 0 28px;
+               display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; align-items: stretch; }
     .tier { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
-            padding: 34px; display: flex; flex-direction: column; position: relative; }
+            padding: 26px 22px; display: flex; flex-direction: column; position: relative; }
     .tier.featured { border: 2px solid var(--accent);
-                     box-shadow: 0 0 50px rgba(45,125,210,.18);
-                     transform: scale(1.02); }
+                     box-shadow: 0 0 50px rgba(45,125,210,.18); }
     .tier .badge { position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
                    background: linear-gradient(90deg,#22c55e,#5ba3ec); color: #fff;
                    font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
@@ -64,10 +63,17 @@
     .tier-name { font-size: 11px; letter-spacing: .16em; text-transform: uppercase;
                  font-weight: 800; color: var(--text-dim); }
     .tier-name.pro { color: var(--accent-soft); }
+    .tier-name.team { color: #a78bfa; }
     .tier-name.ent { color: var(--green); }
-    .tier-price { font-size: 48px; font-weight: 800; margin: 8px 0 4px;
-                  letter-spacing: -.03em; }
-    .tier-price small { font-size: 18px; color: var(--text-dim); font-weight: 500; }
+    .tier-price { font-size: 38px; font-weight: 800; margin: 8px 0 4px;
+                  letter-spacing: -.03em; white-space: nowrap; }
+    .tier-price small { font-size: 15px; color: var(--text-dim); font-weight: 500; }
+    .tier-price .annual-amt { display: none; }
+    body.annual .tier-price .monthly-amt { display: none; }
+    body.annual .tier-price .annual-amt { display: inline; }
+    body.annual .tier-sub .monthly-sub { display: none; }
+    .tier-sub .annual-sub { display: none; }
+    body.annual .tier-sub .annual-sub { display: inline; }
     .tier-sub { color: var(--text-soft); font-size: 13px; margin-bottom: 24px; }
     .tier ul { list-style: none; padding: 0; margin: 0 0 24px; flex: 1; }
     .tier li { font-size: 14px; color: var(--text-soft); padding: 8px 0; }
@@ -82,10 +88,15 @@
     .cta-ghost { background: transparent; border: 2px solid var(--accent); color: var(--accent-soft); }
     .cta-ghost:hover { background: rgba(45,125,210,.1); color: var(--text); }
 
-    .annual-toggle { display: flex; gap: 10px; justify-content: center; margin: 30px 0;
-                     align-items: center; font-size: 13px; color: var(--text-soft); }
+    .annual-toggle { display: flex; gap: 0; justify-content: center; margin: 34px auto 0;
+                     align-items: center; width: max-content;
+                     background: var(--bg-card); border: 1px solid var(--border); border-radius: 999px; padding: 5px; }
+    .annual-toggle button { background: transparent; border: none; color: var(--text-soft);
+                     font-size: 13px; font-weight: 700; padding: 9px 20px; border-radius: 999px;
+                     cursor: pointer; transition: all .15s; font-family: inherit; }
+    .annual-toggle button.on { background: var(--accent); color: #fff; }
     .save-pill { background: rgba(34,197,94,.15); color: var(--green); padding: 4px 10px;
-                 border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: .04em; }
+                 border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: .04em; margin-left: 8px; }
 
     /* Comparison table */
     .compare { max-width: 980px; margin: 60px auto; padding: 0 28px; }
@@ -120,8 +131,11 @@
     footer .disc { font-size: 11px; margin-top: 10px; max-width: 700px;
                    margin-left: auto; margin-right: auto; line-height: 1.6; }
 
-    @media (max-width: 780px) {
-      .pricing { grid-template-columns: 1fr; }
+    @media (max-width: 1080px) {
+      .pricing { grid-template-columns: repeat(2, 1fr); max-width: 680px; }
+    }
+    @media (max-width: 620px) {
+      .pricing { grid-template-columns: 1fr; max-width: 420px; }
       .tier.featured { transform: none; }
     }
   </style>
@@ -155,6 +169,11 @@
   <p>The free Sentiment Friday newsletter ships every Friday morning. Pro subscribers see the live tracker as it moves throughout the week — plus the full back-issue archive and weekly deep-dive analysis.</p>
 </section>
 
+<div class="annual-toggle" role="tablist" aria-label="Billing period">
+  <button id="bill-monthly" class="on" onclick="setBilling('monthly')">Monthly</button>
+  <button id="bill-annual" onclick="setBilling('annual')">Annual <span class="save-pill">2 months free</span></button>
+</div>
+
 <section class="pricing">
 
   <!-- FREE -->
@@ -178,27 +197,44 @@
   <div class="tier featured">
     <div class="badge">★ MOST POPULAR</div>
     <div class="tier-name pro">PRO</div>
-    <div class="tier-price">$500<small>/mo</small></div>
-    <div class="tier-sub">billed monthly · cancel anytime</div>
+    <div class="tier-price"><span class="monthly-amt">$500<small>/mo</small></span><span class="annual-amt">$5,000<small>/yr</small></span></div>
+    <div class="tier-sub"><span class="monthly-sub">billed monthly · cancel anytime</span><span class="annual-sub">billed annually · save $1,000/yr</span></div>
     <ul>
       <li class="check">Everything in Free, plus:</li>
       <li class="check"><b>Live index</b> — real-time updates, not weekly</li>
       <li class="check"><b>Full back-issue archive</b> (all Sentiment Friday issues)</li>
       <li class="check"><b>Weekly deep-dive</b> — Pro-only analysis section</li>
       <li class="check">90-day historical data download</li>
-      <li class="check">No ads, no sponsor placements</li>
+      <li class="check">Single seat · email support</li>
       <li class="check">Cancel anytime, refund first 14 days</li>
     </ul>
-    <a href="mailto:zeroloan000@gmail.com?subject=Pro%20subscription%20interest&body=Hi%2C%20I%27d%20like%20to%20subscribe%20to%20Loan%20Clarity%20Pro%20(%24500%2Fmo)." id="pro-cta" class="cta cta-featured">Get Pro →</a>
+    <a href="mailto:zeroloan000@gmail.com?subject=Pro%20subscription%20interest&body=Hi%2C%20I%27d%20like%20to%20subscribe%20to%20Loan%20Clarity%20Pro." id="pro-cta" class="cta cta-featured">Get Pro →</a>
+  </div>
+
+  <!-- TEAM -->
+  <div class="tier">
+    <div class="tier-name team">TEAM</div>
+    <div class="tier-price"><span class="monthly-amt">$1,500<small>/mo</small></span><span class="annual-amt">$15,000<small>/yr</small></span></div>
+    <div class="tier-sub"><span class="monthly-sub">billed monthly · up to 5 seats</span><span class="annual-sub">billed annually · save $3,000/yr</span></div>
+    <ul>
+      <li class="check">Everything in Pro, plus:</li>
+      <li class="check"><b>Up to 5 seats</b> — desks, research teams, funds</li>
+      <li class="check"><b>2-year</b> historical data export</li>
+      <li class="check">CSV / Excel data downloads</li>
+      <li class="check">Priority email support (24h)</li>
+      <li class="check">Shared team workspace</li>
+      <li class="cross">No raw API / webhooks</li>
+    </ul>
+    <a href="mailto:zeroloan000@gmail.com?subject=Team%20plan%20interest&body=Hi%2C%20I%27d%20like%20to%20set%20up%20a%20Loan%20Clarity%20Team%20plan%20(up%20to%205%20seats)." class="cta cta-primary">Get Team →</a>
   </div>
 
   <!-- ENTERPRISE -->
   <div class="tier">
     <div class="tier-name ent">ENTERPRISE</div>
-    <div class="tier-price">$5,000<small>/mo</small></div>
-    <div class="tier-sub">for production integrations</div>
+    <div class="tier-price"><span class="monthly-amt">$5,000<small>/mo</small></span><span class="annual-amt">$50,000<small>/yr</small></span></div>
+    <div class="tier-sub"><span class="monthly-sub">for production integrations</span><span class="annual-sub">billed annually · save $10,000/yr</span></div>
     <ul>
-      <li class="check">Everything in Pro, plus:</li>
+      <li class="check">Everything in Team, plus:</li>
       <li class="check"><b>Raw API access</b> (unlimited)</li>
       <li class="check">Custom segments (state, loan type, balance)</li>
       <li class="check">White-label embeds</li>
@@ -215,20 +251,22 @@
   <h2>What you get at each tier</h2>
   <table>
     <thead>
-      <tr><th>Feature</th><th>Free</th><th>Pro</th><th>Enterprise</th></tr>
+      <tr><th>Feature</th><th>Free</th><th>Pro</th><th>Team</th><th>Enterprise</th></tr>
     </thead>
     <tbody>
-      <tr><td>Sentiment Friday newsletter</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
-      <tr><td>Index reading (frozen, weekly)</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
-      <tr><td>Live index (updates throughout week)</td><td class="cross">—</td><td class="check">✓</td><td class="check">✓</td></tr>
-      <tr><td>Full back-issue archive</td><td class="cross">—</td><td class="check">✓</td><td class="check">✓</td></tr>
-      <tr><td>Pro-only deep-dive section</td><td class="cross">—</td><td class="check">✓</td><td class="check">✓</td></tr>
-      <tr><td>Historical data export (90d / 2yr / full)</td><td class="cross">—</td><td class="check">90d</td><td class="check">Full</td></tr>
-      <tr><td>API access</td><td class="cross">—</td><td class="cross">—</td><td class="check">✓</td></tr>
-      <tr><td>Real-time webhooks</td><td class="cross">—</td><td class="cross">—</td><td class="check">✓</td></tr>
-      <tr><td>Custom segments + white-label</td><td class="cross">—</td><td class="cross">—</td><td class="check">✓</td></tr>
-      <tr><td>Methodology disclosure (under NDA)</td><td class="cross">—</td><td class="cross">—</td><td class="check">✓</td></tr>
-      <tr><td>SLA + dedicated Slack channel</td><td class="cross">—</td><td class="cross">—</td><td class="check">✓</td></tr>
+      <tr><td>Sentiment Friday newsletter</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+      <tr><td>Index reading (frozen, weekly)</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+      <tr><td>Live index (updates throughout week)</td><td class="cross">—</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+      <tr><td>Full back-issue archive</td><td class="cross">—</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+      <tr><td>Pro-only deep-dive section</td><td class="cross">—</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+      <tr><td>Seats included</td><td class="cross">1</td><td class="check">1</td><td class="check">5</td><td class="check">Unlimited</td></tr>
+      <tr><td>Historical data export</td><td class="cross">—</td><td class="check">90d</td><td class="check">2yr</td><td class="check">Full</td></tr>
+      <tr><td>CSV / Excel downloads</td><td class="cross">—</td><td class="cross">—</td><td class="check">✓</td><td class="check">✓</td></tr>
+      <tr><td>API access</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td><td class="check">✓</td></tr>
+      <tr><td>Real-time webhooks</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td><td class="check">✓</td></tr>
+      <tr><td>Custom segments + white-label</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td><td class="check">✓</td></tr>
+      <tr><td>Methodology disclosure (under NDA)</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td><td class="check">✓</td></tr>
+      <tr><td>SLA + dedicated Slack channel</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td><td class="check">✓</td></tr>
     </tbody>
   </table>
 </section>
@@ -252,8 +290,12 @@
     <p>Yes. Full refund within 14 days, no questions asked. After 14 days, cancel anytime and you keep Pro access until the end of your billing period.</p>
   </details>
   <details>
-    <summary>What's the difference between Pro and Enterprise?</summary>
-    <p>Pro is for individuals and small teams — analysts, advisors, researchers, journalists. Enterprise is for institutional integrations — lenders running the data in production, hedge funds wiring it into SLABS models, rating agencies blending it into credit factors. Enterprise includes API access, custom segments, white-label embeds, and methodology disclosure under NDA. Apply at <a href="/api#signup">/api</a>.</p>
+    <summary>Which tier is right for me?</summary>
+    <p><b>Pro ($500/mo)</b> — one analyst, advisor, researcher, or journalist who wants the live index and archive. <b>Team ($1,500/mo)</b> — a desk, research team, or small fund that needs up to 5 seats, 2-year history, and CSV/Excel exports, but doesn't need the raw API. <b>Enterprise ($5,000/mo)</b> — production integrations: lenders running the data live, hedge funds wiring it into SLABS models, rating agencies blending it into credit factors. Enterprise adds raw API access, custom segments, white-label embeds, webhooks, and methodology disclosure under NDA. Apply at <a href="/api#signup">/api</a>.</p>
+  </details>
+  <details>
+    <summary>Do you offer annual billing?</summary>
+    <p>Yes — annual plans give you 2 months free (≈17% off) versus monthly. Toggle "Annual" above to see annual pricing. We invoice via purchase order for Team and Enterprise; email <a href="mailto:zeroloan000@gmail.com">zeroloan000@gmail.com</a> to set one up.</p>
   </details>
   <details>
     <summary>How do I subscribe? I just see a mailto link.</summary>
@@ -278,5 +320,13 @@
 </footer>
 
 
+<script>
+  function setBilling(period) {
+    const annual = period === 'annual';
+    document.body.classList.toggle('annual', annual);
+    document.getElementById('bill-monthly').classList.toggle('on', !annual);
+    document.getElementById('bill-annual').classList.toggle('on', annual);
+  }
+</script>
 </body>
 </html>
