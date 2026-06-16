@@ -106,6 +106,20 @@
     .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
     .btn-ghost:hover { border-color: var(--accent-soft); color: var(--accent-soft); }
 
+    /* Evaluate-instantly downloads */
+    .eval-row { margin-top: 20px; padding: 16px 18px; border: 1px solid var(--border);
+                border-radius: 12px; background: var(--bg-soft); display: flex; flex-wrap: wrap;
+                align-items: center; gap: 14px; max-width: 560px; }
+    .eval-lbl { font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase;
+                color: var(--green); display: flex; align-items: center; gap: 7px; }
+    .eval-lbl::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--green);
+                box-shadow: 0 0 8px var(--green); }
+    .eval-link { display: inline-flex; align-items: center; gap: 7px; font-size: 13.5px; font-weight: 600;
+                color: var(--accent-soft); text-decoration: none; padding: 7px 12px; border-radius: 8px;
+                border: 1px solid var(--border); transition: all .15s; }
+    .eval-link:hover { border-color: var(--accent-soft); background: rgba(45,125,210,.08); }
+    .eval-link small { color: var(--text-dim); font-weight: 500; font-size: 11.5px; }
+
     /* Hero code block */
     .hero-code {
       background: var(--code-bg); border: 1px solid var(--border);
@@ -290,6 +304,11 @@
       <a href="#signup" class="btn btn-primary">Apply for access →</a>
       <a href="#pricing" class="btn btn-ghost">See pricing</a>
       <a href="/api/embed" class="btn btn-ghost">Embed widget →</a>
+    </div>
+    <div class="eval-row">
+      <span class="eval-lbl">Evaluate instantly · no signup</span>
+      <a class="eval-link" href="/api/brief.pdf">📄 Institutional Brief <small>(live PDF)</small></a>
+      <a class="eval-link" href="/api/sample.csv">📊 Sample dataset <small>(30-day CSV)</small></a>
     </div>
   </div>
 

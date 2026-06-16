@@ -1824,6 +1824,157 @@ async def api_history(request: Request, days: int = 90):
     )
 
 
+@app.get("/api/sample.csv")
+async def api_sample_csv():
+    """
+    Downloadable 30-day SAMPLE dataset — an illustrative daily series so
+    evaluators can see the shape of the data. Clearly labelled SAMPLE; licensed
+    partners receive the full, real historical series under contract.
+    """
+    data = await get_live_sentiment()
+    current = int(data["index_score"])
+    rng = random.Random(datetime.now().strftime("%Y%m%d"))
+    now = datetime.now()
+
+    lines = ["date,index_score,status,change_1d"]
+    prev = None
+    for i in range(30):
+        t = now - timedelta(days=29 - i)
+        baseline = current - 4 + (i * 4 / 29)
+        v = current if i == 29 else int(max(5, min(95, baseline + rng.randint(-5, 5))))
+        change = "" if prev is None else f"{v - prev:+d}"
+        lines.append(f"{t.strftime('%Y-%m-%d')},{v},{status_label(v)},{change}")
+        prev = v
+
+    csv_text = "\n".join(lines) + "\n"
+    return Response(
+        content=csv_text,
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": 'attachment; filename="loan-clarity-borrower-sentiment-SAMPLE-30d.csv"',
+            "Cache-Control": "no-store",
+        },
+    )
+
+
+@app.get("/api/brief.pdf")
+async def api_institutional_brief():
+    """One-page Institutional Brief PDF, generated live from the current index."""
+    try:
+        import io as _io
+        from reportlab.lib.pagesizes import letter
+        from reportlab.lib.utils import simpleSplit
+        from reportlab.pdfgen import canvas as _canvas
+    except Exception as e:
+        return Response(
+            content=json.dumps({"error": "pdf_unavailable", "detail": str(e)}),
+            status_code=503, media_type="application/json",
+        )
+
+    data = await get_live_sentiment()
+    score = int(data["index_score"])
+    status = data["status"]
+    try:
+        wk = [p["value"] for p in data["history"]["1W"]["points"]]
+        lo, hi = min(wk), max(wk)
+    except Exception:
+        lo, hi = score, score
+    gen = datetime.now().strftime("%B %d, %Y · %H:%M UTC")
+
+    def hx(h):
+        h = h.lstrip("#")
+        return tuple(int(h[i:i+2], 16) / 255 for i in (0, 2, 4))
+    NAVY, ACCENT, INK, GREY = hx("0b172a"), hx("2d7dd2"), hx("12233d"), hx("6b7e98")
+    sc = hx(status_color(score).lstrip("#")) if status_color(score).startswith("#") else ACCENT
+
+    order = [
+        ("google_trends", "Google Search Panic"), ("reddit", "Reddit Sentiment (AI-classified)"),
+        ("cfpb", "CFPB Complaint Volume"), ("delinquency", "Delinquency Trends (NY Fed)"),
+        ("refinance", "Refinance Demand"), ("survey", "Borrower Surveys"),
+    ]
+    sigs = []
+    for key, fb in order:
+        s = data.get("signals", {}).get(key, {})
+        sigs.append((s.get("label", fb), s.get("weight_tier", "—")))
+
+    buf = _io.BytesIO()
+    c = _canvas.Canvas(buf, pagesize=letter)
+    W, H = letter
+
+    # ── Header band ──
+    c.setFillColorRGB(*NAVY); c.rect(0, H - 96, W, 96, fill=1, stroke=0)
+    c.setFillColorRGB(1, 1, 1)
+    c.setFont("Helvetica-Bold", 21); c.drawString(54, H - 50, "Loan Clarity")
+    c.setFillColorRGB(*hx("9fc2ea"))
+    c.setFont("Helvetica", 10.5); c.drawString(54, H - 67, "Borrower Sentiment Index™")
+    c.setFillColorRGB(1, 1, 1)
+    c.setFont("Helvetica-Bold", 11); c.drawRightString(W - 54, H - 46, "INSTITUTIONAL BRIEF")
+    c.setFillColorRGB(*hx("9fc2ea"))
+    c.setFont("Helvetica", 9); c.drawRightString(W - 54, H - 62, "Generated " + gen)
+
+    # ── Current reading ──
+    y = H - 140
+    c.setFillColorRGB(*GREY); c.setFont("Helvetica-Bold", 10)
+    c.drawString(54, y, "CURRENT READING")
+    c.setFillColorRGB(*sc); c.setFont("Helvetica-Bold", 58)
+    c.drawString(50, y - 60, str(score))
+    c.setFont("Helvetica", 12); c.drawString(150, y - 30, "/ 100")
+    c.setFillColorRGB(*sc); c.setFont("Helvetica-Bold", 19)
+    c.drawString(150, y - 52, status.upper())
+    c.setFillColorRGB(*INK); c.setFont("Helvetica", 11)
+    c.drawString(54, y - 84, f"7-day range: {lo}–{hi}   ·   Recomputed every 5 minutes from six independent signals")
+
+    # ── Signals table ──
+    y = y - 122
+    c.setFillColorRGB(*ACCENT); c.setFont("Helvetica-Bold", 11)
+    c.drawString(54, y, "SIX WEIGHTED SIGNALS")
+    c.setLineWidth(0.6); c.setStrokeColorRGB(*hx("d4dded"))
+    y -= 14
+    for name, tier in sigs:
+        c.setFillColorRGB(*INK); c.setFont("Helvetica", 11); c.drawString(54, y - 14, name)
+        c.setFillColorRGB(*ACCENT); c.setFont("Helvetica-Bold", 9.5)
+        c.drawRightString(W - 54, y - 14, tier.upper())
+        c.line(54, y - 22, W - 54, y - 22)
+        y -= 26
+
+    # ── Methodology summary ──
+    y -= 10
+    c.setFillColorRGB(*ACCENT); c.setFont("Helvetica-Bold", 11); c.drawString(54, y, "METHODOLOGY")
+    y -= 16
+    meth = ("Each signal is normalized to a 0–100 stress scale against its historical range, weighted by "
+            "its correlation with observed borrower behavior, and summed into one composite. The index measures "
+            "the momentum and intensity of borrower stress — not a forecast. Weekly moves of 10–20 points are "
+            "normal; a move is meaningful when multiple signals move together and persist across recompute cycles. "
+            "Exact weights and normalization curves are proprietary and disclosed to licensed partners under NDA.")
+    c.setFillColorRGB(*INK); c.setFont("Helvetica", 10.5)
+    for ln in simpleSplit(meth, "Helvetica", 10.5, W - 108):
+        c.drawString(54, y, ln); y -= 14
+
+    # ── Bands legend ──
+    y -= 8
+    c.setFillColorRGB(*GREY); c.setFont("Helvetica", 9)
+    c.drawString(54, y, "Bands:  0–20 Optimism  ·  21–40 Confidence  ·  41–60 Neutral  ·  61–80 High Anxiety  ·  81–100 Extreme Distress")
+
+    # ── Contact + footer ──
+    c.setFillColorRGB(*NAVY); c.rect(0, 0, W, 60, fill=1, stroke=0)
+    c.setFillColorRGB(1, 1, 1); c.setFont("Helvetica-Bold", 10.5)
+    c.drawString(54, 37, "studentloansindex.com")
+    c.setFillColorRGB(*hx("9fc2ea")); c.setFont("Helvetica", 8)
+    c.drawRightString(W - 54, 38, "Educational data tool · Not financial advice · © 2026 Loan Clarity")
+    c.setFillColorRGB(*hx("9fc2ea")); c.setFont("Helvetica", 9)
+    c.drawString(54, 20, "API & institutional licensing: zeroloan000@gmail.com  ·  studentloansindex.com/api")
+
+    c.showPage(); c.save()
+    return Response(
+        content=buf.getvalue(),
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": 'attachment; filename="LoanClarity-Institutional-Brief.pdf"',
+            "Cache-Control": "no-store",
+        },
+    )
+
+
 @app.post("/api/keys")
 async def api_request_access(request: Request, payload: dict = Body(...)):
     """
