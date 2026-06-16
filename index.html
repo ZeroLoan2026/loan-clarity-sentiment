@@ -1525,6 +1525,15 @@ function App() {
                 </div>}
             </div>
 
+            {/* Institutional one-click takeaway */}
+            <a href="/api/brief.pdf" style={{display:'inline-flex',alignItems:'center',gap:8,alignSelf:'flex-start',
+                 fontSize:12.5,fontWeight:700,color:'var(--accent-2)',textDecoration:'none',
+                 padding:'9px 16px',border:'1px solid var(--border)',borderRadius:9,
+                 background:'rgba(45,125,210,.06)',letterSpacing:'.02em'}}
+               title="One-page institutional brief, generated from the live index">
+              📄 Download Institutional Brief <span style={{color:'var(--muted-2)',fontWeight:500}}>· live PDF</span>
+            </a>
+
             {/* Drivers — Why The Index Moved */}
             <div {...linkTo('/methodology#weighted-index')}>
               <DriversPanel drivers={d.drivers}/>
