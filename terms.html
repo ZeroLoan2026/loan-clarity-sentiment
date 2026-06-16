@@ -38,6 +38,15 @@
   .callout { background: #0b1626; border-left: 3px solid #2d7dd2; padding: 14px 18px; margin: 18px 0; border-radius: 0 6px 6px 0; font-size: 14px; color: #b6cde6; }
   footer { border-top: 1px solid #16294a; padding: 24px 32px; margin-top: 40px; text-align: center; color: #6b7e98; font-size: 13px; }
   footer a { color: #6f88a5; margin: 0 10px; }
+
+  /* ── Institutional hierarchy: spotlight the core 3 tabs ── */
+  .nav-right a:nth-child(-n+3){ position:relative; }
+  .nav-right a[href="/"], .nav-right a[href="/methodology"]{ color:#e9f1fc; }
+  .nav-right a:nth-child(3){ margin-right:20px; padding-right:30px; border-right:1px solid #20406a; }
+  .nav-right a:nth-child(n+4){ opacity:.55; transition:opacity .15s; }
+  .nav-right a:nth-child(n+4):hover{ opacity:1; }
+  .nav-right a.active{ opacity:1 !important; }
+  @media (max-width:760px){ .nav-right a:nth-child(3){ margin-right:0; padding-right:2px; border-right:none; } }
 </style>
 </head>
 <body>

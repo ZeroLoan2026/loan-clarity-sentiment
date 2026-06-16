@@ -935,7 +935,16 @@
       .nav-links a { font-size: 9.5px; letter-spacing: .04em; padding: 4px 2px; }
       .nav-emoji { display: none; } /* hide 💰 on smallest screens */
     }
-  </style>
+  
+  /* ── Institutional hierarchy: spotlight the core 3 tabs ── */
+  .nav-links a:nth-child(-n+3){ position:relative; }
+  .nav-links a[href="/"], .nav-links a[href="/methodology"]{ color:#e9f1fc; }
+  .nav-links a:nth-child(3){ margin-right:20px; padding-right:30px; border-right:1px solid #20406a; }
+  .nav-links a:nth-child(n+4){ opacity:.55; transition:opacity .15s; }
+  .nav-links a:nth-child(n+4):hover{ opacity:1; }
+  .nav-links a.active{ opacity:1 !important; }
+  @media (max-width:760px){ .nav-links a:nth-child(3){ margin-right:0; padding-right:2px; border-right:none; } }
+</style>
 </head>
 <body>
 <div id="root"></div>

@@ -170,7 +170,16 @@
     footer a { color: var(--text-soft); margin: 0 12px; }
     footer .disc { font-size: 11px; margin-top: 12px; max-width: 720px;
                    margin-left: auto; margin-right: auto; line-height: 1.6; }
-  </style>
+  
+  /* ── Institutional hierarchy: spotlight the core 3 tabs ── */
+  .nav-right a:nth-child(-n+3){ position:relative; }
+  .nav-right a[href="/"], .nav-right a[href="/methodology"]{ color:#e9f1fc; }
+  .nav-right a:nth-child(3){ margin-right:20px; padding-right:30px; border-right:1px solid #20406a; }
+  .nav-right a:nth-child(n+4){ opacity:.55; transition:opacity .15s; }
+  .nav-right a:nth-child(n+4):hover{ opacity:1; }
+  .nav-right a.active{ opacity:1 !important; }
+  @media (max-width:760px){ .nav-right a:nth-child(3){ margin-right:0; padding-right:2px; border-right:none; } }
+</style>
 </head>
 <body>
 
