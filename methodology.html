@@ -567,6 +567,31 @@
     </p>
   </section>
 
+  <!-- ════════════ INTEGRITY & VERSIONING ════════════ -->
+  <section class="section" id="integrity">
+    <div class="section-num"><span class="pip"></span>Integrity</div>
+    <h2>Versioned, and <span class="accent-cool">tamper-evident.</span></h2>
+    <p>
+      An index is only as credible as the history behind it. Two commitments make this one auditable:
+    </p>
+
+    <div class="weight-grid">
+      <div class="weight-card">
+        <div class="wc-head"><div class="wc-name">Frozen, versioned methodology</div><div class="wc-pct" style="color:var(--electric)">v1.0.0</div></div>
+        <div class="wc-desc">The formula — signals, normalization, weighting — is frozen as <b>v1.0.0</b> and stamped on every captured reading. It cannot change silently underneath you. Every revision is logged in a public <a href="/api/methodology/version" style="color:var(--electric)">version changelog</a>.</div>
+      </div>
+      <div class="weight-card">
+        <div class="wc-head"><div class="wc-name">Append-only daily capture</div><div class="wc-pct" style="color:var(--neon)">Hash-chained</div></div>
+        <div class="wc-desc">Every day, the live index and all six raw signals are written to an <b>append-only</b> record. Each entry carries the SHA-256 hash of the entry before it — so any retroactive edit breaks the chain and is immediately detectable. The history is real captured data, never modeled after the fact.</div>
+      </div>
+    </div>
+
+    <div class="tldr">
+      <div class="tldr-label"><span class="ic"></span>For institutional reviewers</div>
+      <p>The track record is the asset. Three live, public endpoints expose it: <a href="/api/snapshots" style="color:#fff;text-decoration:underline">/api/snapshots</a> (the full chained daily series), <a href="/api/integrity" style="color:#fff;text-decoration:underline">/api/integrity</a> (version, freshness, chain status), and <a href="/api/validation" style="color:#fff;text-decoration:underline">/api/validation</a> (statistical profile + lead/lag framework vs. delinquency and complaint prints). Backtest it directly against your own data.</p>
+    </div>
+  </section>
+
   <!-- ════════════ LIMITATIONS ════════════ -->
   <section class="section" id="limitations">
     <div class="section-num"><span class="pip"></span>Caveats</div>
