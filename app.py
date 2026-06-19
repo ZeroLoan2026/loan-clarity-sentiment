@@ -76,10 +76,17 @@ METHODOLOGY_CHANGELOG = [
              "normalization, tamper-evident daily capture begins."},
 ]
 
-# Append-only daily track record. Defaults to the app dir; set SNAPSHOT_DIR to a
-# persistent volume mount (e.g. /data on Railway) for durability across deploys.
+# Persistent data directory. Defaults to the app dir (ephemeral on Railway);
+# set SNAPSHOT_DIR to a mounted volume (e.g. /data) so ALL stateful data —
+# the track record, subscribers, API keys, Friday snapshots, admin decisions —
+# survives redeploys. One volume protects everything.
 SNAPSHOT_DIR = Path(os.environ.get("SNAPSHOT_DIR", str(Path(__file__).parent)))
-_DAILY_SNAPSHOTS_FILE = SNAPSHOT_DIR / "index_snapshots.jsonl"
+DATA_DIR = SNAPSHOT_DIR
+try:
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+except Exception as _e:
+    print(f"[data_dir] could not create {DATA_DIR}: {_e}")
+_DAILY_SNAPSHOTS_FILE = DATA_DIR / "index_snapshots.jsonl"
 _GENESIS_HASH = "0" * 64   # first link in the tamper-evident chain
 
 # ─── Source Registry ──────────────────────────────────────────────────────────
@@ -1311,7 +1318,7 @@ import hashlib
 import secrets
 from collections import defaultdict
 
-_API_KEYS_FILE = Path(__file__).parent / "api_keys.jsonl"
+_API_KEYS_FILE = DATA_DIR / "api_keys.jsonl"
 
 # ── In-memory key registry & rate limiter ──────────────────────────────
 # Keys issued in this process. Wiped on deploy — but cryptographically
@@ -1518,7 +1525,7 @@ async def api_index_public():
 # Friday snapshots are persisted to friday_snapshots.jsonl so they survive deploys.
 import zoneinfo
 ET_TZ = zoneinfo.ZoneInfo("America/New_York")
-_FRIDAY_SNAPSHOTS_FILE = Path(__file__).parent / "friday_snapshots.jsonl"
+_FRIDAY_SNAPSHOTS_FILE = DATA_DIR / "friday_snapshots.jsonl"
 
 
 def _get_most_recent_friday_et() -> datetime:
@@ -2416,7 +2423,7 @@ async def admin_issue_key(request: Request, payload: dict = Body(...)):
 
 
 # ── Admin: applications queue + decisions ─────────────────────────────
-_DECISIONS_FILE = Path(__file__).parent / "decisions.jsonl"
+_DECISIONS_FILE = DATA_DIR / "decisions.jsonl"
 
 
 def _load_decisions() -> dict:
@@ -3153,7 +3160,7 @@ async def serve_embed_gallery():
 
 
 # ─── Newsletter Subscription ──────────────────────────────────────────────────
-_SUBSCRIBERS_FILE = Path(__file__).parent / "subscribers.jsonl"
+_SUBSCRIBERS_FILE = DATA_DIR / "subscribers.jsonl"
 
 
 def _parse_device(ua: str) -> tuple[str, str, str]:
