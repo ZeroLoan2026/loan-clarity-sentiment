@@ -7,6 +7,7 @@ and a methodology reference so the data is fully auditable.
 """
 
 import asyncio
+import base64
 import hashlib
 import json
 import os
@@ -88,6 +89,15 @@ except Exception as _e:
     print(f"[data_dir] could not create {DATA_DIR}: {_e}")
 _DAILY_SNAPSHOTS_FILE = DATA_DIR / "index_snapshots.jsonl"
 _GENESIS_HASH = "0" * 64   # first link in the tamper-evident chain
+
+# Off-site, git-notarized backup of the (non-PII) track record. When configured,
+# every new daily row is pushed to a separate PRIVATE GitHub repo via the
+# Contents API — giving redundancy AND an externally-timestamped commit that
+# proves the hash chain was unaltered. No-op until the env vars are set.
+BACKUP_REPO   = (os.environ.get("BACKUP_REPO", "") or "").strip()          # "owner/repo"
+BACKUP_TOKEN  = (os.environ.get("BACKUP_GITHUB_TOKEN", "") or "").strip()
+BACKUP_BRANCH = (os.environ.get("BACKUP_BRANCH", "main") or "main").strip()
+_last_backup: dict = {}   # status of the most recent backup attempt
 
 # ─── Source Registry ──────────────────────────────────────────────────────────
 # Every data point in the app references one of these sources.
@@ -1256,7 +1266,9 @@ async def get_live_sentiment():
     # Lazy capture: the first real compute each day writes one tamper-evident
     # row to the append-only track record. Safe + cheap; never overwrites.
     try:
-        record_daily_snapshot(result)
+        _new_row = record_daily_snapshot(result)
+        if _new_row:
+            asyncio.create_task(_backup_track_record("live capture"))
     except Exception as _e:
         print(f"[daily_snapshot] capture skipped: {_e}")
 
@@ -1670,6 +1682,99 @@ def verify_chain(rows: list[dict]) -> dict:
     }
 
 
+async def _backup_track_record(reason: str = "daily snapshot") -> None:
+    """
+    Push the (non-PII) track record to a private GitHub repo via the Contents API.
+    Each push is an externally-timestamped commit whose message carries the chain
+    head — turning the hash chain into third-party-verifiable notarization.
+    No-op if BACKUP_REPO / BACKUP_GITHUB_TOKEN are not configured.
+    """
+    global _last_backup
+    if not (BACKUP_REPO and BACKUP_TOKEN):
+        return
+    if not _DAILY_SNAPSHOTS_FILE.exists():
+        return
+    rows = _load_daily_snapshots()
+    head = rows[-1]["hash"] if rows else _GENESIS_HASH
+    content_b64 = base64.b64encode(_DAILY_SNAPSHOTS_FILE.read_bytes()).decode()
+    api = f"https://api.github.com/repos/{BACKUP_REPO}/contents/index_snapshots.jsonl"
+    headers = {
+        "Authorization": f"token {BACKUP_TOKEN}",
+        "Accept": "application/vnd.github+json",
+        "User-Agent": "LoanClarity-Backup/1.0",
+    }
+    message = (f"Track record backup — {len(rows)} days, "
+               f"head {head[:12]} ({reason}) @ {datetime.utcnow().isoformat()}Z")
+    try:
+        async with httpx.AsyncClient(timeout=20) as client:
+            sha = None
+            r = await client.get(f"{api}?ref={BACKUP_BRANCH}", headers=headers)
+            if r.status_code == 200:
+                sha = r.json().get("sha")
+            body = {"message": message, "content": content_b64, "branch": BACKUP_BRANCH}
+            if sha:
+                body["sha"] = sha
+            pr = await client.put(api, headers=headers, json=body)
+            ok = pr.status_code in (200, 201)
+            commit_sha = (pr.json().get("commit", {}) or {}).get("sha") if ok else None
+            _last_backup = {
+                "ok": ok, "status": pr.status_code,
+                "at": datetime.utcnow().isoformat() + "Z",
+                "days": len(rows), "chain_head": head,
+                "commit": commit_sha,
+            }
+            print(f"[backup] {'✓' if ok else '✗'} HTTP {pr.status_code} — {message}")
+            if not ok:
+                print(f"[backup]   response: {pr.text[:200]}")
+    except Exception as e:
+        _last_backup = {"ok": False, "at": datetime.utcnow().isoformat() + "Z", "error": str(e)}
+        print(f"[backup] error: {e}")
+
+
+async def _daily_capture_loop() -> None:
+    """
+    Guaranteed daily capture. Independent of site traffic: every hour it checks
+    whether today's (UTC) snapshot exists and, if not, forces a compute so the
+    series never has a gap. Backs up off-site after any new row is written.
+    """
+    await asyncio.sleep(25)   # let the app finish starting
+    print("[daily_loop] guaranteed-capture loop started (hourly check)")
+    while True:
+        try:
+            today = datetime.utcnow().strftime("%Y-%m-%d")
+            rows = _load_daily_snapshots()
+            if not rows or rows[-1].get("date") != today:
+                full = await get_live_sentiment()
+                row = record_daily_snapshot(full)   # idempotent per day
+                if row:
+                    await _backup_track_record("scheduled daily capture")
+        except Exception as e:
+            print(f"[daily_loop] error: {e}")
+        await asyncio.sleep(3600)
+
+
+@app.on_event("startup")
+async def _start_background_jobs() -> None:
+    """Launch the guaranteed daily-capture loop in the background."""
+    asyncio.create_task(_daily_capture_loop())
+
+
+@app.get("/api/admin/backup")
+async def admin_backup(request: Request):
+    """ADMIN — force an off-site backup now. Requires master Bearer token."""
+    token = _extract_bearer_token(request)
+    if not token or not MASTER_KEY_HASH or _hash_key(token) != MASTER_KEY_HASH:
+        return Response(
+            content=json.dumps({"ok": False, "error": "admin_only"}),
+            status_code=403, media_type="application/json",
+        )
+    if not (BACKUP_REPO and BACKUP_TOKEN):
+        return {"ok": False, "configured": False,
+                "hint": "Set BACKUP_REPO and BACKUP_GITHUB_TOKEN env vars to enable."}
+    await _backup_track_record("manual trigger")
+    return {"ok": _last_backup.get("ok", False), "backup": _last_backup}
+
+
 async def _capture_friday_snapshot() -> dict:
     """Snapshot the current index as Friday's reading. Idempotent per friday_date."""
     friday = _get_most_recent_friday_et()
@@ -1989,6 +2094,12 @@ async def api_integrity():
             "chain_intact": chain["intact"],
             "broken_at":   chain["broken_at"],
             "head_hash":   chain["head_hash"],
+        },
+        "capture_guarantee": "hourly scheduled job — series cannot gap on low-traffic days",
+        "offsite_backup": {
+            "configured":  bool(BACKUP_REPO and BACKUP_TOKEN),
+            "scheme":      "git-notarized commit to private repo (external timestamp of chain head)",
+            "last":        _last_backup or None,
         },
         "signal_freshness":     freshness,
         "live_cache_age_seconds": (
