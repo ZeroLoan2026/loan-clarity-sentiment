@@ -1525,14 +1525,23 @@ function App() {
                 </div>}
             </div>
 
-            {/* Institutional one-click takeaway */}
-            <a href="/api/brief.pdf" style={{display:'inline-flex',alignItems:'center',gap:8,alignSelf:'flex-start',
-                 fontSize:12.5,fontWeight:700,color:'var(--accent-2)',textDecoration:'none',
-                 padding:'9px 16px',border:'1px solid var(--border)',borderRadius:9,
-                 background:'rgba(45,125,210,.06)',letterSpacing:'.02em'}}
-               title="One-page institutional brief, generated from the live index">
-              📄 Download Institutional Brief <span style={{color:'var(--muted-2)',fontWeight:500}}>· live PDF</span>
-            </a>
+            {/* Institutional one-click takeaways */}
+            <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
+              <a href="/api/brief.pdf" style={{display:'inline-flex',alignItems:'center',gap:8,
+                   fontSize:12.5,fontWeight:700,color:'var(--accent-2)',textDecoration:'none',
+                   padding:'9px 16px',border:'1px solid var(--border)',borderRadius:9,
+                   background:'rgba(45,125,210,.06)',letterSpacing:'.02em'}}
+                 title="One-page institutional brief, generated from the live index">
+                📄 Institutional Brief <span style={{color:'var(--muted-2)',fontWeight:500}}>· PDF</span>
+              </a>
+              <a href="/track-record" style={{display:'inline-flex',alignItems:'center',gap:8,
+                   fontSize:12.5,fontWeight:700,color:'var(--neon, #00e5a8)',textDecoration:'none',
+                   padding:'9px 16px',border:'1px solid var(--border)',borderRadius:9,
+                   background:'rgba(0,229,168,.06)',letterSpacing:'.02em'}}
+                 title="The official daily track record — chart, table, exports">
+                📈 Track Record <span style={{color:'var(--muted-2)',fontWeight:500}}>· daily history</span>
+              </a>
+            </div>
 
             {/* Drivers — Why The Index Moved */}
             <div {...linkTo('/methodology#weighted-index')}>

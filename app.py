@@ -2109,6 +2109,149 @@ async def api_integrity():
     }
 
 
+# ─── Track-record exports (organized, presentation-ready) ─────────────────────
+_TR_COLUMNS = [
+    ("date",          "Date"),
+    ("index_score",   "Index"),
+    ("status",        "Status"),
+    ("google_trends", "Google Panic"),
+    ("reddit",        "Reddit Sentiment"),
+    ("cfpb",          "CFPB Volume"),
+    ("delinquency",   "Delinquency"),
+    ("refinance",     "Refinance Demand"),
+    ("survey",        "Survey"),
+    ("methodology_version", "Methodology"),
+    ("hash",          "Chain Hash"),
+]
+
+
+def _track_record_table() -> list[dict]:
+    """Flatten the append-only snapshots into presentation rows (oldest first)."""
+    out = []
+    for r in _load_daily_snapshots():
+        sig = r.get("signals", {}) or {}
+        out.append({
+            "date":          r.get("date"),
+            "index_score":   r.get("index_score"),
+            "status":        r.get("status"),
+            "google_trends": sig.get("google_trends"),
+            "reddit":        sig.get("reddit"),
+            "cfpb":          sig.get("cfpb"),
+            "delinquency":   sig.get("delinquency"),
+            "refinance":     sig.get("refinance"),
+            "survey":        sig.get("survey"),
+            "methodology_version": r.get("methodology_version"),
+            "hash":          (r.get("hash") or "")[:16],
+        })
+    return out
+
+
+@app.get("/api/track-record.csv")
+async def track_record_csv():
+    """Real captured daily series as CSV — organized, ready to present. Public."""
+    import csv, io
+    rows = _track_record_table()
+    buf = io.StringIO()
+    w = csv.writer(buf)
+    w.writerow([label for _, label in _TR_COLUMNS])
+    for r in rows:
+        w.writerow([r.get(key, "") for key, _ in _TR_COLUMNS])
+    fname = f"LoanClarity_Track_Record_{datetime.now().strftime('%Y%m%d')}.csv"
+    return Response(
+        content=buf.getvalue(), media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="{fname}"'},
+    )
+
+
+@app.get("/api/track-record.xlsx")
+async def track_record_xlsx():
+    """Real captured daily series as a formatted Excel workbook (summary + data). Public."""
+    try:
+        import openpyxl
+        from openpyxl.styles import PatternFill, Font, Alignment, Border, Side
+        from openpyxl.utils import get_column_letter
+        import io
+
+        rows = _track_record_table()
+        scores = [r["index_score"] for r in rows if isinstance(r.get("index_score"), (int, float))]
+        chain = verify_chain(_load_daily_snapshots())
+
+        navy   = PatternFill("solid", fgColor="07111F")
+        accent = PatternFill("solid", fgColor="2D7DD2")
+        light  = PatternFill("solid", fgColor="EAF2FB")
+        white  = Font(color="FFFFFF", bold=True, name="Calibri")
+        bold   = Font(bold=True, name="Calibri")
+        thin   = Side(style="thin", color="C9D7E8")
+        border = Border(left=thin, right=thin, top=thin, bottom=thin)
+        center = Alignment(horizontal="center", vertical="center")
+
+        wb = openpyxl.Workbook()
+
+        # ── Summary sheet ──────────────────────────────────────────
+        s = wb.active
+        s.title = "Summary"
+        s["A1"] = "Loan Clarity — Borrower Sentiment Index™"
+        s["A1"].font = Font(bold=True, size=16, color="07111F")
+        s["A2"] = "Official Track Record"
+        s["A2"].font = Font(italic=True, size=11, color="5A7D9D")
+        meta = [
+            ("Generated",            datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")),
+            ("Methodology version",  METHODOLOGY_VERSION),
+            ("Days captured",        len(rows)),
+            ("First reading",        rows[0]["date"] if rows else "—"),
+            ("Latest reading",       rows[-1]["date"] if rows else "—"),
+            ("Current index",        scores[-1] if scores else "—"),
+            ("Mean / Min / Max",     (f"{round(statistics.mean(scores),1)} / {min(scores)} / {max(scores)}"
+                                      if scores else "—")),
+            ("Volatility (stdev)",   round(statistics.pstdev(scores), 2) if len(scores) > 1 else "—"),
+            ("Tamper-evident chain", "INTACT ✓" if chain["intact"] else f"BROKEN at {chain['broken_at']}"),
+            ("Chain head hash",      chain["head_hash"][:24]),
+        ]
+        for i, (k, v) in enumerate(meta, start=4):
+            s[f"A{i}"] = k; s[f"A{i}"].font = bold
+            s[f"B{i}"] = v
+        s.column_dimensions["A"].width = 24
+        s.column_dimensions["B"].width = 42
+
+        # ── Data sheet ─────────────────────────────────────────────
+        d = wb.create_sheet("Daily Readings")
+        d.freeze_panes = "A2"
+        for c, (_, label) in enumerate(_TR_COLUMNS, start=1):
+            cell = d.cell(row=1, column=c, value=label)
+            cell.fill = accent; cell.font = white; cell.alignment = center; cell.border = border
+        for ri, r in enumerate(rows, start=2):
+            for c, (key, _) in enumerate(_TR_COLUMNS, start=1):
+                cell = d.cell(row=ri, column=c, value=r.get(key))
+                cell.border = border
+                cell.alignment = center if key != "status" else Alignment(horizontal="left")
+                if ri % 2 == 0:
+                    cell.fill = light
+        widths = [12, 8, 16, 13, 16, 13, 13, 16, 9, 12, 18]
+        for c, w in enumerate(widths, start=1):
+            d.column_dimensions[get_column_letter(c)].width = w
+
+        out = io.BytesIO()
+        wb.save(out)
+        fname = f"LoanClarity_Track_Record_{datetime.now().strftime('%Y%m%d')}.xlsx"
+        return StreamingResponse(
+            iter([out.getvalue()]),
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f'attachment; filename="{fname}"'},
+        )
+    except Exception as e:
+        return Response(content=json.dumps({"error": f"xlsx build failed: {e}"}),
+                        status_code=500, media_type="application/json")
+
+
+@app.get("/track-record")
+async def serve_track_record():
+    """Institutional Track Record report page."""
+    return FileResponse(
+        Path(__file__).parent / "track-record.html",
+        headers={"Cache-Control": "no-cache"},
+    )
+
+
 @app.get("/api/history")
 async def api_history(request: Request, days: int = 90):
     """
