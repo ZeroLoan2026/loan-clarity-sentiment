@@ -65,8 +65,10 @@
 
     /* Chart */
     .panel{background:linear-gradient(180deg,var(--card),var(--panel));border:1px solid var(--border);border-radius:14px;padding:22px 24px;margin:18px 0}
-    .panel-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px}
-    .panel-title{font-size:14px;font-weight:800;color:#fff;letter-spacing:-.01em}
+    .panel-head{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:16px}
+    .panel-title{font-size:15px;font-weight:800;color:#fff;letter-spacing:-.01em}
+    .panel-sub{font-size:11.5px;color:var(--muted);margin-top:4px;font-family:var(--mono)}
+    @media(max-width:680px){.exports{width:100%}.exports .btn{flex:1;justify-content:center;font-size:11.5px;padding:8px 8px}}
     .exports{display:flex;gap:8px;flex-wrap:wrap}
     .btn{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;color:var(--accent-2);
          border:1px solid var(--border-2);border-radius:9px;padding:9px 14px;background:rgba(45,125,210,.06);transition:all .15s}
@@ -127,7 +129,10 @@
 
   <div class="panel">
     <div class="panel-head">
-      <div class="panel-title">Index over time</div>
+      <div>
+        <div class="panel-title">Borrower Sentiment Index — daily history</div>
+        <div class="panel-sub">0–100 composite · one immutable reading per day · methodology v<span id="ver3">—</span></div>
+      </div>
       <div class="exports">
         <a class="btn primary" href="/api/track-record.xlsx">⬇ Excel (.xlsx)</a>
         <a class="btn" href="/api/track-record.csv">⬇ CSV</a>
@@ -149,7 +154,7 @@
 
   <div class="footer">
     Methodology v<span id="ver2">—</span> · frozen, versioned, and tamper-evident. Each row binds the prior row with a SHA-256 hash; any retroactive edit breaks the chain and is detectable.
-    Full method at <a href="/methodology#integrity">/methodology</a> · live API at <a href="/api">/api</a>.<br/>
+    <a href="/api/verify" style="color:var(--neon)">Verify the chain yourself →</a> · <a href="/status" style="color:var(--accent-2)">System status</a> · <a href="/methodology#integrity">How integrity works</a> · <a href="/api">API</a>.<br/>
     The Borrower Sentiment Index™ is an educational data tool — not financial advice. © 2026 Loan Clarity.
   </div>
 </div>
@@ -195,6 +200,7 @@ Promise.all([
   const ver=snap.methodology_version||intg.methodology_version||'1.0.0';
   document.getElementById('ver').textContent=ver;
   document.getElementById('ver2').textContent=ver;
+  var v3=document.getElementById('ver3'); if(v3)v3.textContent=ver;
 
   // progress
   const days=rows.length;

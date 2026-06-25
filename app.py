@@ -2109,6 +2109,55 @@ async def api_integrity():
     }
 
 
+@app.get("/api/verify")
+async def api_verify():
+    """
+    Independent, reproducible proof that the track record was never altered.
+    Returns the exact algorithm plus a per-row recomputation so any third party
+    can re-derive every hash themselves from the public /api/snapshots data and
+    confirm the chain — trust is not required. Public, no auth.
+    """
+    rows = _load_daily_snapshots()
+    results = []
+    prev = _GENESIS_HASH
+    verified = True
+    for r in rows:
+        core = {k: r[k] for k in
+                ("date", "captured_at", "index_score", "status",
+                 "methodology_version", "signals") if k in r}
+        expected = _snapshot_digest(prev, core)
+        ok = (r.get("hash") == expected and r.get("prev_hash") == prev)
+        if not ok:
+            verified = False
+        results.append({
+            "date": r.get("date"),
+            "prev_hash": (r.get("prev_hash") or "")[:16],
+            "recomputed_hash": expected[:16],
+            "stored_hash": (r.get("hash") or "")[:16],
+            "match": ok,
+        })
+        prev = r.get("hash")
+    return {
+        "verified":  verified,
+        "rows":      len(rows),
+        "methodology_version": METHODOLOGY_VERSION,
+        "algorithm": {
+            "hash":        "SHA-256",
+            "genesis":     _GENESIS_HASH,
+            "preimage":    "prev_hash + canonical_json(core)",
+            "canonical_json": "json.dumps(core, sort_keys=True, separators=(',',':'))",
+            "core_fields": ["date", "captured_at", "index_score", "status",
+                            "methodology_version", "signals"],
+            "reproduce":   "For each row in /api/snapshots, in date order: compute "
+                           "SHA-256(prev_hash + canonical_json(core_fields)). It must "
+                           "equal that row's 'hash', and 'prev_hash' must equal the "
+                           "previous row's 'hash'. Genesis prev_hash is 64 zeros.",
+        },
+        "checks":    results,
+        "note":      "Reproduce this yourself from /api/snapshots — no trust required.",
+    }
+
+
 # ─── Track-record exports (organized, presentation-ready) ─────────────────────
 _TR_COLUMNS = [
     ("date",          "Date"),
@@ -2250,6 +2299,47 @@ async def serve_track_record():
         Path(__file__).parent / "track-record.html",
         headers={"Cache-Control": "no-cache"},
     )
+
+
+@app.get("/status")
+async def serve_status():
+    """Public system status / reliability page."""
+    return FileResponse(
+        Path(__file__).parent / "status.html",
+        headers={"Cache-Control": "no-cache"},
+    )
+
+
+@app.get("/api/status")
+async def api_status():
+    """Machine-readable system status — operational state, capture, chain, backup."""
+    rows = _load_daily_snapshots()
+    chain = verify_chain(rows)
+    cache_age = (int((datetime.now() - _cache_timestamp).total_seconds())
+                 if _cache_timestamp else None)
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+    captured_today = bool(rows and rows[-1].get("date") == today)
+    components = [
+        {"name": "Live index engine",     "ok": cache_age is not None,
+         "detail": f"cache age {cache_age}s" if cache_age is not None else "warming up"},
+        {"name": "Daily capture",         "ok": captured_today,
+         "detail": "today recorded" if captured_today else "pending today's reading"},
+        {"name": "Tamper-evident chain",  "ok": chain["intact"],
+         "detail": "intact" if chain["intact"] else f"broken at {chain['broken_at']}"},
+        {"name": "Durable storage",       "ok": str(SNAPSHOT_DIR) != str(Path(__file__).parent),
+         "detail": "persistent volume" if str(SNAPSHOT_DIR) != str(Path(__file__).parent) else "ephemeral (configure volume)"},
+        {"name": "Off-site backup",       "ok": bool(BACKUP_REPO and BACKUP_TOKEN),
+         "detail": "git-notarized" if (BACKUP_REPO and BACKUP_TOKEN) else "not configured"},
+    ]
+    operational = all(c["ok"] for c in components if c["name"] in
+                      ("Live index engine", "Tamper-evident chain"))
+    return {
+        "status":     "operational" if operational else "degraded",
+        "checked_at": datetime.utcnow().isoformat() + "Z",
+        "methodology_version": METHODOLOGY_VERSION,
+        "days_captured": len(rows),
+        "components": components,
+    }
 
 
 @app.get("/api/history")
