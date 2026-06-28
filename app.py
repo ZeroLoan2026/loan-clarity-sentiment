@@ -80,6 +80,21 @@ _DELINQ_LO, _DELINQ_HI  = 5.0, 12.0
 def delinquency_score(pct: float = DELINQUENCY_90PLUS_PCT) -> int:
     return int(max(0, min(100, (pct - _DELINQ_LO) / (_DELINQ_HI - _DELINQ_LO) * 100)))
 
+# ── Borrower survey (Pew Charitable Trusts) ───────────────────────────────────
+# Periodic survey data — updated from each published Pew / U-Michigan release,
+# with source + as-of surfaced. Share of borrowers reporting >=1 negative
+# financial event in the prior 12 months.
+SURVEY_DISTRESS_PCT  = 74
+SURVEY_AS_OF         = "Pew 2025"
+SURVEY_SOURCE_URL    = "https://www.pew.org/en/research-and-analysis/issue-briefs/2025/06/for-many-student-loan-borrowers-financial-security-feels-out-of-reach"
+_SURVEY_LO, _SURVEY_HI = 30.0, 85.0
+
+def survey_score(pct: float = SURVEY_DISTRESS_PCT) -> int:
+    return int(max(0, min(100, (pct - _SURVEY_LO) / (_SURVEY_HI - _SURVEY_LO) * 100)))
+
+# Refinance-demand fallback (used only if Google Trends is unreachable).
+REFINANCE_FALLBACK_SCORE = 66
+
 # ─── Methodology version + integrity store ────────────────────────────────────
 # The index formula is frozen and versioned. Every captured reading is stamped
 # with the version that produced it, so institutional buyers can trust that the
@@ -723,6 +738,27 @@ async def fetch_google_trends_score() -> dict:
         return {"raw_index": 68, "score": 68, "terms": ["student loan panic"]}
 
 
+async def fetch_refinance_demand() -> dict:
+    """
+    Student-loan refinance search demand via Google Trends (daily). A leading
+    distress signal — borrowers seeking exits. Falls back to a documented value
+    only if Google Trends is unreachable.
+    """
+    try:
+        from pytrends.request import TrendReq
+        pytrends = TrendReq(hl="en-US", tz=360, timeout=(10, 25))
+        terms = ["student loan refinance"]
+        pytrends.build_payload(terms, timeframe="today 3-m", geo="US")
+        df = pytrends.interest_over_time()
+        if df.empty:
+            raise ValueError("empty")
+        recent = int(df.iloc[-4:, 0].mean())
+        return {"raw_index": recent, "score": max(5, min(95, recent)), "live": True}
+    except Exception as e:
+        print(f"[Refinance] trends error: {e}")
+        return {"raw_index": REFINANCE_FALLBACK_SCORE, "score": REFINANCE_FALLBACK_SCORE, "live": False}
+
+
 async def analyze_reddit_with_claude(posts: list[dict]) -> dict:
     """Run the AI sentiment engine over Reddit posts to extract emotional sentiment."""
     if not posts or anthropic is None:
@@ -1044,8 +1080,9 @@ async def get_live_sentiment():
         return cached
 
     # Parallel data fetch
-    posts, cfpb, trends = await asyncio.gather(
-        fetch_reddit_posts(), fetch_cfpb_complaints(), fetch_google_trends_score()
+    posts, cfpb, trends, refi = await asyncio.gather(
+        fetch_reddit_posts(), fetch_cfpb_complaints(),
+        fetch_google_trends_score(), fetch_refinance_demand()
     )
     sentiment = await analyze_reddit_with_claude(posts)
 
@@ -1064,8 +1101,8 @@ async def get_live_sentiment():
         "reddit":         {"score": sentiment["sentiment_score"]},
         "cfpb":           {"score": cfpb["score"]},
         "delinquency":    {"score": delinquency_score()},
-        "refinance":      {"score": 66},
-        "survey":         {"score": 80},
+        "refinance":      {"score": refi["score"]},
+        "survey":         {"score": survey_score()},
     }
 
     # ── Build the rich attribution-wrapped payload ───────────────────
@@ -1118,40 +1155,53 @@ async def get_live_sentiment():
         },
         "refinance": {
             **signal_payload(
-                "google_trends", 66,
+                "google_trends", refi["score"],
                 label="Refinance Demand",
-                description="Search demand for student loan refinancing — a leading signal of borrower distress. Elevated as borrowers seek exits from SAVE plan uncertainty.",
-                raw="+82% YoY",
+                description=(
+                    "Live Google Trends search demand for student-loan refinancing — a "
+                    "leading distress signal as borrowers seek exits. "
+                    f"Current search index: {refi['raw_index']}/100"
+                    f"{'' if refi.get('live') else ' (last known)'}."
+                ),
+                raw=f"{refi['raw_index']}/100 index",
                 methodology_anchor="refinance",
             ),
-            "weight_tier": "Moderate", "score": 66,
+            "weight_tier": "Moderate", "score": refi["score"],
+            "live": bool(refi.get("live")),
         },
         "survey": {
             **signal_payload(
-                "pew", 80,
+                "pew", survey_score(),
                 label="Borrower Surveys",
-                description="Pew Research: 80% of borrowers report being 'worried' about their student loan situation.",
-                raw="80% worried",
+                description=(
+                    f"{SURVEY_DISTRESS_PCT}% of borrowers reported at least one negative "
+                    f"financial event in the prior 12 months ({SURVEY_AS_OF}, Pew Charitable Trusts)."
+                ),
+                raw=f"{SURVEY_DISTRESS_PCT}% in distress",
                 methodology_anchor="survey",
             ),
-            "weight_tier": "High", "score": 80,
+            "weight_tier": "High", "score": survey_score(),
+            "value_pct": SURVEY_DISTRESS_PCT, "as_of": SURVEY_AS_OF,
+            "source_url": SURVEY_SOURCE_URL,
         },
     }
 
     # ── KPI bar with attribution ─────────────────────────────────────
     kpi_bar = [
-        {"label": "Refinance Searches", "value": "Surging +68%", "color": "green",  "dir": "up",
+        {"label": "Refinance demand", "value": f"{refi['raw_index']}/100",
+         "color": "green" if refi["score"] >= 60 else "orange", "dir": "up",
          "source": SOURCES["google_trends"]["name"], "source_url": SOURCES["google_trends"]["url"],
-         "updated_at": iso_now, "methodology_ref": "/methodology#refinance"},
+         "updated_at": iso_now if refi.get("live") else "last known",
+         "methodology_ref": "/methodology#refinance"},
         {"label": "Delinquency (90+ day)", "value": f"{DELINQUENCY_90PLUS_PCT}%", "color": "red", "dir": "up",
          "source": SOURCES["nyfed"]["name"], "source_url": DELINQUENCY_SOURCE_URL,
          "updated_at": f"{DELINQUENCY_AS_OF} release", "methodology_ref": "/methodology#delinquency"},
-        {"label": "IDR Enrollment",     "value": "Record 42M",   "color": "orange", "dir": "up",
-         "source": SOURCES["doed"]["name"], "source_url": SOURCES["doed"]["url"],
-         "updated_at": "Q1 2026 release", "methodology_ref": "/methodology#enrollment"},
-        {"label": "Borrower Sentiment", "value": "80% Worried",  "color": "orange", "dir": "up",
-         "source": SOURCES["pew"]["name"], "source_url": SOURCES["pew"]["url"],
-         "updated_at": "2026 survey",    "methodology_ref": "/methodology#survey"},
+        {"label": "Borrowers in default", "value": "~9M", "color": "red", "dir": "up",
+         "source": SOURCES["nyfed"]["name"], "source_url": DELINQUENCY_SOURCE_URL,
+         "updated_at": f"{DELINQUENCY_AS_OF} release", "methodology_ref": "/methodology#delinquency"},
+        {"label": "Borrower distress (survey)", "value": f"{SURVEY_DISTRESS_PCT}%", "color": "orange", "dir": "up",
+         "source": SOURCES["pew"]["name"], "source_url": SURVEY_SOURCE_URL,
+         "updated_at": SURVEY_AS_OF,    "methodology_ref": "/methodology#survey"},
     ]
 
     # ── Bottom key metrics with attribution ──────────────────────────
