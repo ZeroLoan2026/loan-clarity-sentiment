@@ -65,6 +65,21 @@ WEIGHTS = {
     "survey":          0.17,
 }
 
+# ── Delinquency (NY Fed Household Debt & Credit Report) ───────────────────────
+# 90+ day student-loan delinquency. This is QUARTERLY data by nature — sourced
+# from each NY Fed release rather than polled live, with the source URL and
+# as-of date surfaced publicly so the figure is fully attributable.
+DELINQUENCY_90PLUS_PCT  = 10.3   # NY Fed, latest release (90+ days past due)
+DELINQUENCY_AS_OF       = "Q1 2026"
+DELINQUENCY_SOURCE_URL  = "https://www.newyorkfed.org/microeconomics/hhdc"
+DELINQUENCY_PRIOR_PCT   = 9.6    # prior quarter, for trend
+# Normalize to a 0–100 stress score over the documented historical band
+# (matches /methodology#delinquency): ~5% COVID-pause trough → ~12% cycle peak.
+_DELINQ_LO, _DELINQ_HI  = 5.0, 12.0
+
+def delinquency_score(pct: float = DELINQUENCY_90PLUS_PCT) -> int:
+    return int(max(0, min(100, (pct - _DELINQ_LO) / (_DELINQ_HI - _DELINQ_LO) * 100)))
+
 # ─── Methodology version + integrity store ────────────────────────────────────
 # The index formula is frozen and versioned. Every captured reading is stamped
 # with the version that produced it, so institutional buyers can trust that the
@@ -1048,7 +1063,7 @@ async def get_live_sentiment():
         "google_trends":  {"score": trends["score"]},
         "reddit":         {"score": sentiment["sentiment_score"]},
         "cfpb":           {"score": cfpb["score"]},
-        "delinquency":    {"score": 76},
+        "delinquency":    {"score": delinquency_score()},
         "refinance":      {"score": 66},
         "survey":         {"score": 80},
     }
@@ -1087,13 +1102,19 @@ async def get_live_sentiment():
         },
         "delinquency": {
             **signal_payload(
-                "nyfed", 76,
+                "nyfed", delinquency_score(),
                 label="Delinquency Trends",
-                description="Share of student loan accounts 90+ days past due, from the NY Fed Household Debt & Credit Report. 1.9M missed payments in Q1 2026 — +24% surge above pre-restart baseline.",
-                raw="5.7% / Q1 2026",
+                description=(
+                    f"Share of student-loan balances 90+ days past due, from the NY Fed "
+                    f"Household Debt & Credit Report: {DELINQUENCY_90PLUS_PCT}% ({DELINQUENCY_AS_OF}), "
+                    f"up from {DELINQUENCY_PRIOR_PCT}% the prior quarter — the highest since 2020."
+                ),
+                raw=f"{DELINQUENCY_90PLUS_PCT}% / {DELINQUENCY_AS_OF}",
                 methodology_anchor="delinquency",
             ),
-            "weight_tier": "High", "score": 76,
+            "weight_tier": "High", "score": delinquency_score(),
+            "value_pct": DELINQUENCY_90PLUS_PCT, "as_of": DELINQUENCY_AS_OF,
+            "source_url": DELINQUENCY_SOURCE_URL,
         },
         "refinance": {
             **signal_payload(
@@ -1122,9 +1143,9 @@ async def get_live_sentiment():
         {"label": "Refinance Searches", "value": "Surging +68%", "color": "green",  "dir": "up",
          "source": SOURCES["google_trends"]["name"], "source_url": SOURCES["google_trends"]["url"],
          "updated_at": iso_now, "methodology_ref": "/methodology#refinance"},
-        {"label": "Delinquency Rate",   "value": "Up to 5.7%",   "color": "orange", "dir": "up",
-         "source": SOURCES["nyfed"]["name"], "source_url": SOURCES["nyfed"]["url"],
-         "updated_at": "Q1 2026 release", "methodology_ref": "/methodology#delinquency"},
+        {"label": "Delinquency (90+ day)", "value": f"{DELINQUENCY_90PLUS_PCT}%", "color": "red", "dir": "up",
+         "source": SOURCES["nyfed"]["name"], "source_url": DELINQUENCY_SOURCE_URL,
+         "updated_at": f"{DELINQUENCY_AS_OF} release", "methodology_ref": "/methodology#delinquency"},
         {"label": "IDR Enrollment",     "value": "Record 42M",   "color": "orange", "dir": "up",
          "source": SOURCES["doed"]["name"], "source_url": SOURCES["doed"]["url"],
          "updated_at": "Q1 2026 release", "methodology_ref": "/methodology#enrollment"},
