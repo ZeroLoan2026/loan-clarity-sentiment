@@ -95,6 +95,18 @@ def survey_score(pct: float = SURVEY_DISTRESS_PCT) -> int:
 # Refinance-demand fallback (used only if Google Trends is unreachable).
 REFINANCE_FALLBACK_SCORE = 66
 
+# ── CFPB complaints (Student Loan Ombudsman annual report) ────────────────────
+# CFPB's public complaint search API is WAF-blocked (403) from datacenter IPs,
+# so this signal is carried at CFPB's latest published Ombudsman figure with
+# source + as-of date, rather than a fabricated live count. Updated each report.
+CFPB_COMPLAINTS_ANNUAL = 22900   # Jul 2024–Jun 2025, record high (federal +36% YoY)
+CFPB_AS_OF             = "2024–25 report"
+CFPB_SOURCE_URL        = "https://www.consumerfinance.gov/data-research/research-reports/annual-report-of-the-cfpb-student-loan-ombudsman-2024/"
+_CFPB_LO, _CFPB_HI     = 5000.0, 25000.0
+
+def cfpb_score(n: float = CFPB_COMPLAINTS_ANNUAL) -> int:
+    return int(max(0, min(100, (n - _CFPB_LO) / (_CFPB_HI - _CFPB_LO) * 100)))
+
 # ─── Methodology version + integrity store ────────────────────────────────────
 # The index formula is frozen and versioned. Every captured reading is stamped
 # with the version that produced it, so institutional buyers can trust that the
@@ -138,8 +150,8 @@ SOURCES = {
         "publisher": "Consumer Financial Protection Bureau",
         "url": "https://www.consumerfinance.gov/data-research/consumer-complaints/",
         "api_url": "https://www.consumerfinance.gov/data-research/consumer-complaints/search/api/v1/",
-        "cadence": "Daily",
-        "description": "Federal database of consumer financial complaints. We pull student-loan complaints in real time to detect servicer-failure spikes.",
+        "cadence": "Per CFPB report",
+        "description": "Federal database of consumer financial complaints. Student-loan complaint volume from the CFPB Student Loan Ombudsman report, updated each release.",
         "type": "Regulatory",
     },
     "fred": {
@@ -706,18 +718,25 @@ async def fetch_cfpb_complaints() -> dict:
                 raise ValueError(f"bad response: {resp.status_code}")
             data = resp.json()
             total = data.get("hits", {}).get("total", {})
-            count = total.get("value", 0) if isinstance(total, dict) else int(total or 0)
-            score = min(100, max(20, int(count / 120)))
-            print(f"[CFPB] {count:,} complaints in 90d → score {score}")
+            count90 = total.get("value", 0) if isinstance(total, dict) else int(total or 0)
+            if count90 <= 0:
+                raise ValueError("zero count")
+            annualized = count90 * 4
+            score = cfpb_score(annualized)
+            print(f"[CFPB] LIVE {count90:,} in 90d → score {score}")
             return {
-                "count_90d": count,
-                "score": score,
-                "trend_pct": "+320%" if count > 30_000 else "+158%",
-                "status": "Spike" if count > 20_000 else "Elevated",
+                "count": annualized, "count_90d": count90, "score": score,
+                "as_of": "live (trailing 90d, annualized)", "source_url": CFPB_SOURCE_URL,
+                "live": True, "trend_pct": "+36% YoY", "status": "Record high",
             }
     except Exception as e:
-        print(f"[CFPB] error: {e}")
-        return {"count_90d": 8_500, "score": 70, "trend_pct": "+320%", "status": "Spike"}
+        # Expected on cloud IPs (CFPB WAF returns 403). Use the published figure.
+        print(f"[CFPB] live unavailable ({e}) — using sourced Ombudsman figure")
+        return {
+            "count": CFPB_COMPLAINTS_ANNUAL, "count_90d": CFPB_COMPLAINTS_ANNUAL,
+            "score": cfpb_score(), "as_of": CFPB_AS_OF, "source_url": CFPB_SOURCE_URL,
+            "live": False, "trend_pct": "+36% YoY (federal)", "status": "Record high",
+        }
 
 
 async def fetch_google_trends_score() -> dict:
@@ -1131,11 +1150,19 @@ async def get_live_sentiment():
             **signal_payload(
                 "cfpb", cfpb["score"],
                 label="CFPB Complaint Volume",
-                description=f"{cfpb['count_90d']:,} student-loan complaints filed in the last 90 days ({cfpb['trend_pct']} YoY).",
-                raw=f"{cfpb['count_90d']:,} / 90d",
+                description=(
+                    f"~{cfpb['count']:,} student-loan complaints to the CFPB "
+                    f"({cfpb['as_of']}) — {cfpb['status'].lower()}, {cfpb['trend_pct']}."
+                    if not cfpb.get("live") else
+                    f"{cfpb['count_90d']:,} student-loan complaints in the trailing 90 days (live)."
+                ),
+                raw=(f"~{cfpb['count']:,} ({cfpb['as_of']})" if not cfpb.get("live")
+                     else f"{cfpb['count_90d']:,} / 90d live"),
                 methodology_anchor="cfpb",
             ),
-            "weight_tier": "Moderate", "score": cfpb["score"], "complaints_90d": cfpb["count_90d"],
+            "weight_tier": "Moderate", "score": cfpb["score"],
+            "complaints": cfpb["count"], "as_of": cfpb["as_of"],
+            "source_url": cfpb.get("source_url"), "live": bool(cfpb.get("live")),
         },
         "delinquency": {
             **signal_payload(
@@ -1981,7 +2008,7 @@ async def api_index(request: Request):
             "signals": {
                 "google_panic":   {"score": int, "weight_tier": str},
                 "reddit":         {"score": int, "weight_tier": str, "posts_analyzed": int},
-                "cfpb":           {"score": int, "weight_tier": str, "complaints_90d": int},
+                "cfpb":           {"score": int, "weight_tier": str, "complaints": int},
                 "delinquency":   {"score": int, "weight_tier": str},
                 "refinance":      {"score": int, "weight_tier": str},
                 "survey":         {"score": int, "weight_tier": str},
@@ -2017,7 +2044,8 @@ async def api_index(request: Request):
             "cfpb": {
                 "score":            signals.get("cfpb", {}).get("score"),
                 "weight_tier":      "Moderate",
-                "complaints_90d":   signals.get("cfpb", {}).get("complaints_90d"),
+                "complaints":       signals.get("cfpb", {}).get("complaints"),
+                "as_of":            signals.get("cfpb", {}).get("as_of"),
             },
             "delinquency": {
                 "score":  signals.get("delinquency", {}).get("score"),
@@ -3388,7 +3416,7 @@ async def serve_embed(
     score   = int(full.get("index_score") or 70)
     status  = full.get("status") or "High Anxiety"
     signals = full.get("signals", {}) or {}
-    cfpb    = signals.get("cfpb", {}).get("complaints_90d")
+    cfpb    = signals.get("cfpb", {}).get("complaints")
     reddit_posts = signals.get("reddit", {}).get("posts")
     top_theme = full.get("top_theme", "")
 
