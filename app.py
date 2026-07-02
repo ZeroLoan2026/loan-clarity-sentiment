@@ -28,7 +28,7 @@ except Exception as _e:
     print(f"[startup] anthropic import skipped: {_e}")
 from fastapi import FastAPI, Body, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import FileResponse, StreamingResponse, RedirectResponse
 
 # ─── Setup ───────────────────────────────────────────────────────────────────
 
@@ -3203,14 +3203,11 @@ async def serve_subscribe():
     )
 
 
-# ─── July 1, 2026 Tracker (the viral asset) ──────────────────────────────────
+# ─── July 1 tracker retired — redirect legacy links to the dashboard ─────────
 @app.get("/july1")
 async def serve_july1_tracker():
-    """Public — dedicated tracker page for the July 1, 2026 student loan rule changes."""
-    return FileResponse(
-        Path(__file__).parent / "july1.html",
-        headers={"Cache-Control": "no-cache, no-store, must-revalidate"},
-    )
+    """Retired. Redirects archived links to the live dashboard."""
+    return RedirectResponse(url="/", status_code=307)
 
 
 @app.get("/sli-mark.svg")
@@ -3245,108 +3242,8 @@ async def serve_favicon_svg():
 
 @app.get("/embed/july1")
 async def serve_july1_embed():
-    """Embeddable July 1 countdown + index widget. iframe-safe for news sites."""
-    # Reuse Friday snapshot data — public, no auth, cache-friendly
-    friday = _get_most_recent_friday_et()
-    friday_date = friday.strftime("%Y-%m-%d")
-    snapshots = _load_friday_snapshots()
-    current = next((s for s in reversed(snapshots) if s.get("friday_date") == friday_date), None)
-    if not current:
-        current = await _capture_friday_snapshot()
-    score  = int(current.get("index_score") or 70)
-    status = current.get("status") or "High Anxiety"
-
-    # Color by score
-    if   score >= 80: color, color_soft = "#ef4444", "rgba(239,68,68,.15)"
-    elif score >= 65: color, color_soft = "#f97316", "rgba(249,115,22,.15)"
-    elif score >= 45: color, color_soft = "#eab308", "rgba(234,179,8,.15)"
-    else:             color, color_soft = "#22c55e", "rgba(34,197,94,.15)"
-
-    html = f"""<!DOCTYPE html><html><head><meta charset="utf-8">
-<title>July 1 Student Loan Tracker · Loan Clarity</title>
-<meta http-equiv="refresh" content="300">
-<style>
-*,*::before,*::after{{box-sizing:border-box;margin:0;padding:0}}
-html,body{{height:100%}}
-body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif;background:#07111f;color:#e8eef7;-webkit-font-smoothing:antialiased;overflow:hidden}}
-a{{text-decoration:none;color:inherit;display:block;height:100%}}
-.w{{padding:18px 22px;height:100%;display:flex;flex-direction:column;gap:14px;border:1px solid #1e3a5f;border-radius:14px;background:linear-gradient(180deg,{color_soft} 0%,transparent 55%);position:relative}}
-.head{{display:flex;align-items:center;justify-content:space-between}}
-.brand{{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#9fb2cc;font-weight:800}}
-.brand b{{color:#fff}}
-.tag{{font-size:10px;color:{color};background:{color_soft};padding:4px 10px;border-radius:999px;letter-spacing:.1em;font-weight:800;text-transform:uppercase}}
-.body{{display:grid;grid-template-columns:1fr 1fr;gap:16px;flex:1;align-items:center}}
-.col-left{{text-align:center;border-right:1px solid #1e3a5f;padding-right:16px}}
-.col-right{{text-align:center}}
-.col-lbl{{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#6b7e98;font-weight:700;margin-bottom:6px}}
-.countdown{{font-size:48px;font-weight:800;color:#fff;letter-spacing:-.04em;line-height:1;font-family:'JetBrains Mono',ui-monospace,monospace}}
-.countdown-unit{{font-size:12px;color:#9fb2cc;margin-top:6px;font-weight:600}}
-.score{{font-size:54px;font-weight:800;color:{color};letter-spacing:-.04em;line-height:1;font-family:'JetBrains Mono',ui-monospace,monospace}}
-.score-status{{font-size:11px;font-weight:800;color:{color};text-transform:uppercase;letter-spacing:.1em;margin-top:6px}}
-.foot{{font-size:9px;color:#6b7e98;letter-spacing:.08em;text-align:center;border-top:1px solid #1e3a5f;padding-top:10px}}
-.foot b{{color:#fff;font-weight:700}}
-</style></head>
-<body><a href="https://www.studentloansindex.com/july1?utm_source=embed&utm_medium=july1-widget" target="_blank" rel="noopener">
-<div class="w">
-  <div class="head">
-    <span class="brand">Loan Clarity · <b>July 1 Tracker</b></span>
-    <span class="tag">LIVE</span>
-  </div>
-  <div class="body">
-    <div class="col-left">
-      <div class="col-lbl">Days until July 1</div>
-      <div class="countdown" id="cd">--</div>
-      <div class="countdown-unit" id="cdu">calculating</div>
-    </div>
-    <div class="col-right">
-      <div class="col-lbl">Borrower stress today</div>
-      <div class="score">{score}</div>
-      <div class="score-status">{status}</div>
-    </div>
-  </div>
-  <div class="foot">studentloansindex.com/july1 ↗ · Updates every Friday</div>
-</div>
-</a>
-<script>
-function tick() {{
-  var target = new Date(Date.UTC(2026, 6, 1, 4, 0, 0)); // July 1, 2026 00:00 ET (UTC-4)
-  var now = new Date();
-  var ms = target - now;
-  if (ms <= 0) {{
-    document.getElementById('cd').textContent = '0';
-    document.getElementById('cdu').textContent = 'live now';
-    return;
-  }}
-  var days  = Math.floor(ms / 86400000);
-  var hours = Math.floor((ms % 86400000) / 3600000);
-  document.getElementById('cd').textContent = days;
-  document.getElementById('cdu').textContent = days === 1 ? 'day · ' + hours + 'h' : 'days · ' + hours + 'h';
-}}
-tick(); setInterval(tick, 60000);
-</script>
-</body></html>"""
-
-    return Response(
-        content=html,
-        media_type="text/html",
-        headers={
-            "X-Frame-Options":          "ALLOWALL",
-            "Content-Security-Policy":  "frame-ancestors *",
-            "Cache-Control":            "public, max-age=300",
-            "Access-Control-Allow-Origin": "*",
-        },
-    )
-
-
-# ─── Static Page Routes ───────────────────────────────────────────────────────
-# All HTML pages set Cache-Control: no-cache so browsers always re-fetch the
-# latest version after a deploy — never serve stale nav/copy from cache.
-
-_NO_CACHE_HEADERS = {
-    "Cache-Control": "no-cache, no-store, must-revalidate",
-    "Pragma":        "no-cache",
-    "Expires":       "0",
-}
+    """Retired July 1 embed — redirect to the general index embed."""
+    return RedirectResponse(url="/embed/index", status_code=307)
 
 
 def _serve_html(filename: str) -> FileResponse:
