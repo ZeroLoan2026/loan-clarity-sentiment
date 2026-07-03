@@ -3246,6 +3246,13 @@ async def serve_july1_embed():
     return RedirectResponse(url="/embed/index", status_code=307)
 
 
+_NO_CACHE_HEADERS = {
+    "Cache-Control": "no-cache, no-store, must-revalidate",
+    "Pragma":        "no-cache",
+    "Expires":       "0",
+}
+
+
 def _serve_html(filename: str) -> FileResponse:
     return FileResponse(
         Path(__file__).parent / filename,
