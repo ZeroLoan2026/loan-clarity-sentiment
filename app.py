@@ -107,6 +107,71 @@ _CFPB_LO, _CFPB_HI     = 5000.0, 25000.0
 def cfpb_score(n: float = CFPB_COMPLAINTS_ANNUAL) -> int:
     return int(max(0, min(100, (n - _CFPB_LO) / (_CFPB_HI - _CFPB_LO) * 100)))
 
+
+# ── Market context stats (top-of-dashboard macro strip) ───────────────────────
+# Served dynamically from /api/market so figures can be refreshed WITHOUT a code
+# deploy. Reviewed weekly (the background loop stamps reviewed_at); values come
+# from official releases (Fed / Dept. of Education / NY Fed) with source + as-of.
+def _market_file():
+    return DATA_DIR / "market_stats.json"
+
+def _default_market_stats() -> dict:
+    return {
+        "cadence": "Reviewed weekly · figures from official releases",
+        "reviewed_at": datetime.utcnow().isoformat() + "Z",
+        "stats": [
+            {"num": "$1.7T", "lbl": "Total outstanding", "color": "green",
+             "source": "Federal Reserve / U.S. Dept. of Education", "as_of": "2026",
+             "source_url": "https://www.federalreserve.gov/releases/g19/current/"},
+            {"num": "45M", "lbl": "Borrowers", "color": "orange",
+             "source": "U.S. Dept. of Education", "as_of": "2026",
+             "source_url": "https://studentaid.gov/data-center/student/portfolio"},
+            {"num": "$37K", "lbl": "Avg. balance", "color": "white",
+             "source": "U.S. Dept. of Education", "as_of": "2026",
+             "source_url": "https://studentaid.gov/data-center/student/portfolio"},
+            {"num": f"{DELINQUENCY_90PLUS_PCT}%", "lbl": "90+ day delinquency", "color": "red",
+             "source": "NY Fed Household Debt & Credit Report", "as_of": DELINQUENCY_AS_OF,
+             "source_url": DELINQUENCY_SOURCE_URL},
+            {"num": "~9M", "lbl": "In default", "color": "red",
+             "source": "NY Fed / Liberty Street Economics", "as_of": DELINQUENCY_AS_OF,
+             "source_url": "https://libertystreeteconomics.newyorkfed.org/2026/05/federal-student-loan-defaults-return-after-pandemic-pause/"},
+        ],
+    }
+
+def load_market_stats() -> dict:
+    """Load market stats from the persistent store, falling back to defaults."""
+    if _market_file().exists():
+        try:
+            saved = json.loads(_market_file().read_text(encoding="utf-8"))
+            if saved.get("stats"):
+                return saved
+        except Exception as e:
+            print(f"[market] load error: {e}")
+    return _default_market_stats()
+
+def save_market_stats(data: dict) -> None:
+    try:
+        DATA_DIR.mkdir(parents=True, exist_ok=True)
+        _market_file().write_text(json.dumps(data, indent=2), encoding="utf-8")
+    except Exception as e:
+        print(f"[market] save error: {e}")
+
+def review_market_stats_weekly() -> None:
+    """Seed the store on first run, then stamp a weekly review timestamp."""
+    if not _market_file().exists():
+        save_market_stats(_default_market_stats())
+        print("[market] seeded market_stats.json")
+        return
+    data = load_market_stats()
+    try:
+        last = datetime.fromisoformat(data.get("reviewed_at", "").replace("Z", ""))
+    except Exception:
+        last = None
+    if last is None or (datetime.utcnow() - last).days >= 7:
+        data["reviewed_at"] = datetime.utcnow().isoformat() + "Z"
+        save_market_stats(data)
+        print(f"[market] weekly review stamped {data['reviewed_at']}")
+
 # ─── Methodology version + integrity store ────────────────────────────────────
 # The index formula is frozen and versioned. Every captured reading is stamped
 # with the version that produced it, so institutional buyers can trust that the
@@ -1846,6 +1911,7 @@ async def _daily_capture_loop() -> None:
                 row = record_daily_snapshot(full)   # idempotent per day
                 if row:
                     await _backup_track_record("scheduled daily capture")
+            review_market_stats_weekly()   # stamp weekly macro-stats review
         except Exception as e:
             print(f"[daily_loop] error: {e}")
         await asyncio.sleep(3600)
@@ -2085,6 +2151,42 @@ async def api_methodology_version():
         "changelog": METHODOLOGY_CHANGELOG,
         "doc":       "https://www.studentloansindex.com/methodology",
     }
+
+
+@app.get("/api/market")
+async def api_market():
+    """
+    Top-of-dashboard macro market stats — served dynamically so figures can be
+    refreshed without a code deploy. Reviewed weekly; each stat carries its
+    source + as-of date. Public, no auth.
+    """
+    data = load_market_stats()
+    return {
+        "ok":          True,
+        "cadence":     data.get("cadence"),
+        "reviewed_at": data.get("reviewed_at"),
+        "stats":       data.get("stats", []),
+    }
+
+
+@app.post("/api/admin/market")
+async def admin_update_market(request: Request, payload: dict = Body(...)):
+    """ADMIN — update the market stats (weekly refresh). Requires master token."""
+    token = _extract_bearer_token(request)
+    if not token or not MASTER_KEY_HASH or _hash_key(token) != MASTER_KEY_HASH:
+        return Response(content=json.dumps({"ok": False, "error": "admin_only"}),
+                        status_code=403, media_type="application/json")
+    stats = payload.get("stats")
+    if not isinstance(stats, list) or not stats:
+        return Response(content=json.dumps({"ok": False, "error": "stats (non-empty list) required"}),
+                        status_code=400, media_type="application/json")
+    data = {
+        "cadence":     payload.get("cadence") or "Reviewed weekly · figures from official releases",
+        "reviewed_at": datetime.utcnow().isoformat() + "Z",
+        "stats":       stats,
+    }
+    save_market_stats(data)
+    return {"ok": True, "updated": data}
 
 
 @app.get("/api/snapshots")

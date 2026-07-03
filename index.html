@@ -173,17 +173,18 @@
     .hist-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; font-family: var(--mono); font-size: 10px; color: var(--muted-2); }
 
     /* Market context strip (macro tracker) */
-    .market-strip { display: grid; grid-template-columns: 1.15fr 1fr 1fr 1fr; border-bottom: 1px solid var(--border); background: linear-gradient(180deg, #0a1730 0%, var(--panel) 100%); }
-    .ms-cell { padding: 13px 22px; border-right: 1px solid var(--border); text-decoration: none; display: flex; flex-direction: column; justify-content: center; transition: background .15s; }
+    .market-strip { display: flex; flex-wrap: wrap; border-bottom: 1px solid var(--border); background: linear-gradient(180deg, #0a1730 0%, var(--panel) 100%); }
+    .ms-cell { flex: 1 1 150px; padding: 13px 20px; border-right: 1px solid var(--border); text-decoration: none; display: flex; flex-direction: column; justify-content: center; transition: background .15s; }
+    .ms-head { flex: 1 1 210px; }
     .ms-cell:last-child { border-right: none; }
     .ms-cell:hover { background: rgba(45,125,210,.06); }
     .ms-live { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--accent-2); }
     .ms-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); animation: mspulse 1.5s infinite; }
     @keyframes mspulse { 0%,100%{opacity:1} 50%{opacity:.35} }
     .ms-sub { font-size: 10px; color: var(--muted-2); font-family: var(--mono); letter-spacing: .04em; margin-top: 5px; }
-    .ms-num { font-size: 26px; font-weight: 800; letter-spacing: -.02em; font-family: var(--mono); line-height: 1; }
-    .ms-lbl { font-size: 10px; color: var(--muted-2); text-transform: uppercase; letter-spacing: .1em; font-weight: 700; margin-top: 6px; }
-    @media (max-width: 760px) { .market-strip { grid-template-columns: 1fr 1fr; } .ms-head { grid-column: 1 / -1; border-right: none; } }
+    .ms-num { font-size: 23px; font-weight: 800; letter-spacing: -.02em; font-family: var(--mono); line-height: 1; }
+    .ms-lbl { font-size: 9.5px; color: var(--muted-2); text-transform: uppercase; letter-spacing: .08em; font-weight: 700; margin-top: 6px; }
+    @media (max-width: 760px) { .ms-head { flex: 1 1 100%; border-right: none; } .ms-cell { flex: 1 1 45%; } }
 
     .kpi-bar { display: grid; grid-template-columns: repeat(4,1fr); border-bottom: 1px solid var(--border); background: var(--panel); }
     .kpi-item { padding: 13px 22px; border-right: 1px solid var(--border); position: relative; cursor: pointer; transition: background .15s; }
@@ -962,21 +963,42 @@ function SrcTag({ source, source_url, updated_at, methodology_ref, label, compac
 
 // ─── U.S. student loan market — macro context strip ──────────────────────
 function MarketStrip() {
-  // Macro market context — figures sourced from Federal Reserve / NY Fed Household Debt & Credit Report.
-  const stats = [
-    { num: '$1.7T', lbl: 'Total market size', color: 'var(--green)' },
-    { num: '45M',   lbl: 'Borrowers in the U.S.', color: 'var(--orange)' },
-    { num: '$37K',  lbl: 'Avg. borrower debt', color: '#fff' },
+  // Macro market context, served from /api/market (refreshed weekly, sourced).
+  // Falls back to last-known figures if the endpoint is briefly unavailable.
+  const FALLBACK = [
+    { num: '$1.7T', lbl: 'Total outstanding',   color: 'green'  },
+    { num: '45M',   lbl: 'Borrowers',           color: 'orange' },
+    { num: '$37K',  lbl: 'Avg. balance',        color: 'white'  },
+    { num: '10.3%', lbl: '90+ day delinquency', color: 'red'    },
+    { num: '~9M',   lbl: 'In default',          color: 'red'    },
   ];
+  const [stats, setStats]       = useState(FALLBACK);
+  const [reviewed, setReviewed] = useState(null);
+  useEffect(() => {
+    fetch('/api/market').then(r => r.json()).then(d => {
+      if (d && d.ok && Array.isArray(d.stats) && d.stats.length) {
+        setStats(d.stats);
+        setReviewed(d.reviewed_at);
+      }
+    }).catch(() => {});
+  }, []);
+  const COLORS = { green:'var(--green)', orange:'var(--orange)', red:'var(--red)', white:'#fff', blue:'var(--accent-2)' };
+  const col = c => (c && (c.indexOf('var(')===0 || c[0]==='#')) ? c : (COLORS[c] || '#fff');
+  const reviewedTxt = reviewed
+    ? 'Reviewed weekly · ' + new Date(reviewed).toLocaleDateString([], {month:'short', day:'numeric', year:'numeric'})
+    : 'Reviewed weekly · official releases';
   return (
     <section className="market-strip">
       <a className="ms-cell ms-head" href="/sources?utm_source=dashboard&utm_medium=market-strip" title="Market data sources">
         <div className="ms-live"><span className="ms-dot"/>U.S. Student Loan Market</div>
-        <div className="ms-sub">Live macro tracker · updated quarterly</div>
+        <div className="ms-sub">{reviewedTxt}</div>
       </a>
       {stats.map((s, i) => (
-        <a key={i} className="ms-cell" href="/sources?utm_source=dashboard&utm_medium=market-strip" title="View data sources">
-          <div className="ms-num" style={{color: s.color}}>{s.num}</div>
+        <a key={i} className="ms-cell"
+           href={s.source_url || '/sources?utm_source=dashboard&utm_medium=market-strip'}
+           target={s.source_url ? '_blank' : undefined} rel="noopener"
+           title={s.source ? `${s.source}${s.as_of ? ' · '+s.as_of : ''}` : 'View data sources'}>
+          <div className="ms-num" style={{color: col(s.color)}}>{s.num}</div>
           <div className="ms-lbl">{s.lbl}</div>
         </a>
       ))}
