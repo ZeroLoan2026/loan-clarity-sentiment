@@ -525,6 +525,11 @@
         <div class="s-name">Apply weights, sum</div>
         <div class="s-desc">Multiply each normalized signal by its weight, sum the contributions, round to the nearest integer.</div>
       </div>
+      <div class="step">
+        <div class="s-num">STEP 5</div>
+        <div class="s-name">Smooth the published score</div>
+        <div class="s-desc">The published index is an exponential moving average — 70% prior reading, 30% current composite (v1.1.0). Genuine multi-day moves pass through within a few cycles; single-cycle noise cannot swing the headline number.</div>
+      </div>
     </div>
   </section>
 
@@ -577,8 +582,8 @@
 
     <div class="weight-grid">
       <div class="weight-card">
-        <div class="wc-head"><div class="wc-name">Frozen, versioned methodology</div><div class="wc-pct" style="color:var(--electric)">v1.0.0</div></div>
-        <div class="wc-desc">The formula — signals, normalization, weighting — is frozen as <b>v1.0.0</b> and stamped on every captured reading. It cannot change silently underneath you. Every revision is logged in a public <a href="/api/methodology/version" style="color:var(--electric)">version changelog</a>.</div>
+        <div class="wc-head"><div class="wc-name">Frozen, versioned methodology</div><div class="wc-pct" style="color:var(--electric)">v1.1.0</div></div>
+        <div class="wc-desc">The formula — signals, normalization, weighting, smoothing — is versioned as <b>v1.1.0</b> and stamped on every captured reading. It cannot change silently underneath you. Every revision is logged in a public <a href="/api/methodology/version" style="color:var(--electric)">version changelog</a>.</div>
       </div>
       <div class="weight-card">
         <div class="wc-head"><div class="wc-name">Append-only daily capture</div><div class="wc-pct" style="color:var(--neon)">Hash-chained</div></div>
