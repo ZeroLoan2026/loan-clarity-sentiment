@@ -368,7 +368,9 @@ function App() {
                 <div className="sig-big-icon reddit">r/</div>
                 <div style={{flex:1,marginLeft:12}}>
                   <div className="sig-big-label">Reddit Sentiment</div>
-                  <div className="sig-big-sub">AI-classified · {redditPostCount.toLocaleString()} posts · {windowDays}d</div>
+                  <div className="sig-big-sub">{data.ai_engine === 'fallback'
+                    ? <span style={{color:'#fbbf24'}}>⚠ baseline estimate — live AI analysis temporarily unavailable</span>
+                    : <>AI-classified · {redditPostCount.toLocaleString()} posts · {windowDays}d</>}</div>
                 </div>
               </div>
               <div className="sig-big-score" style={{color:'#ff4500'}}>{reddit.score ?? '—'}</div>
@@ -413,7 +415,9 @@ function App() {
                 ))}
               </div>
               <div style={{fontSize:11,color:'var(--muted-2)',fontFamily:'var(--mono)',marginTop:14,paddingTop:12,borderTop:'1px solid var(--border)'}}>
-                ◉ Loan Clarity AI · Classified from Reddit posts
+                {data.ai_engine === 'fallback'
+                  ? <span style={{color:'#fbbf24'}}>⚠ Baseline values — live AI classification temporarily unavailable</span>
+                  : <>◉ Loan Clarity AI · Classified from Reddit posts</>}
               </div>
             </div>
 

@@ -937,6 +937,7 @@ Reddit posts (sorted by engagement):
             if raw.startswith("json"):
                 raw = raw[4:]
         result = json.loads(raw.strip())
+        result["engine"] = "live"
         _save_state("sentiment_cache.json", {
             "key": posts_key, "at": datetime.utcnow().isoformat() + "Z",
             "result": result,
@@ -954,6 +955,7 @@ Reddit posts (sorted by engagement):
 
 def _claude_fallback() -> dict:
     return {
+        "engine": "fallback",
         "sentiment_score": 72,
         "anxiety": 0.75,
         "confusion": 0.45,
@@ -1286,11 +1288,16 @@ async def get_live_sentiment():
             **signal_payload(
                 "reddit", sentiment["sentiment_score"],
                 label="Reddit Sentiment (AI-classified)",
-                description=f"Loan Clarity AI analyzed {len(posts)} student-loan posts and scored borrower mood 0–100.",
+                description=(
+                    f"Loan Clarity AI analyzed {len(posts)} student-loan posts and scored borrower mood 0–100."
+                    if sentiment.get("engine", "live") == "live" else
+                    "Baseline estimate — the AI engine is temporarily unavailable; a historical baseline value is shown instead of a live analysis."
+                ),
                 raw=f"{len(posts)} posts",
                 methodology_anchor="reddit",
             ),
             "weight_tier": "Primary", "score": sentiment["sentiment_score"], "posts": len(posts),
+            "engine": sentiment.get("engine", "live"),
         },
         "cfpb": {
             **signal_payload(
@@ -1479,6 +1486,7 @@ async def get_live_sentiment():
         },
 
         # ── Narrative ───────────────────────────────────────────────
+        "ai_engine":        sentiment.get("engine", "live"),
         "ai_summary":       sentiment.get("summary", ""),
         "top_theme":        sentiment.get("top_theme", ""),
         "trending_topics":  sentiment.get("trending_topics", []),
@@ -4130,6 +4138,62 @@ async def serve_privacy():
 @app.get("/terms")
 async def serve_terms():
     return _serve_html("terms.html")
+
+
+@app.get("/embed-gallery")
+async def serve_embed_gallery():
+    return _serve_html("embed-gallery.html")
+
+
+@app.get("/og-card.png")
+async def serve_og_card():
+    return FileResponse(Path(__file__).parent / "og-card.png", media_type="image/png",
+                        headers={"Cache-Control": "public, max-age=86400"})
+
+
+# ─── SEO: robots.txt + sitemap.xml ────────────────────────────────────────────
+_SITE_BASE = "https://www.studentloansindex.com"
+_SITEMAP_PAGES = [
+    ("/",               "hourly",  "1.0"),
+    ("/social-signals", "hourly",  "0.9"),
+    ("/track-record",   "daily",   "0.9"),
+    ("/weekly",         "weekly",  "0.9"),
+    ("/methodology",    "monthly", "0.8"),
+    ("/tax-tool",       "monthly", "0.7"),
+    ("/api",            "monthly", "0.7"),
+    ("/sources",        "monthly", "0.6"),
+    ("/subscribe",      "monthly", "0.6"),
+    ("/embed-gallery",  "monthly", "0.5"),
+    ("/status",         "daily",   "0.3"),
+]
+
+
+@app.get("/robots.txt")
+async def serve_robots():
+    body = (
+        "User-agent: *\n"
+        "Allow: /\n"
+        "Disallow: /admin\n"
+        "Disallow: /api/admin/\n"
+        f"Sitemap: {_SITE_BASE}/sitemap.xml\n"
+    )
+    return Response(content=body, media_type="text/plain")
+
+
+@app.get("/sitemap.xml")
+async def serve_sitemap():
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+    urls = "".join(
+        f"<url><loc>{_SITE_BASE}{path}</loc><lastmod>{today}</lastmod>"
+        f"<changefreq>{freq}</changefreq><priority>{pri}</priority></url>"
+        for path, freq, pri in _SITEMAP_PAGES
+    )
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+        f"{urls}</urlset>"
+    )
+    return Response(content=xml, media_type="application/xml")
 
 
 # ─── Entry point ──────────────────────────────────────────────────────────────

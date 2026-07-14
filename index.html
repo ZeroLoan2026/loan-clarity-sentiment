@@ -5,6 +5,20 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Loan Clarity — How stressed are student loan borrowers right now?</title>
+  <!-- Social share cards -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Loan Clarity — Borrower Sentiment Index" />
+  <meta property="og:title" content="Loan Clarity — How stressed are student loan borrowers right now?" />
+  <meta property="og:description" content="The real-time stress index for 45 million student loan borrowers. You're not crazy. Your panic is data." />
+  <meta property="og:url" content="https://www.studentloansindex.com/" />
+  <meta property="og:image" content="https://www.studentloansindex.com/og-card.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Loan Clarity — How stressed are student loan borrowers right now?" />
+  <meta name="twitter:description" content="The real-time stress index for 45 million student loan borrowers. You're not crazy. Your panic is data." />
+  <meta name="twitter:image" content="https://www.studentloansindex.com/og-card.png" />
+
   <meta name="description" content="The real-time stress index for 45 million student loan borrowers. You're not crazy. Your panic is data."/>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -1476,6 +1490,10 @@ function App() {
               <div className="hero-status-sub">
                 Feeling primarily <b style={{color:sc}}>{leadingName.toLowerCase()}</b> · {d.timestamp}
               </div>
+              {data.ai_engine === 'fallback' &&
+                <div style={{fontSize:11,color:'#fbbf24',fontFamily:'var(--mono)',marginTop:6}}>
+                  ⚠ Emotion read uses baseline values — live AI analysis temporarily unavailable
+                </div>}
               {wkLo!=null && wkHi!=null &&
                 <div style={{fontSize:11,color:'var(--muted-2)',fontFamily:'var(--mono)',marginTop:6,letterSpacing:'.03em'}}>
                   7-day range <b style={{color:'var(--muted)'}}>{wkLo}–{wkHi}</b> · <a href="/methodology#reading-the-index" style={{color:'var(--accent-2)'}}>how to read a move ↗</a>
