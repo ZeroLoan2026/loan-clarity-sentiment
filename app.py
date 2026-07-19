@@ -1019,134 +1019,90 @@ def build_trend_history(current_score: int) -> list[dict]:
 
 
 def build_multi_window_history(current_score: int) -> dict:
-    """Generate index history for 8 time windows: 1D, 1W, 1M, 3M, 6M, 1Y, 3Y, 5Y.
+    """Multi-window index history built from the REAL daily snapshot record.
 
-    Each window returns: { points: [{label, value}], delta, delta_pct, start, end }
-    Historical narrative roughly mirrors real student-loan stress arc:
-      - 5Y ago (2021): pandemic forbearance, calm → low score
-      - 3Y ago (2023): forbearance extending
-      - 18M ago (Q4 2024): restart announcement
-      - 12M ago (Q2 2025): repayment restart begins
-      - 6M ago (Q4 2025): SAVE plan injunction → spike
-      - now: elevated
+    No synthetic data: every point is an official captured reading. Windows
+    longer than the record report available=False with progress metadata so
+    the UI can show "unlocks as the record grows" instead of fabricated
+    history. The last point of any available window is pinned to the live
+    published score so the chart always agrees with the headline number.
     """
-    rng = random.Random(datetime.now().strftime("%Y%m%d"))
-    now = datetime.now()
+    rows = _load_daily_snapshots()
+    n = len(rows)
+    record_began = rows[0]["date"] if rows else None
 
-    def make_window(points):
-        # Pin last point to current score
-        points[-1]["value"] = current_score
-        start = points[0]["value"]
-        delta = current_score - start
+    def _label(datestr: str, fmt: str) -> str:
+        try:
+            return datetime.strptime(datestr, "%Y-%m-%d").strftime(fmt)
+        except Exception:
+            return datestr
+
+    def real_window(days_span: int, label_fmt: str, label_every: int = 1):
+        take = rows[-days_span:] if days_span < n else rows
+        pts = [
+            {"label": _label(r["date"], label_fmt) if i % label_every == 0 else "",
+             "value": r["index_score"]}
+            for i, r in enumerate(take)
+        ]
+        if pts:
+            pts[-1]["value"] = current_score
+        start_v = pts[0]["value"] if pts else current_score
+        delta = current_score - start_v
         return {
-            "points": points,
-            "start": start,
+            "available": True,
+            "points": pts,
+            "start": start_v,
             "end": current_score,
             "delta": delta,
-            "delta_pct": round((delta / start) * 100, 1) if start else 0,
+            "delta_pct": round((delta / start_v) * 100, 1) if start_v else 0,
+            "record_days": n,
         }
 
-    # ── 1D: 24 hourly ticks ──────────────────────────────────────
-    one_day = []
-    for i in range(24):
-        t = now - timedelta(hours=23 - i)
-        v = current_score + rng.randint(-3, 3)
-        one_day.append({"label": t.strftime("%H:00"), "value": max(5, min(95, v))})
+    def building(needed_days: int):
+        return {
+            "available": False,
+            "points": [],
+            "start": None, "end": current_score, "delta": 0, "delta_pct": 0,
+            "record_days": n,
+            "needed_days": needed_days,
+            "record_began": record_began,
+            "note": "The official record began "
+                    f"{record_began or 'recently'} — this window unlocks as the "
+                    "record grows. Readings are never backfilled or simulated.",
+        }
 
-    # ── 1W: 7 daily ticks ────────────────────────────────────────
-    one_week = []
-    for i in range(7):
-        t = now - timedelta(days=6 - i)
-        v = current_score + rng.randint(-5, 5)
-        one_week.append({"label": t.strftime("%a"), "value": max(5, min(95, v))})
-
-    # ── 1M: 30 daily ticks ───────────────────────────────────────
-    one_month = []
-    for i in range(30):
-        t = now - timedelta(days=29 - i)
-        # Mild downtrend approaching present
-        baseline = current_score - 4 + (i * 4 / 29)
-        v = int(baseline + rng.randint(-5, 5))
-        label = t.strftime("%d") if i % 3 == 0 else ""
-        one_month.append({"label": label, "value": max(5, min(95, v))})
-
-    # ── 3M: 13 weekly ticks ──────────────────────────────────────
-    three_month = []
-    for i in range(13):
-        t = now - timedelta(weeks=12 - i)
-        # 3M ago was ~8 pts lower
-        baseline = current_score - 8 + (i * 8 / 12)
-        v = int(baseline + rng.randint(-4, 4))
-        label = t.strftime("%b %d") if i % 2 == 0 else ""
-        three_month.append({"label": label, "value": max(5, min(95, v))})
-
-    # ── 6M: 12 bi-weekly ticks ───────────────────────────────────
-    six_month = []
-    for i in range(12):
-        t = now - timedelta(weeks=2 * (11 - i))
-        baseline = current_score - 14 + (i * 14 / 11)
-        v = int(baseline + rng.randint(-5, 5))
-        label = t.strftime("%b %d") if i % 2 == 0 else ""
-        six_month.append({"label": label, "value": max(5, min(95, v))})
-
-    # ── 1Y: 12 monthly ticks ─────────────────────────────────────
-    one_year = []
-    for i in range(12):
-        # 1y ago (post-restart): ~ current - 20
-        t = (now.replace(day=1) - timedelta(days=30 * (11 - i)))
-        baseline = (current_score - 22) + (i * 22 / 11)
-        v = int(baseline + rng.randint(-6, 6))
-        one_year.append({"label": t.strftime("%b"), "value": max(5, min(95, v))})
-
-    # ── 3Y: 12 quarterly ticks ───────────────────────────────────
-    three_year = []
-    for i in range(12):
-        progress = i / 11.0
-        # 3Y arc: forbearance era ~30 → restart era → current
-        baseline = 28 + (current_score - 28) * (progress ** 1.2)
-        t = now - timedelta(days=90 * (11 - i))
-        q = ((t.month - 1) // 3) + 1
-        label = f"Q{q} '{t.strftime('%y')}"
-        v = int(baseline + rng.randint(-5, 5))
-        three_year.append({"label": label, "value": max(5, min(95, v))})
-
-    # ── 5Y: 20 quarterly ticks ───────────────────────────────────
-    five_year = []
-    for i in range(20):
-        progress = i / 19.0
-        # Multi-phase narrative
-        if progress < 0.25:        # 5Y → 4Y ago: pandemic forbearance, calm
-            baseline = 22 + progress * 32
-        elif progress < 0.55:      # 4Y → 2.5Y ago: extended forbearance
-            baseline = 30 + (progress - 0.25) * 20
-        elif progress < 0.75:      # 2.5Y → 1.5Y ago: restart announcement
-            baseline = 38 + (progress - 0.55) * 90
-        else:                       # 1.5Y → now: restart + SAVE chaos
-            baseline = 56 + (progress - 0.75) * ((current_score - 56) / 0.25)
-        t = now - timedelta(days=90 * (19 - i))
-        q = ((t.month - 1) // 3) + 1
-        label = f"Q{q} '{t.strftime('%y')}" if i % 2 == 0 else ""
-        v = int(baseline + rng.randint(-6, 6))
-        five_year.append({"label": label, "value": max(5, min(95, v))})
+    def window_for(days: int, label_fmt: str, label_every: int):
+        return real_window(days, label_fmt, label_every) if n >= days else building(days)
 
     return {
-        "1D": make_window(one_day),
-        "1W": make_window(one_week),
-        "1M": make_window(one_month),
-        "3M": make_window(three_month),
-        "6M": make_window(six_month),
-        "1Y": make_window(one_year),
-        "3Y": make_window(three_year),
-        "5Y": make_window(five_year),
+        "1D": building(1) if n == 0 else {
+            # One official reading per day — 1D is the current reading only.
+            "available": True,
+            "points": [{"label": "today", "value": current_score}],
+            "start": current_score, "end": current_score,
+            "delta": 0, "delta_pct": 0, "record_days": n,
+        },
+        "1W": window_for(7, "%a", 1),
+        "1M": window_for(30, "%d", 3),
+        "3M": window_for(90, "%b %d", 7),
+        "6M": window_for(180, "%b %d", 14),
+        "1Y": window_for(365, "%b", 30),
+        "3Y": window_for(1095, "Q%m'%y", 90),
+        "5Y": window_for(1825, "Q%m'%y", 90),
     }
 
 
-def compute_drivers(current: dict, claude_drivers: list[str]) -> dict:
-    """Compute 'Why The Index Moved' — compare current signals to prior snapshot."""
+def compute_drivers(current: dict, claude_drivers: list[str], engine: str = "live") -> dict:
+    """Compute 'Why The Index Moved' — compare current signals to prior snapshot.
+
+    Narrative drivers must never contradict the direction of the move: when the
+    AI engine is not live, canned narratives are replaced with drivers derived
+    from the actual signal deltas.
+    """
     global _prior_reading
     now_score = current["index_score"]
+    use_narrative = engine == "live" and bool(claude_drivers)
 
-    # If no prior or prior is stale, use Claude's narrative drivers only
     if not _prior_reading:
         return {
             "current": now_score,
@@ -1154,11 +1110,8 @@ def compute_drivers(current: dict, claude_drivers: list[str]) -> dict:
             "delta": 0,
             "direction": "flat",
             "window": "first reading",
-            "drivers": claude_drivers or [
-                "spike in SAVE plan uncertainty",
-                "increase in delinquency discussions",
-                "rise in refinance-related searches",
-            ],
+            "drivers": (claude_drivers if use_narrative
+                        else ["first reading of this session — no prior comparison yet"]),
             "signal_deltas": [],
         }
 
@@ -1182,13 +1135,30 @@ def compute_drivers(current: dict, claude_drivers: list[str]) -> dict:
             })
     signal_deltas.sort(key=lambda x: abs(x["delta"]), reverse=True)
 
+    # Direction-consistent drivers derived from the numbers themselves
+    _NAMES = {
+        "google_trends": "distress-related search volume",
+        "reddit": "borrower-community sentiment",
+        "cfpb": "CFPB complaint pressure",
+        "delinquency": "delinquency trend",
+        "refinance": "refinance-demand searches",
+    }
+    delta_drivers = []
+    for sd in signal_deltas[:3]:
+        key = sd["name"].lower().replace(" ", "_")
+        nice = _NAMES.get(key, sd["name"].lower())
+        verb = "rise" if sd["delta"] > 0 else "drop"
+        delta_drivers.append(f"{verb} in {nice} ({sd['from']} → {sd['to']})")
+    if not delta_drivers:
+        delta_drivers = ["no single signal moved materially — smoothing carried the composite"]
+
     return {
         "current": now_score,
         "prior": prior_score,
         "delta": delta,
         "direction": direction,
         "window": "vs. prior reading",
-        "drivers": claude_drivers or ["Mixed signal movement across sources"],
+        "drivers": claude_drivers if use_narrative else delta_drivers,
         "signal_deltas": signal_deltas[:4],
     }
 
@@ -1508,7 +1478,7 @@ async def get_live_sentiment():
     }
 
     # ── Compute drivers (vs prior reading) ───────────────────────────
-    result["drivers"] = compute_drivers(result, sentiment.get("drivers", []))
+    result["drivers"] = compute_drivers(result, sentiment.get("drivers", []), engine=sentiment.get("engine", "live"))
 
     # ── Rotate prior snapshot weekly ─────────────────────────────────
     if not _prior_timestamp or (now - _prior_timestamp).total_seconds() > PRIOR_REFRESH_SECONDS:
@@ -2678,39 +2648,30 @@ async def api_history(request: Request, days: int = 90):
         full = await get_live_sentiment()
         current_score = int(full.get("index_score", 70))
 
-    # Build day-by-day history walking backward from today.
-    # Uses build_multi_window_history as a deterministic-but-realistic
-    # generator (smooth random walk anchored to current score).
-    rng = random.Random(20260524)  # stable seed for reproducible history
-    history = []
-    score = current_score
-    today = datetime.utcnow().date()
-    for d in range(days):
-        date = today - timedelta(days=d)
-        # Gentle mean-reverting random walk
-        drift = rng.randint(-2, 2)
-        if score > 75:
-            drift -= 1  # pull down from extremes
-        elif score < 35:
-            drift += 1
-        if d > 0:
-            score = max(15, min(92, score + drift))
-        history.append({
-            "date":   date.strftime("%Y-%m-%d"),
-            "score":  score if d > 0 else current_score,
-            "status": status_label(score if d > 0 else current_score),
-        })
-    history.reverse()  # oldest first
+    # Real official record only — one immutable reading per day, never
+    # simulated or backfilled. Requests beyond the record return what exists.
+    rows = _load_daily_snapshots()
+    take = rows[-days:] if days < len(rows) else rows
+    history = [
+        {"date": r["date"], "score": r["index_score"],
+         "status": r.get("status") or status_label(r["index_score"])}
+        for r in take
+    ]
 
     payload = {
-        "days":     days,
+        "days":     len(history),
+        "days_requested": days,
         "current":  current_score,
+        "record_began": rows[0]["date"] if rows else None,
         "history":  history,
         "_meta": {
             "methodology": "https://studentloansindex.com/methodology",
             "docs":        "https://studentloansindex.com/api",
             "tier":        tier,
-            "note":        "Historical series. For tick-level or intraday data, contact zeroloan000@gmail.com.",
+            "note": ("Official daily record — tamper-evident, never backfilled. "
+                     "The record began on the date in record_began; requests for "
+                     "longer ranges return all available readings. "
+                     "Verify integrity at /api/verify."),
         },
     }
     return Response(
@@ -2723,23 +2684,17 @@ async def api_history(request: Request, days: int = 90):
 @app.get("/api/sample.csv")
 async def api_sample_csv():
     """
-    Downloadable 30-day SAMPLE dataset — an illustrative daily series so
-    evaluators can see the shape of the data. Clearly labelled SAMPLE; licensed
-    partners receive the full, real historical series under contract.
+    Downloadable 30-day dataset — the most recent official daily readings
+    (real captured data, never simulated). Licensed partners receive the full
+    historical series under contract.
     """
-    data = await get_live_sentiment()
-    current = int(data["index_score"])
-    rng = random.Random(datetime.now().strftime("%Y%m%d"))
-    now = datetime.now()
-
+    rows = _load_daily_snapshots()[-30:]
     lines = ["date,index_score,status,change_1d"]
     prev = None
-    for i in range(30):
-        t = now - timedelta(days=29 - i)
-        baseline = current - 4 + (i * 4 / 29)
-        v = current if i == 29 else int(max(5, min(95, baseline + rng.randint(-5, 5))))
+    for r in rows:
+        v = r["index_score"]
         change = "" if prev is None else f"{v - prev:+d}"
-        lines.append(f"{t.strftime('%Y-%m-%d')},{v},{status_label(v)},{change}")
+        lines.append(f"{r['date']},{v},{r.get('status') or status_label(v)},{change}")
         prev = v
 
     csv_text = "\n".join(lines) + "\n"
@@ -2747,7 +2702,7 @@ async def api_sample_csv():
         content=csv_text,
         media_type="text/csv",
         headers={
-            "Content-Disposition": 'attachment; filename="loan-clarity-borrower-sentiment-SAMPLE-30d.csv"',
+            "Content-Disposition": 'attachment; filename="loan-clarity-borrower-sentiment-30d.csv"',
             "Cache-Control": "no-store",
         },
     )

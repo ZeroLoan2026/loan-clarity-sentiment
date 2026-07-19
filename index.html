@@ -1026,11 +1026,14 @@ const WINDOWS = ['1W','1M','3M','6M','1Y','5Y'];
 const FREE_WINDOW = '1W';
 function HistoryChart({ history, currentScore }) {
   const [win, setWin] = useState(FREE_WINDOW);
-  const isLocked = win !== FREE_WINDOW;
+  // A window is "building" when the official record doesn't yet span it —
+  // no synthetic history is ever shown or sold for those ranges.
+  const isBuilding = history && history[win] && history[win].available === false;
+  const isLocked = win !== FREE_WINDOW && !isBuilding;
 
   // Use the 1W data underneath the paywall overlay so the locked tab still
   // shows a teaser chart (the same 7-day data, just with overlay on top).
-  const dataWin = isLocked ? FREE_WINDOW : win;
+  const dataWin = (isLocked || isBuilding) ? FREE_WINDOW : win;
   if (!history || !history[dataWin]) return null;
   const data = history[dataWin];
   const points = data.points;
@@ -1060,12 +1063,13 @@ function HistoryChart({ history, currentScore }) {
         <div className="hist-title-block">
           <div>
             <div className="hist-title">
-              Borrower Stress Index · {winLabels[isLocked ? win : FREE_WINDOW]}
+              Borrower Sentiment Index · {winLabels[(isLocked || isBuilding) ? win : FREE_WINDOW]}
               {isLocked && <span style={{marginLeft:8,fontSize:'11px',color:'#5ba3ec',fontWeight:700,letterSpacing:'.08em'}}>🔒 PRO</span>}
+              {isBuilding && <span style={{marginLeft:8,fontSize:'11px',color:'#00e5a8',fontWeight:700,letterSpacing:'.08em'}}>⏳ BUILDING</span>}
             </div>
             <div style={{display:'flex',alignItems:'baseline',gap:10,marginTop:4}}>
               <div className="hist-now">{currentScore}</div>
-              {!isLocked && (
+              {!isLocked && !isBuilding && (
                 <>
                   <div className={`hist-delta ${dirCls}`}>{sign}{data.delta} ({sign}{data.delta_pct}%)</div>
                   <div className="hist-windowlabel">vs {FREE_WINDOW} ago</div>
@@ -1074,17 +1078,22 @@ function HistoryChart({ history, currentScore }) {
               {isLocked && (
                 <div className="hist-windowlabel" style={{color:'#5ba3ec'}}>Subscribe to Pro for full history →</div>
               )}
+              {isBuilding && (
+                <div className="hist-windowlabel" style={{color:'#00e5a8'}}>Real readings only — unlocks as the record grows</div>
+              )}
             </div>
           </div>
         </div>
         <div className="hist-tabs" role="tablist">
           {WINDOWS.map(w => {
-            const locked = w !== FREE_WINDOW;
+            const building = history && history[w] && history[w].available === false;
+            const locked = w !== FREE_WINDOW && !building;
             const cls = `hist-tab ${win===w?'active':''} ${locked?'locked':''}`;
             return (
               <button key={w} className={cls} onClick={()=>setWin(w)} role="tab"
-                      title={locked ? 'Pro subscribers only — click to learn more' : 'Free'}>
-                {w}{locked && <span className="lock-icon">🔒</span>}
+                      title={building ? 'The official record does not span this range yet'
+                             : locked ? 'Pro subscribers only — click to learn more' : 'Free'}>
+                {w}{building ? <span className="lock-icon">⏳</span> : locked && <span className="lock-icon">🔒</span>}
               </button>
             );
           })}
@@ -1121,7 +1130,7 @@ function HistoryChart({ history, currentScore }) {
             <div className="hist-paywall-icon">🔒</div>
             <div className="hist-paywall-title">{winLabels[win]} is a Pro feature</div>
             <div className="hist-paywall-desc">
-              See {win} of historical data, deeper trend analysis, and backtest the index against your portfolio. Pro subscribers get all 6 time ranges plus the live tracker.
+              See {win} of official daily readings, deeper trend analysis, and backtest the index against your portfolio.
             </div>
             <a href="/subscribe?utm_source=dashboard&utm_medium=chart-paywall&utm_campaign=range-locked" className="hist-paywall-cta">
               Unlock with Pro — $500/mo →
@@ -1129,10 +1138,24 @@ function HistoryChart({ history, currentScore }) {
             <div className="hist-paywall-meta">FREE TIER · 1W ONLY · CANCEL ANYTIME</div>
           </div>
         )}
+        {isBuilding && (
+          <div className="hist-paywall">
+            <div className="hist-paywall-icon">⏳</div>
+            <div className="hist-paywall-title">The record doesn't reach back {winLabels[win].replace('Last ','')} yet</div>
+            <div className="hist-paywall-desc">
+              The official daily record began {history[win].record_began || 'June 2026'} — {history[win].record_days || 0} of {history[win].needed_days} days captured so far.
+              We never simulate or backfill history, so this window unlocks only as real readings accumulate.
+            </div>
+            <a href="/track-record" className="hist-paywall-cta" style={{background:'#0d3b2e',borderColor:'#00e5a8',color:'#00e5a8'}}>
+              See the official track record →
+            </a>
+            <div className="hist-paywall-meta">REAL READINGS ONLY · TAMPER-EVIDENT · NEVER BACKFILLED</div>
+          </div>
+        )}
 
         <div className="hist-foot">
-          <div>Source · Loan Clarity proprietary weighted index</div>
-          <div>{isLocked ? 'Pro tier — full history available' : `${points.length} data points`}</div>
+          <div>Source · Loan Clarity official daily record</div>
+          <div>{isLocked ? 'Pro tier — full history available' : isBuilding ? `${history[win].record_days || 0} days captured` : `${points.length} data points`}</div>
         </div>
       </div>
     </div>
@@ -1465,11 +1488,11 @@ function App() {
         <span className="prov-src">Reddit</span>
       </a>
 
-      {/* ════════════ HERO 1 — Borrower Stress Index (main feature) ═══════════ */}
+      {/* ════════════ HERO 1 — Borrower Sentiment Index (main feature) ═══════════ */}
       <section className="hero-stress">
         <div className="hero-head">
           <div>
-            <div className="hero-label">Borrower Stress Index<span className="hero-tm">™</span> · Live</div>
+            <div className="hero-label">Borrower Sentiment Index<span className="hero-tm">™</span> · Live</div>
             <div style={{fontSize:10,color:'var(--muted-2)',fontFamily:'var(--mono)',marginTop:4,letterSpacing:'.06em'}}>
               EDUCATIONAL DATA TOOL · NOT FINANCIAL ADVICE · <a href="/methodology" style={{color:'var(--muted-2)'}}>HOW IT WORKS</a>
             </div>
@@ -1488,7 +1511,7 @@ function App() {
             <div {...linkTo('/methodology')}>
               <div className="hero-status-line" style={{color:sc}}>Status: {d.status.toUpperCase()}</div>
               <div className="hero-status-sub">
-                Feeling primarily <b style={{color:sc}}>{leadingName.toLowerCase()}</b> · {d.timestamp}
+                Dominant emotion in borrower posts: <b style={{color:sc}}>{leadingName.toLowerCase()}</b> · {d.timestamp}
               </div>
               {data.ai_engine === 'fallback' &&
                 <div style={{fontSize:11,color:'#fbbf24',fontFamily:'var(--mono)',marginTop:6}}>
@@ -1584,7 +1607,7 @@ function App() {
       <div className="trust-mini">
         <span>🔒 No login required · no tracking cookies</span>
         <span>•</span>
-        <span>📊 Index updated every 5 min</span>
+        <span>📊 Signals refresh continuously · one official reading captured daily</span>
         <span>•</span>
         <span>🤖 AI sentiment analysis</span>
       </div>
