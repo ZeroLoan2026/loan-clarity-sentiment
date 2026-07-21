@@ -861,7 +861,7 @@ async def fetch_cfpb_complaints() -> dict:
                 "count": annualized, "count_90d": count90, "score": cfpb_score(annualized),
                 "as_of": "GitHub daily refresh (trailing 90d, annualized)",
                 "source_url": CFPB_SOURCE_URL, "live": True,
-                "trend_pct": "+36% YoY", "status": "Record high",
+                "trend_pct": "live 90-day count", "status": "Live",
             }
         print(f"[CFPB] live unavailable ({e}) — using sourced Ombudsman figure")
         return {
