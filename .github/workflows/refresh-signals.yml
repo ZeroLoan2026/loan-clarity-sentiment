@@ -11,6 +11,10 @@ on:
   schedule:
     - cron: "17 8 * * *"   # 08:17 UTC daily (early-morning US, before traffic)
   workflow_dispatch: {}     # manual "Run workflow" button
+  push:                     # re-run automatically when the fetcher itself changes
+    paths:
+      - "scripts/refresh_signals.py"
+      - ".github/workflows/refresh-signals.yml"
 
 permissions:
   contents: write           # allow the job to commit signals_live.json
@@ -33,7 +37,9 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: pip install "httpx>=0.27,<0.29" "pytrends>=4.9,<4.11"
+        # Pin urllib3<2 — pytrends 4.9 passes the removed `method_whitelist`
+        # kwarg, which crashes on urllib3>=2.
+        run: pip install "httpx>=0.27,<0.29" "pytrends>=4.9,<4.11" "urllib3<2"
 
       - name: Fetch signals
         run: python scripts/refresh_signals.py

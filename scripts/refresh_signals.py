@@ -33,6 +33,30 @@ def _now_iso() -> str:
     return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+def _extract_cfpb_count(data) -> "int | None":
+    """Pull the total match count from any known CFPB response shape.
+
+    The API has returned several shapes over time: Elasticsearch-style
+    {"hits": {"total": {"value": N}}}, the older {"hits": {"total": N}},
+    a top-level {"_meta": {"total_record_count": N}}, or a bare list of hits.
+    """
+    if isinstance(data, list):
+        return len(data)  # bare hit array (rare) — count what we got
+    if not isinstance(data, dict):
+        return None
+    meta = data.get("_meta")
+    if isinstance(meta, dict) and isinstance(meta.get("total_record_count"), int):
+        return meta["total_record_count"]
+    hits = data.get("hits")
+    if isinstance(hits, dict):
+        total = hits.get("total")
+        if isinstance(total, dict) and isinstance(total.get("value"), int):
+            return total["value"]
+        if isinstance(total, int):
+            return total
+    return None
+
+
 def fetch_cfpb() -> dict:
     """Trailing-90-day student-loan complaint count from the CFPB public API."""
     cutoff = (datetime.now(UTC) - timedelta(days=90)).strftime("%Y-%m-%d")
@@ -47,8 +71,11 @@ def fetch_cfpb() -> dict:
             )
         if r.status_code != 200 or not r.content:
             return {"ok": False, "error": f"HTTP {r.status_code}"}
-        total = r.json().get("hits", {}).get("total", {})
-        count90 = total.get("value", 0) if isinstance(total, dict) else int(total or 0)
+        data = r.json()
+        count90 = _extract_cfpb_count(data)
+        if count90 is None:
+            # Surface the actual shape so we can adapt without guessing.
+            return {"ok": False, "error": f"unrecognized shape: {str(data)[:220]}"}
         if count90 <= 0:
             return {"ok": False, "error": "zero count"}
         return {"ok": True, "count_90d": int(count90)}
@@ -67,9 +94,11 @@ def _pytrends_avg(term: str, timeframe: str, attempts: int = 4) -> dict:
     for i in range(attempts):
         try:
             from pytrends.request import TrendReq
+            # NB: do not pass retries/backoff_factor here — pytrends builds a
+            # urllib3 Retry with the removed `method_whitelist` kwarg, which
+            # crashes on urllib3>=2. Our own retry loop below handles retries.
             pt = TrendReq(
                 hl="en-US", tz=360, timeout=(10, 30),
-                retries=2, backoff_factor=0.5,
                 requests_args={"headers": {
                     "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                                    "AppleWebKit/537.36 (KHTML, like Gecko) "
