@@ -1,0 +1,51 @@
+name: Refresh live signals
+
+# Fetches the three cloud-IP-blocked index signals (CFPB complaints, Google
+# search-panic, refinance demand) from GitHub's servers — which are not blocked
+# like Railway's are — and commits the values to signals_live.json. The app
+# reads that file and serves it as the freshest value for those signals.
+#
+# The commit triggers Railway's auto-deploy, so the live site refreshes too.
+
+on:
+  schedule:
+    - cron: "17 8 * * *"   # 08:17 UTC daily (early-morning US, before traffic)
+  workflow_dispatch: {}     # manual "Run workflow" button
+
+permissions:
+  contents: write           # allow the job to commit signals_live.json
+
+concurrency:
+  group: refresh-signals
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install "httpx>=0.27,<0.29" "pytrends>=4.9,<4.11"
+
+      - name: Fetch signals
+        run: python scripts/refresh_signals.py
+
+      - name: Commit updated signals
+        run: |
+          git config user.name  "loan-clarity-bot"
+          git config user.email "actions@github.com"
+          if git diff --quiet -- signals_live.json; then
+            echo "No change in signals_live.json — nothing to commit."
+          else
+            git add signals_live.json
+            git commit -m "chore: refresh live signals ($(date -u +%Y-%m-%d))"
+            git push
+          fi

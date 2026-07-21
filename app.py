@@ -14,7 +14,7 @@ import os
 import random
 import statistics
 import xml.etree.ElementTree as ET
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -789,6 +789,35 @@ async def _fetch_reddit_rss() -> list[dict]:
         return []
 
 
+# ── GitHub-Actions-refreshed signals ─────────────────────────────────────────
+# Railway's cloud IP is blocked by the CFPB WAF (403) and Google Trends (429),
+# so a daily GitHub Action fetches those signals from an unblocked IP and commits
+# signals_live.json to the repo. It deploys alongside the code and is read here
+# as the freshest source when the in-process live fetch is blocked.
+_SIGNALS_LIVE_FILE = Path(__file__).parent / "signals_live.json"
+_SIGNALS_LIVE_MAX_AGE_H = 72  # treat values older than 3 days as stale
+
+def _read_live_signal(key: str) -> Optional[dict]:
+    """Return the GitHub-fetched value for `key` if present, ok, and fresh."""
+    try:
+        raw = json.loads(_SIGNALS_LIVE_FILE.read_text(encoding="utf-8"))
+    except (FileNotFoundError, json.JSONDecodeError, OSError):
+        return None
+    sig = raw.get(key)
+    if not isinstance(sig, dict) or not sig.get("ok"):
+        return None
+    gen = raw.get("generated_at", "")
+    try:
+        age_h = (datetime.now(timezone.utc)
+                 - datetime.strptime(gen, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+                 ).total_seconds() / 3600
+        if age_h > _SIGNALS_LIVE_MAX_AGE_H:
+            return None
+    except (ValueError, TypeError):
+        return None
+    return sig
+
+
 async def fetch_cfpb_complaints() -> dict:
     """Fetch real student-loan complaint counts from CFPB's public API."""
     try:
@@ -821,7 +850,19 @@ async def fetch_cfpb_complaints() -> dict:
                 "live": True, "trend_pct": "+36% YoY", "status": "Record high",
             }
     except Exception as e:
-        # Expected on cloud IPs (CFPB WAF returns 403). Use the published figure.
+        # Expected on Railway's cloud IP (CFPB WAF returns 403). Prefer the
+        # GitHub-Actions-refreshed count before the static Ombudsman figure.
+        gh = _read_live_signal("cfpb")
+        if gh and gh.get("count_90d", 0) > 0:
+            count90 = int(gh["count_90d"])
+            annualized = count90 * 4
+            print(f"[CFPB] GitHub-refreshed {count90:,}/90d → score {cfpb_score(annualized)}")
+            return {
+                "count": annualized, "count_90d": count90, "score": cfpb_score(annualized),
+                "as_of": "GitHub daily refresh (trailing 90d, annualized)",
+                "source_url": CFPB_SOURCE_URL, "live": True,
+                "trend_pct": "+36% YoY", "status": "Record high",
+            }
         print(f"[CFPB] live unavailable ({e}) — using sourced Ombudsman figure")
         return {
             "count": CFPB_COMPLAINTS_ANNUAL, "count_90d": CFPB_COMPLAINTS_ANNUAL,
@@ -847,8 +888,13 @@ async def fetch_google_trends_score() -> dict:
         return result
     except Exception as e:
         print(f"[GoogleTrends] error: {e}")
-        # Hold last-known-good real value instead of snapping to a constant —
-        # flip-flopping between real and constant injected ±7 pts of noise.
+        # Prefer the GitHub-Actions-refreshed value (Railway's IP gets 429'd).
+        gh = _read_live_signal("google_trends")
+        if gh and gh.get("raw_index") is not None:
+            raw = int(gh["raw_index"])
+            return {"raw_index": raw, "score": max(5, min(95, raw)),
+                    "terms": ["can't pay student loans"], "live": True}
+        # Otherwise hold last-known-good real value instead of a constant.
         last = _load_state("trends_google.json")
         if last.get("score") is not None:
             return {"raw_index": last["raw_index"], "score": last["score"],
@@ -876,6 +922,11 @@ async def fetch_refinance_demand() -> dict:
         return result
     except Exception as e:
         print(f"[Refinance] trends error: {e}")
+        # Prefer the GitHub-Actions-refreshed value (Railway's IP gets 429'd).
+        gh = _read_live_signal("refinance")
+        if gh and gh.get("raw_index") is not None:
+            raw = int(gh["raw_index"])
+            return {"raw_index": raw, "score": max(5, min(95, raw)), "live": True}
         last = _load_state("trends_refinance.json")
         if last.get("score") is not None:
             return {"raw_index": last["raw_index"], "score": last["score"], "live": False}

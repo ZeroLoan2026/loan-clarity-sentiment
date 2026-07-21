@@ -1,0 +1,8 @@
+{
+  "generated_at": "1970-01-01T00:00:00Z",
+  "source": "initial-placeholder",
+  "note": "Populated daily by .github/workflows/refresh-signals.yml. Until the first successful run, every signal is ok:false so the app ignores this file and uses its existing sources.",
+  "cfpb": {"ok": false},
+  "google_trends": {"ok": false},
+  "refinance": {"ok": false}
+}
