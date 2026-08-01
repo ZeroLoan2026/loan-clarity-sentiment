@@ -1,20 +1,18 @@
 {
-  "generated_at": "2026-07-31T11:04:32Z",
+  "generated_at": "2026-08-01T10:12:38Z",
   "source": "github-actions",
   "cfpb": {
     "ok": true,
-    "count_90d": 4313
+    "count_90d": 4457
   },
   "google_trends": {
     "ok": true,
-    "raw_index": 55,
-    "attempts": 4,
-    "stale": true,
-    "last_error": "TooManyRequestsError: The request failed: Google returned a response with code 429"
+    "raw_index": 68,
+    "attempts": 1
   },
   "refinance": {
     "ok": true,
     "raw_index": 44,
-    "attempts": 3
+    "attempts": 1
   }
 }
