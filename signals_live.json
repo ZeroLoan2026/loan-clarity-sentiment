@@ -1,18 +1,22 @@
 {
-  "generated_at": "2026-08-01T10:12:38Z",
+  "generated_at": "2026-08-02T10:13:59Z",
   "source": "github-actions",
   "cfpb": {
     "ok": true,
-    "count_90d": 4457
+    "count_90d": 4457,
+    "stale": true,
+    "last_error": "ReadTimeout: The read operation timed out"
   },
   "google_trends": {
     "ok": true,
-    "raw_index": 68,
+    "raw_index": 33,
     "attempts": 1
   },
   "refinance": {
     "ok": true,
     "raw_index": 44,
-    "attempts": 1
+    "attempts": 1,
+    "stale": true,
+    "last_error": "TooManyRequestsError: The request failed: Google returned a response with code 429"
   }
 }
