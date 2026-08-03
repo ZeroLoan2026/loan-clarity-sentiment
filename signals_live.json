@@ -1,16 +1,14 @@
 {
-  "generated_at": "2026-08-02T10:13:59Z",
+  "generated_at": "2026-08-03T11:52:37Z",
   "source": "github-actions",
   "cfpb": {
     "ok": true,
-    "count_90d": 4457,
-    "stale": true,
-    "last_error": "ReadTimeout: The read operation timed out"
+    "count_90d": 4393
   },
   "google_trends": {
     "ok": true,
-    "raw_index": 33,
-    "attempts": 1
+    "raw_index": 39,
+    "attempts": 4
   },
   "refinance": {
     "ok": true,
