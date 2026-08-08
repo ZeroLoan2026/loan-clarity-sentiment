@@ -1,18 +1,20 @@
 {
-  "generated_at": "2026-08-07T09:20:29Z",
+  "generated_at": "2026-08-08T09:04:15Z",
   "source": "github-actions",
   "cfpb": {
     "ok": true,
-    "count_90d": 4271
+    "count_90d": 4271,
+    "stale": true,
+    "last_error": "HTTP 404"
   },
   "google_trends": {
     "ok": true,
-    "raw_index": 9,
-    "attempts": 2
+    "raw_index": 50,
+    "attempts": 1
   },
   "refinance": {
     "ok": true,
-    "raw_index": 34,
-    "attempts": 4
+    "raw_index": 29,
+    "attempts": 1
   }
 }
