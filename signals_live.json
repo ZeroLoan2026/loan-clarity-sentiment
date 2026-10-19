@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-18T12:38:58Z",
+  "generated_at": "2026-10-19T15:41:55Z",
   "source": "github-actions",
   "cfpb": {
     "ok": true,
@@ -9,12 +9,12 @@
   },
   "google_trends": {
     "ok": true,
-    "raw_index": 47,
+    "raw_index": 50,
     "attempts": 1
   },
   "refinance": {
     "ok": true,
-    "raw_index": 24,
+    "raw_index": 21,
     "attempts": 1
   }
 }
